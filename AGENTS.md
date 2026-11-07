@@ -51,7 +51,9 @@ build.rs                 embeds themes/*.toml and characters/<id>/* into the bin
 themes/*.toml            built-in themes, one file each
 characters/<id>/         built-in character packs (idle/focus/short_break/long_break .svg + character.toml)
 assets/fonts/            Lilita One (display font for the cozy layout) + its OFL license
-tools/gen_axolotl.py     generates characters/axolotl/*.svg — edit this, not the SVGs
+tools/gen_axolotl.py     generates characters/axolotl/*.svg — edit this, not the SVGs (shared helpers live here)
+tools/gen_tomato.py      generates characters/tomato/*.svg
+tools/gen_capybara.py    generates characters/capybara/*.svg
 tools/gen_icon.py        generates assets/icon.{svg,png,ico,icns} from the axolotl head
 packaging/               installer sources (Inno Setup .iss, Linux .desktop, macOS Info.plist)
 .github/workflows/       ci.yml (fmt/clippy/test), release.yml (installers on v* tags)
@@ -171,9 +173,12 @@ pads itself. The display font family is `cozy_view::DISPLAY_FONT`
 Create `characters/<id>/` with at least `idle.svg` (+ optional poses and `character.toml` with `name`).
 `build.rs` embeds it automatically. Preview: `cargo run --example svg_preview -- out.png f6ecdf 2 characters/<id>/*.svg`.
 
-### Tweak the axolotl
-Edit `tools/gen_axolotl.py`, run `python tools/gen_axolotl.py characters/axolotl`, preview with the example
-on a light (`f6ecdf`) and a dark (`191724`) background.
+### Tweak a built-in character
+Built-ins: `axolotl` (default), `tomato`, `capybara`. Edit `tools/gen_<name>.py`, run
+`python tools/gen_<name>.py characters/<id>`, preview with the example on a light (`f6ecdf`) and a dark
+(`191724`) background. New generators should import the shared helpers (`svg`, `shadow`, `steam`, `z`,
+`star`, `heart`, color sentinels) from `gen_axolotl.py` so all characters share one style: 200×160 canvas,
+`#3b2a2a` outlines at 3.5 px, ground shadow at y≈142, faces readable (don't cover them with props).
 
 ### Add a tray menu item
 Add a `Command` variant, a `MenuItem::with_id("<id>", …)` in `Tray::new`, map the id in the `MenuEvent`

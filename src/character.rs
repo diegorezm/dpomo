@@ -232,19 +232,39 @@ mod tests {
     fn builtin_characters_have_every_pose_and_render() {
         let chars = Characters::load();
         assert!(chars.errors.is_empty(), "{:?}", chars.errors);
-        let axolotl = chars.get(DEFAULT_ID).expect("default character");
-        for pose in Pose::ALL {
-            let svg = axolotl.svg(pose, Color32::RED, Color32::GRAY);
-            assert!(!svg.contains(ACCENT_SENTINEL) && !svg.contains(INK_SENTINEL));
-            let size = egui::SizeHint::Size {
-                width: 200,
-                height: 160,
-                maintain_aspect_ratio: true,
-            };
-            egui_extras::image::load_svg_bytes_with_size(svg.as_bytes(), size, &Default::default())
-                .unwrap_or_else(|e| panic!("{pose:?}: {e}"));
+        assert_eq!(
+            chars.get(DEFAULT_ID).map(|c| c.name.as_str()),
+            Some("Axolote")
+        );
+        for (id, files) in builtin::BUILTIN {
+            for pose in Pose::ALL {
+                assert!(
+                    files.iter().any(|(name, _)| *name == pose.file_name()),
+                    "{id} is missing {}",
+                    pose.file_name()
+                );
+            }
         }
-        assert_eq!(axolotl.name, "Axolote");
+        for character in chars
+            .iter()
+            .filter(|c| builtin::BUILTIN.iter().any(|(id, _)| *id == c.id))
+        {
+            for pose in Pose::ALL {
+                let svg = character.svg(pose, Color32::RED, Color32::GRAY);
+                assert!(!svg.contains(ACCENT_SENTINEL) && !svg.contains(INK_SENTINEL));
+                let size = egui::SizeHint::Size {
+                    width: 200,
+                    height: 160,
+                    maintain_aspect_ratio: true,
+                };
+                egui_extras::image::load_svg_bytes_with_size(
+                    svg.as_bytes(),
+                    size,
+                    &Default::default(),
+                )
+                .unwrap_or_else(|e| panic!("{} {pose:?}: {e}", character.id));
+            }
+        }
     }
 
     #[test]

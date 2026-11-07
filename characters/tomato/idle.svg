@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 160" width="200" height="160">
+  <!-- dpomo character. #e05a4f becomes the phase color and #7a6464 the theme's muted text color. -->
+  <ellipse cx="100" cy="142" rx="44" ry="6" fill="#3b2a2a" opacity="0.12"/>
+  <ellipse cx="86" cy="138" rx="9" ry="5" fill="#d9483a" stroke="#3b2a2a" stroke-width="3.5"/>
+  <ellipse cx="114" cy="138" rx="9" ry="5" fill="#d9483a" stroke="#3b2a2a" stroke-width="3.5"/>
+  <path d="M134,104 Q146,96 148,84" fill="none" stroke="#3b2a2a" stroke-width="12" stroke-linecap="round"/>
+  <path d="M134,104 Q146,96 148,84" fill="none" stroke="#ef5d4c" stroke-width="5.5" stroke-linecap="round"/>
+  <ellipse cx="149" cy="82" rx="6.5" ry="6" fill="#ef5d4c" stroke="#3b2a2a" stroke-width="3.5"/>
+  <g fill="none" stroke="#7a6464" stroke-width="2.4" stroke-linecap="round" opacity="0.8"><path d="M160,76 q5,6 2,13"/><path d="M167,71 q8,9 3,20"/></g>
+  <ellipse cx="100" cy="100" rx="40" ry="34" fill="#ef5d4c" stroke="#3b2a2a" stroke-width="3.5"/>
+  <ellipse cx="82" cy="84" rx="10" ry="5" fill="#ffffff" opacity="0.45" transform="rotate(-20 82 84)"/>
+  <polygon points="100.0,61.6 103.5,68.3 116.2,68.1 105.7,72.0 110.0,78.6 100.0,74.3 90.0,78.6 94.3,72.0 83.8,68.1 96.5,68.3" fill="#6cbf5b" stroke="#3b2a2a" stroke-width="3" stroke-linejoin="round"/>
+  <rect x="97.2" y="57" width="5.6" height="12" rx="2.5" fill="#4f9a44" stroke="#3b2a2a" stroke-width="2.6"/>
+  <ellipse cx="81" cy="111" rx="5.5" ry="3.2" fill="#ff9a8a" opacity="0.9"/>
+  <ellipse cx="119" cy="111" rx="5.5" ry="3.2" fill="#ff9a8a" opacity="0.9"/>
+  <circle cx="87" cy="103" r="3.8" fill="#3b2a2a"/>
+  <circle cx="88.3" cy="101.6" r="1.3" fill="#ffffff"/>
+  <circle cx="113" cy="103" r="3.8" fill="#3b2a2a"/>
+  <circle cx="114.3" cy="101.6" r="1.3" fill="#ffffff"/>
+  <path d="M95,112 Q100,117 105,112" fill="none" stroke="#3b2a2a" stroke-width="2.4" stroke-linecap="round"/>
+  <ellipse cx="62" cy="112" rx="7" ry="5.5" fill="#ef5d4c" stroke="#3b2a2a" stroke-width="3.5"/>
+  <path d="M40,39 Q40.798,45.202 47,46 Q40.798,46.798 40,53 Q39.202,46.798 33,46 Q39.202,45.202 40,39 Z" fill="#e05a4f" stroke="#3b2a2a" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M28,60 Q28.456,63.544 32,64 Q28.456,64.456 28,68 Q27.544,64.456 24,64 Q27.544,63.544 28,60 Z" fill="#e05a4f" stroke="#3b2a2a" stroke-width="2" stroke-linejoin="round"/>
+</svg>

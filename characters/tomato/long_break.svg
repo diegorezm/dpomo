@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 160" width="200" height="160">
+  <!-- dpomo character. #e05a4f becomes the phase color and #7a6464 the theme's muted text color. -->
+  <ellipse cx="100" cy="144" rx="56" ry="6" fill="#3b2a2a" opacity="0.12"/>
+  <ellipse cx="100" cy="72" rx="38" ry="32" fill="#ef5d4c" stroke="#3b2a2a" stroke-width="3.5"/>
+  <ellipse cx="82" cy="56" rx="10" ry="5" fill="#ffffff" opacity="0.45" transform="rotate(-20 82 56)"/>
+  <polygon points="100.0,35.6 103.5,42.3 116.2,42.1 105.7,46.0 110.0,52.6 100.0,48.3 90.0,52.6 94.3,46.0 83.8,42.1 96.5,42.3" fill="#6cbf5b" stroke="#3b2a2a" stroke-width="3" stroke-linejoin="round"/>
+  <rect x="97.2" y="31" width="5.6" height="12" rx="2.5" fill="#4f9a44" stroke="#3b2a2a" stroke-width="2.6"/>
+  <ellipse cx="81" cy="83" rx="5.5" ry="3.2" fill="#ff9a8a" opacity="0.9"/>
+  <ellipse cx="119" cy="83" rx="5.5" ry="3.2" fill="#ff9a8a" opacity="0.9"/>
+  <path d="M82.5,74 Q87,79 91.5,74" fill="none" stroke="#3b2a2a" stroke-width="2.8" stroke-linecap="round"/>
+  <path d="M108.5,74 Q113,79 117.5,74" fill="none" stroke="#3b2a2a" stroke-width="2.8" stroke-linecap="round"/>
+  <ellipse cx="100" cy="85" rx="2.2" ry="2.6" fill="#3b2a2a"/>
+  <path d="M50,104 Q60,96 70,104 Q80,94 92,104" fill="#6cbf5b" stroke="#3b2a2a" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M108,104 Q120,94 130,104 Q140,96 150,104" fill="#6cbf5b" stroke="#3b2a2a" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M42,104 L158,104 Q156,142 100,142 Q44,142 42,104 Z" fill="#e05a4f" stroke="#3b2a2a" stroke-width="3.5" stroke-linejoin="round"/>
+  <path d="M58,118 Q100,128 142,118" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.4" stroke-linecap="round"/>
+  <path transform="translate(140 56) scale(0.8)" d="M0,0 H10 L0,12 H10" fill="none" stroke="#7a6464" stroke-width="3.75" stroke-linecap="round" stroke-linejoin="round"/>
+  <path transform="translate(156 36) scale(1.05)" d="M0,0 H10 L0,12 H10" fill="none" stroke="#7a6464" stroke-width="2.857142857142857" stroke-linecap="round" stroke-linejoin="round"/>
+  <path transform="translate(174 12) scale(1.35)" d="M0,0 H10 L0,12 H10" fill="none" stroke="#7a6464" stroke-width="2.222222222222222" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

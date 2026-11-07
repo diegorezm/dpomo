@@ -148,8 +148,9 @@ Prefere escolher as cores clicando? Selecione **Personalizado**, ajuste as cores
 
 ### Criar seu próprio personagem 🦎
 
-O axolote acena quando está parado, trabalha no notebook durante o foco, toma um chá na pausa curta
-e dorme na pausa longa. Quer outro bichinho? Crie uma pasta em `characters`, ao lado do `config.toml`
+Vêm três personagens: o **axolote** 🦎, o **tomate** 🍅 e a **capivara** 🦫 (escolha em *Ajustes → Aparência*).
+Cada um tem 4 poses: acena quando está parado, trabalha durante o foco, relaxa na pausa curta e dorme na
+pausa longa. Quer outro bichinho? Crie uma pasta em `characters`, ao lado do `config.toml`
 (ex.: `%APPDATA%\dpomo\characters\gato\`), com estes arquivos SVG:
 
 | Arquivo | Quando aparece |

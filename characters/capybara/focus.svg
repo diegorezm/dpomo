@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 160" width="200" height="160">
+  <!-- dpomo character. #e05a4f becomes the phase color and #7a6464 the theme's muted text color. -->
+  <ellipse cx="100" cy="142" rx="56" ry="6" fill="#3b2a2a" opacity="0.12"/>
+  <ellipse cx="100" cy="120" rx="48" ry="23" fill="#c08a5b" stroke="#3b2a2a" stroke-width="3.5"/>
+  <ellipse cx="74" cy="140" rx="9" ry="5" fill="#a06f45" stroke="#3b2a2a" stroke-width="3.5"/>
+  <ellipse cx="126" cy="140" rx="9" ry="5" fill="#a06f45" stroke="#3b2a2a" stroke-width="3.5"/>
+  <ellipse cx="75" cy="47" rx="6" ry="5" fill="#a06f45" stroke="#3b2a2a" stroke-width="3"/>
+  <ellipse cx="125" cy="47" rx="6" ry="5" fill="#a06f45" stroke="#3b2a2a" stroke-width="3"/>
+  <rect x="63" y="44" width="74" height="52" rx="21" fill="#c08a5b" stroke="#3b2a2a" stroke-width="3.5"/>
+  <ellipse cx="86" cy="53" rx="9" ry="3.5" fill="#ffffff" opacity="0.3"/>
+  <rect x="75" y="69" width="50" height="25" rx="12" fill="#d7aa7f" stroke="#3b2a2a" stroke-width="2.6"/>
+  <rect x="90" y="72" width="20" height="9" rx="4.5" fill="#5b3b2a"/>
+  <path d="M100,81 L100,85 M95,85 Q97.5,88 100,85 Q102.5,88 105,85" fill="none" stroke="#3b2a2a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <ellipse cx="71" cy="73" rx="4.5" ry="3" fill="#ec9a86" opacity="0.85"/>
+  <ellipse cx="129" cy="73" rx="4.5" ry="3" fill="#ec9a86" opacity="0.85"/>
+  <circle cx="82" cy="62" r="3.2" fill="#3b2a2a"/>
+  <circle cx="118" cy="62" r="3.2" fill="#3b2a2a"/>
+  <g fill="#ffffff" fill-opacity="0.25" stroke="#3b2a2a" stroke-width="2.6"><circle cx="82" cy="61" r="8.5"/><circle cx="118" cy="61" r="8.5"/></g>
+  <path d="M90.5,60 Q100,57 109.5,60" fill="none" stroke="#3b2a2a" stroke-width="2.6"/>
+  <rect x="72" y="100" width="56" height="36" rx="3" fill="#e05a4f" stroke="#3b2a2a" stroke-width="3.5"/>
+  <path d="M100,100 L100,136" stroke="#3b2a2a" stroke-width="2.6"/>
+  <path d="M80,112 L94,112 M80,119 L91,119 M106,112 L120,112 M106,119 L117,119" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" opacity="0.6"/>
+  <ellipse cx="72" cy="118" rx="7" ry="5.5" fill="#a06f45" stroke="#3b2a2a" stroke-width="3.5"/>
+  <ellipse cx="128" cy="118" rx="7" ry="5.5" fill="#a06f45" stroke="#3b2a2a" stroke-width="3.5"/>
+  <path d="M168,116 q9,0 9,6.5 q0,6.5 -9,6.5" fill="none" stroke="#3b2a2a" stroke-width="3.5"/>
+  <rect x="150" y="110" width="19" height="22" rx="4" fill="#e05a4f" stroke="#3b2a2a" stroke-width="3.5"/>
+  <g fill="none" stroke="#7a6464" stroke-width="2.4" stroke-linecap="round" opacity="0.7"><path d="M156,104 q-4,-5 0,-10 q4,-5 0,-10"/><path d="M164,106 q-4,-5 0,-10 q4,-5 0,-10"/></g>
+</svg>

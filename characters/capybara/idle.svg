@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 160" width="200" height="160">
+  <!-- dpomo character. #e05a4f becomes the phase color and #7a6464 the theme's muted text color. -->
+  <ellipse cx="100" cy="142" rx="56" ry="6" fill="#3b2a2a" opacity="0.12"/>
+  <ellipse cx="100" cy="120" rx="48" ry="23" fill="#c08a5b" stroke="#3b2a2a" stroke-width="3.5"/>
+  <ellipse cx="74" cy="140" rx="9" ry="5" fill="#a06f45" stroke="#3b2a2a" stroke-width="3.5"/>
+  <ellipse cx="126" cy="140" rx="9" ry="5" fill="#a06f45" stroke="#3b2a2a" stroke-width="3.5"/>
+  <ellipse cx="75" cy="51" rx="6" ry="5" fill="#a06f45" stroke="#3b2a2a" stroke-width="3"/>
+  <ellipse cx="125" cy="51" rx="6" ry="5" fill="#a06f45" stroke="#3b2a2a" stroke-width="3"/>
+  <rect x="63" y="48" width="74" height="52" rx="21" fill="#c08a5b" stroke="#3b2a2a" stroke-width="3.5"/>
+  <ellipse cx="86" cy="57" rx="9" ry="3.5" fill="#ffffff" opacity="0.3"/>
+  <rect x="75" y="73" width="50" height="25" rx="12" fill="#d7aa7f" stroke="#3b2a2a" stroke-width="2.6"/>
+  <rect x="90" y="76" width="20" height="9" rx="4.5" fill="#5b3b2a"/>
+  <path d="M100,85 L100,89 M95,89 Q97.5,92 100,89 Q102.5,92 105,89" fill="none" stroke="#3b2a2a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <ellipse cx="71" cy="77" rx="4.5" ry="3" fill="#ec9a86" opacity="0.85"/>
+  <ellipse cx="129" cy="77" rx="4.5" ry="3" fill="#ec9a86" opacity="0.85"/>
+  <path d="M77.5,64 L86.5,64" stroke="#3b2a2a" stroke-width="2.8" stroke-linecap="round"/>
+  <path d="M113.5,64 L122.5,64" stroke="#3b2a2a" stroke-width="2.8" stroke-linecap="round"/>
+  <path d="M40,37 Q40.798,43.202 47,44 Q40.798,44.798 40,51 Q39.202,44.798 33,44 Q39.202,43.202 40,37 Z" fill="#e05a4f" stroke="#3b2a2a" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M28,58 Q28.456,61.544 32,62 Q28.456,62.456 28,66 Q27.544,62.456 24,62 Q27.544,61.544 28,58 Z" fill="#e05a4f" stroke="#3b2a2a" stroke-width="2" stroke-linejoin="round"/>
+</svg>

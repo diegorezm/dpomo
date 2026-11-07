@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 160" width="200" height="160">
+  <!-- dpomo character. #e05a4f becomes the phase color and #7a6464 the theme's muted text color. -->
+  <ellipse cx="110" cy="142" rx="60" ry="6" fill="#3b2a2a" opacity="0.12"/>
+  <ellipse cx="74" cy="138" rx="9" ry="5" fill="#d9483a" stroke="#3b2a2a" stroke-width="3.5"/>
+  <ellipse cx="102" cy="138" rx="9" ry="5" fill="#d9483a" stroke="#3b2a2a" stroke-width="3.5"/>
+  <ellipse cx="88" cy="100" rx="40" ry="34" fill="#ef5d4c" stroke="#3b2a2a" stroke-width="3.5"/>
+  <ellipse cx="70" cy="84" rx="10" ry="5" fill="#ffffff" opacity="0.45" transform="rotate(-20 70 84)"/>
+  <polygon points="88.0,61.6 91.5,68.3 104.2,68.1 93.7,72.0 98.0,78.6 88.0,74.3 78.0,78.6 82.3,72.0 71.8,68.1 84.5,68.3" fill="#6cbf5b" stroke="#3b2a2a" stroke-width="3" stroke-linejoin="round"/>
+  <rect x="85.2" y="57" width="5.6" height="12" rx="2.5" fill="#4f9a44" stroke="#3b2a2a" stroke-width="2.6"/>
+  <ellipse cx="69" cy="111" rx="5.5" ry="3.2" fill="#ff9a8a" opacity="0.9"/>
+  <ellipse cx="107" cy="111" rx="5.5" ry="3.2" fill="#ff9a8a" opacity="0.9"/>
+  <path d="M70.5,105 Q75,99 79.5,105" fill="none" stroke="#3b2a2a" stroke-width="2.8" stroke-linecap="round"/>
+  <path d="M96.5,105 Q101,99 105.5,105" fill="none" stroke="#3b2a2a" stroke-width="2.8" stroke-linecap="round"/>
+  <path d="M83,112 Q88,117 93,112" fill="none" stroke="#3b2a2a" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M150,90 L160,70 L168,72" fill="none" stroke="#3b2a2a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M150,90 L160,70 L168,72" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M136,94 L139,130 Q139,134 143,134 L157,134 Q161,134 161,130 L164,94 Z" fill="#eef6fb" stroke="#3b2a2a" stroke-width="3.5" stroke-linejoin="round"/>
+  <path d="M138,106 L162,106 L160,130 Q160,132 157,132 L143,132 Q141,132 141,130 Z" fill="#e05a4f"/>
+  <circle cx="160" cy="96" r="7" fill="#ffd36b" stroke="#3b2a2a" stroke-width="2.6"/>
+  <ellipse cx="133" cy="116" rx="6.5" ry="5.5" fill="#ef5d4c" stroke="#3b2a2a" stroke-width="3.5"/>
+  <ellipse cx="167" cy="116" rx="6.5" ry="5.5" fill="#ef5d4c" stroke="#3b2a2a" stroke-width="3.5"/>
+</svg>

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 160" width="200" height="160">
+  <!-- dpomo character. #e05a4f becomes the phase color and #7a6464 the theme's muted text color. -->
+  <ellipse cx="100" cy="142" rx="56" ry="6" fill="#3b2a2a" opacity="0.12"/>
+  <ellipse cx="100" cy="120" rx="48" ry="23" fill="#c08a5b" stroke="#3b2a2a" stroke-width="3.5"/>
+  <ellipse cx="74" cy="140" rx="9" ry="5" fill="#a06f45" stroke="#3b2a2a" stroke-width="3.5"/>
+  <ellipse cx="126" cy="140" rx="9" ry="5" fill="#a06f45" stroke="#3b2a2a" stroke-width="3.5"/>
+  <ellipse cx="75" cy="55" rx="6" ry="5" fill="#a06f45" stroke="#3b2a2a" stroke-width="3"/>
+  <ellipse cx="125" cy="55" rx="6" ry="5" fill="#a06f45" stroke="#3b2a2a" stroke-width="3"/>
+  <rect x="63" y="52" width="74" height="52" rx="21" fill="#c08a5b" stroke="#3b2a2a" stroke-width="3.5"/>
+  <ellipse cx="86" cy="61" rx="9" ry="3.5" fill="#ffffff" opacity="0.3"/>
+  <rect x="75" y="77" width="50" height="25" rx="12" fill="#d7aa7f" stroke="#3b2a2a" stroke-width="2.6"/>
+  <rect x="90" y="80" width="20" height="9" rx="4.5" fill="#5b3b2a"/>
+  <path d="M100,89 L100,93 M95,93 Q97.5,96 100,93 Q102.5,96 105,93" fill="none" stroke="#3b2a2a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <ellipse cx="71" cy="81" rx="4.5" ry="3" fill="#ec9a86" opacity="0.85"/>
+  <ellipse cx="129" cy="81" rx="4.5" ry="3" fill="#ec9a86" opacity="0.85"/>
+  <path d="M77.5,70 Q82,65 86.5,70" fill="none" stroke="#3b2a2a" stroke-width="2.8" stroke-linecap="round"/>
+  <path d="M113.5,70 Q118,65 122.5,70" fill="none" stroke="#3b2a2a" stroke-width="2.8" stroke-linecap="round"/>
+  <circle cx="100" cy="41" r="11" fill="#f6a23c" stroke="#3b2a2a" stroke-width="3"/>
+  <ellipse cx="96.5" cy="37" rx="3.5" ry="2" fill="#ffffff" opacity="0.5"/>
+  <path d="M100,30 q4,-7 10,-5 q-3,6 -10,5 Z" fill="#6cbf5b" stroke="#3b2a2a" stroke-width="2.2" stroke-linejoin="round"/>
+  <path d="M150,42 Q150.684,47.316 156,48 Q150.684,48.684 150,54 Q149.316,48.684 144,48 Q149.316,47.316 150,42 Z" fill="#e05a4f" stroke="#3b2a2a" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M162,62.5 Q162.399,65.601 165.5,66 Q162.399,66.399 162,69.5 Q161.601,66.399 158.5,66 Q161.601,65.601 162,62.5 Z" fill="#e05a4f" stroke="#3b2a2a" stroke-width="2" stroke-linejoin="round"/>
+</svg>
