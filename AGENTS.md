@@ -63,6 +63,7 @@ tools/gen_capybara.py    generates characters/capybara/*.svg
 tools/gen_icon.py        generates assets/icon.{svg,png,ico,icns} from the axolotl head
 packaging/               installer sources (Inno Setup .iss, Linux .desktop, macOS Info.plist)
 packaging/smoke/         smoke tests run by release.yml on the real packages (one script per OS)
+site/                    website (https://diegorezm.github.io/dpomo/), deployed by .github/workflows/pages.yml
 .github/workflows/       ci.yml (fmt/clippy/test), release.yml (installers on v* tags)
 examples/svg_preview.rs  renders SVGs to a PNG grid (check art without running the app)
 src/
@@ -281,6 +282,17 @@ The release job only publishes if every smoke test passes.
     Application .p12), `APPLE_CERTIFICATE_PASSWORD`, `APPLE_ID`, `APPLE_TEAM_ID`, `APPLE_APP_PASSWORD`
     (app-specific password). With them set, the app is signed with hardened runtime and the dmg notarized
     + stapled; without them it stays ad-hoc signed.
+
+## Website
+
+`site/index.html` is one self-contained page (inline CSS/JS, no build tools, no CDN). `site/build.sh`
+copies it plus the app's own art (character SVGs, icon, screenshot, Lilita One) into `_site/`;
+`pages.yml` deploys it on pushes that touch `site/`, `characters/` or `assets/`. English is the HTML
+text (what Google indexes); Portuguese lives in the `PT` object in the script, keyed by `data-i18n`
+(text) / `data-i18n-html` (markup). New characters show up only if added to the `.friends` buttons.
+Keep the "Code signing policy" section and the privacy text in sync with the README (SignPath requires
+both on the download page). Preview: `bash site/build.sh && python -m http.server -d _site`.
+The project has **no budget**: free hosting only, no custom domain.
 
 ## Conventions
 

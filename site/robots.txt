@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://diegorezm.github.io/dpomo/sitemap.xml

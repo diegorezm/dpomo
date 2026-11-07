@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>dpomo — a cozy Pomodoro timer</title>
+<meta name="description" content="dpomo is a free, open source Pomodoro timer for Windows, Linux and macOS with a little companion who works and rests with you. Lightweight, customizable, lives in the system tray.">
+<link rel="canonical" href="https://diegorezm.github.io/dpomo/">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.png">
+<meta name="theme-color" content="#f6ecdf" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#191724" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website">
+<meta property="og:title" content="dpomo — a cozy Pomodoro timer">
+<meta property="og:description" content="Free, open source Pomodoro timer with a little companion. Windows, Linux and macOS.">
+<meta property="og:url" content="https://diegorezm.github.io/dpomo/">
+<meta property="og:image" content="https://diegorezm.github.io/dpomo/screenshot.png">
+<meta name="twitter:card" content="summary_large_image">
+<!-- Google Search Console verification: paste the <meta name="google-site-verification" …> tag here. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "dpomo",
+  "applicationCategory": "ProductivityApplication",
+  "operatingSystem": "Windows, Linux, macOS",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "license": "https://opensource.org/licenses/MIT",
+  "url": "https://diegorezm.github.io/dpomo/",
+  "downloadUrl": "https://github.com/diegorezm/dpomo/releases/latest",
+  "image": "https://diegorezm.github.io/dpomo/screenshot.png"
+}
+</script>
+<style>
+@font-face {
+  font-family: "Lilita One";
+  src: url("LilitaOne-Regular.ttf") format("truetype");
+  font-display: swap;
+}
+:root {
+  --bg: #f6ecdf;
+  --surface: #fffaf3;
+  --card: #efe2d1;
+  --stage: #ebdcc8;
+  --text: #3b2a2a;
+  --muted: #7a6464;
+  --line: #e2d2bd;
+  --accent: #e05a4f;
+  --on-accent: #fffaf3;
+  --focus: #e05a4f;
+  --short: #3f9e8f;
+  --long: #6f63c9;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #191724;
+    --surface: #1f1d2e;
+    --card: #26233a;
+    --stage: #232136;
+    --text: #e0def4;
+    --muted: #908caa;
+    --line: #2f2c45;
+    --accent: #eb6f92;
+    --on-accent: #191724;
+    --focus: #eb6f92;
+    --short: #9ccfd8;
+    --long: #c4a7e7;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #191724; --surface: #1f1d2e; --card: #26233a; --stage: #232136; --text: #e0def4;
+  --muted: #908caa; --line: #2f2c45; --accent: #eb6f92; --on-accent: #191724;
+  --focus: #eb6f92; --short: #9ccfd8; --long: #c4a7e7; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 17px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif;
+}
+a { color: inherit; }
+.display { font-family: "Lilita One", system-ui, sans-serif; font-weight: 400; letter-spacing: .01em; }
+.wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+
+/* top bar */
+.top { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; gap: 12px; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font-size: 26px; }
+.brand img { width: 36px; height: 36px; }
+.top nav { display: flex; gap: 6px; align-items: center; }
+.chip {
+  border: 2px solid var(--line); background: transparent; color: var(--text);
+  border-radius: 999px; padding: 4px 12px; font: inherit; font-size: 14px; cursor: pointer;
+  text-decoration: none; white-space: nowrap;
+}
+.chip:hover { border-color: var(--muted); }
+
+/* hero */
+.hero { display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; align-items: center; padding: 32px 0 56px; }
+.hero h1 { font-size: clamp(40px, 6vw, 64px); line-height: 1.05; margin: 0 0 16px; }
+.hero p.lead { font-size: 20px; color: var(--muted); margin: 0 0 28px; max-width: 30em; }
+.cta { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.btn {
+  display: inline-flex; align-items: center; gap: 10px; text-decoration: none;
+  background: var(--accent); color: var(--on-accent); border-radius: 16px;
+  padding: 14px 22px; font-size: 18px; box-shadow: 0 4px 0 color-mix(in srgb, var(--accent) 60%, #000);
+  transition: transform .08s ease, box-shadow .08s ease;
+}
+.btn:active { transform: translateY(3px); box-shadow: 0 1px 0 color-mix(in srgb, var(--accent) 60%, #000); }
+.btn small { font: 13px system-ui, sans-serif; opacity: .85; }
+.link { color: var(--muted); font-size: 15px; }
+.meta { margin-top: 18px; color: var(--muted); font-size: 14px; }
+
+/* demo card, mirrors the app's cozy layout */
+.demo {
+  background: var(--surface); border-radius: 28px; padding: 22px 22px 26px;
+  box-shadow: 0 1px 0 var(--line), 0 18px 40px -24px rgba(59, 42, 42, .35);
+  text-align: center; max-width: 380px; width: 100%; justify-self: center;
+  --phase: var(--focus);
+}
+.demo[data-phase="short"] { --phase: var(--short); }
+.demo[data-phase="long"] { --phase: var(--long); }
+.tabs { display: flex; justify-content: center; gap: 8px; }
+.tab {
+  font-family: "Lilita One", system-ui, sans-serif; font-size: 15px; cursor: pointer;
+  border: 2px solid var(--muted); color: var(--text); background: transparent;
+  border-radius: 999px; padding: 2px 12px;
+}
+.tab[aria-pressed="true"] { background: var(--phase); border-color: var(--phase); color: var(--surface); }
+.stage {
+  margin: 18px auto 6px; width: 88%; aspect-ratio: 1; border-radius: 50%; background: var(--stage);
+  display: grid; place-items: center;
+}
+.stage img { width: 96%; aspect-ratio: 200 / 160; }
+.time { font-size: 64px; line-height: 1; margin: 8px 0 10px; font-variant-numeric: tabular-nums; }
+.bar { height: 6px; border-radius: 3px; background: var(--card); width: 70%; margin: 0 auto; overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--phase); border-radius: 3px; }
+.controls { display: flex; justify-content: center; gap: 18px; margin-top: 16px; }
+.icon-btn {
+  width: 44px; height: 44px; border-radius: 50%; border: 0; background: transparent; color: var(--text);
+  cursor: pointer; display: grid; place-items: center;
+}
+.icon-btn:hover { background: var(--card); }
+.icon-btn svg { width: 22px; height: 22px; fill: currentColor; }
+.friends { display: flex; justify-content: center; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.friend { padding: 3px; border-radius: 14px; border: 2px solid transparent; background: var(--card); cursor: pointer; }
+.friend[aria-pressed="true"] { border-color: var(--phase); }
+.friend img { width: 56px; height: 45px; display: block; }
+
+/* sections */
+section { padding: 56px 0; }
+section h2 { font-size: clamp(30px, 4vw, 40px); line-height: 1.15; margin: 0 0 8px; }
+section > .wrap > p.sub { color: var(--muted); margin: 0 0 28px; max-width: 40em; }
+.shot { width: 100%; height: auto; border-radius: 20px; display: block; }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.feature { background: var(--surface); border-radius: 20px; padding: 20px 22px; }
+.feature h3 { font-size: 22px; margin: 0 0 6px; }
+.feature p { margin: 0; color: var(--muted); font-size: 16px; }
+.feature .emoji { font-size: 26px; }
+code { background: var(--card); border-radius: 6px; padding: 1px 6px; font-size: .9em; }
+
+.downloads { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.os { background: var(--surface); border-radius: 20px; padding: 22px; display: flex; flex-direction: column; gap: 10px; }
+.os h3 { font-size: 24px; margin: 0; }
+.os .btn { justify-content: center; font-size: 16px; padding: 12px 16px; }
+.os p { margin: 0; color: var(--muted); font-size: 15px; }
+.os .more { font-size: 14px; }
+.badge { font: 12px system-ui, sans-serif; background: var(--card); color: var(--muted); border-radius: 999px; padding: 2px 8px; vertical-align: middle; }
+
+.policy { background: var(--surface); border-radius: 20px; padding: 22px 24px; }
+.policy + .policy { margin-top: 16px; }
+.policy h3 { font-size: 24px; margin: 0 0 8px; }
+.policy p, .policy li { color: var(--muted); font-size: 16px; }
+.policy p:last-child { margin-bottom: 0; }
+
+footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; text-align: center; }
+
+@media (max-width: 860px) {
+  .hero { grid-template-columns: 1fr; padding-top: 8px; }
+  .grid, .downloads { grid-template-columns: 1fr; }
+  section { padding: 32px 0; }
+}
+@media (max-width: 420px) {
+  .top nav .hide-sm { display: none; }
+  .time { font-size: 52px; }
+}
+@media (prefers-reduced-motion: reduce) { .btn { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand display" href="./"><img src="icon.svg" alt="" width="36" height="36">dpomo</a>
+    <nav>
+      <a class="chip hide-sm" href="#download" data-i18n="nav_download">Download</a>
+      <a class="chip hide-sm" href="https://github.com/diegorezm/dpomo">GitHub</a>
+      <button class="chip" id="lang" type="button" aria-label="Português / English">PT</button>
+    </nav>
+  </header>
+
+  <main>
+    <div class="hero">
+      <div>
+        <h1 class="display" data-i18n="h1">A cozy Pomodoro timer with a little friend</h1>
+        <p class="lead" data-i18n="lead">Focus for 25 minutes, rest for 5. dpomo keeps time from your system tray, and its companion works and rests with you.</p>
+        <div class="cta">
+          <a class="btn display" id="main-download" href="https://github.com/diegorezm/dpomo/releases/latest">
+            <span data-i18n="download">Download</span><small id="main-os"></small>
+          </a>
+          <a class="link" href="#download" data-i18n="other_systems">Other systems</a>
+        </div>
+        <p class="meta" data-i18n="meta">Free and open source (MIT) · Windows, Linux, macOS · No account, no ads</p>
+      </div>
+
+      <div class="demo" id="demo" data-phase="focus">
+        <div class="tabs" role="group" aria-label="Phase">
+          <button class="tab" type="button" data-phase="focus" aria-pressed="true" data-i18n="focus">Focus</button>
+          <button class="tab" type="button" data-phase="short" aria-pressed="false" data-i18n="break">Break</button>
+          <button class="tab" type="button" data-phase="long" aria-pressed="false" data-i18n="long">Long</button>
+        </div>
+        <div class="stage"><img id="pose" src="characters/axolotl/idle.svg" alt="The axolotl companion" width="200" height="160"></div>
+        <div class="time display" id="time" aria-live="off">25:00</div>
+        <div class="bar"><i id="progress"></i></div>
+        <div class="controls">
+          <button class="icon-btn" id="reset" type="button" aria-label="Restart">
+            <svg viewBox="0 0 24 24"><path d="M12 5V2L7 6l5 4V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z"/></svg>
+          </button>
+          <button class="icon-btn" id="play" type="button" aria-label="Start / pause">
+            <svg viewBox="0 0 24 24"><path id="play-icon" d="M7 4v16l13-8z"/></svg>
+          </button>
+          <button class="icon-btn" id="skip" type="button" aria-label="Skip">
+            <svg viewBox="0 0 24 24"><path d="M5 4v16l11-8zM17 4h3v16h-3z"/></svg>
+          </button>
+        </div>
+        <div class="friends" role="group" aria-label="Character">
+          <button class="friend" type="button" data-char="axolotl" aria-pressed="true" title="Axolotl"><img src="characters/axolotl/idle.svg" alt="Axolotl" width="56" height="45"></button>
+          <button class="friend" type="button" data-char="capybara" aria-pressed="false" title="Capybara"><img src="characters/capybara/idle.svg" alt="Capybara" width="56" height="45"></button>
+          <button class="friend" type="button" data-char="tomato" aria-pressed="false" title="Tomato"><img src="characters/tomato/idle.svg" alt="Tomato" width="56" height="45"></button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<section>
+  <div class="wrap">
+    <img class="shot" src="screenshot.png" width="1488" height="500" loading="lazy"
+         alt="dpomo in four looks: axolotl on a dark theme, tomato on a light theme, capybara on a warm theme and the classic ring layout">
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2 class="display" data-i18n="features_h">Small, pretty, yours</h2>
+    <p class="sub" data-i18n="features_sub">Everything a Pomodoro timer needs, nothing it doesn't.</p>
+    <div class="grid">
+      <div class="feature"><div class="emoji">🦎</div><h3 class="display" data-i18n="f1_h">A companion</h3><p data-i18n="f1">An axolotl, a capybara or a tomato that waves, works, relaxes and naps with you. Or draw your own as SVG.</p></div>
+      <div class="feature"><div class="emoji">🔔</div><h3 class="display" data-i18n="f2_h">Lives in the tray</h3><p data-i18n="f2">Close the window and the timer keeps going. A sound and a notification tell you when it's time.</p></div>
+      <div class="feature"><div class="emoji">🎨</div><h3 class="display" data-i18n="f3_h">Make it yours</h3><p data-i18n-html="f3">Themes, layouts, sounds, shortcuts and durations. Everything lives in one <code>config.toml</code> you can edit live.</p></div>
+      <div class="feature"><div class="emoji">🪶</div><h3 class="display" data-i18n="f4_h">Featherweight</h3><p data-i18n="f4">0% CPU when paused, about 12 MB of memory open and 7 MB in the tray.</p></div>
+      <div class="feature"><div class="emoji">📈</div><h3 class="display" data-i18n="f5_h">Picks up where you left off</h3><p data-i18n="f5">Restarted your computer mid-session? It resumes. And it counts your focus time per day.</p></div>
+      <div class="feature"><div class="emoji">🔒</div><h3 class="display" data-i18n="f6_h">Private</h3><p data-i18n="f6">No account, no telemetry, no ads. Your data stays on your computer.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="download">
+  <div class="wrap">
+    <h2 class="display" data-i18n="dl_h">Download</h2>
+    <p class="sub" data-i18n="dl_sub">Free forever. Pick your system.</p>
+    <div class="downloads">
+      <div class="os">
+        <h3 class="display">Windows</h3>
+        <a class="btn display" href="https://github.com/diegorezm/dpomo/releases/latest/download/dpomo-setup.exe" data-i18n="dl_win">Installer (.exe)</a>
+        <p data-i18n="win_note">Click Next until the end; no admin password needed. If you see "Windows protected your PC", click More info → Run anyway (the installer isn't signed yet).</p>
+        <a class="more" href="https://github.com/diegorezm/dpomo/releases/latest/download/dpomo-windows-portable.zip" data-i18n="win_portable">Portable version (.zip)</a>
+      </div>
+      <div class="os">
+        <h3 class="display">Linux <span class="badge">beta</span></h3>
+        <a class="btn display" href="https://github.com/diegorezm/dpomo/releases/latest/download/dpomo-linux-amd64.deb" data-i18n="dl_deb">Ubuntu / Debian (.deb)</a>
+        <p data-i18n-html="linux_note">Double-click it, or <code>sudo apt install ./dpomo-linux-amd64.deb</code>. On GNOME, the AppIndicator extension shows the tray icon.</p>
+        <a class="more" href="https://github.com/diegorezm/dpomo/releases/latest/download/dpomo-linux-x86_64.tar.gz" data-i18n="linux_tar">Other distros (.tar.gz)</a>
+      </div>
+      <div class="os">
+        <h3 class="display">macOS <span class="badge">beta</span></h3>
+        <a class="btn display" href="https://github.com/diegorezm/dpomo/releases/latest/download/dpomo-macos.dmg" data-i18n="dl_mac">Apple Silicon + Intel (.dmg)</a>
+        <p data-i18n="mac_note">Drag dpomo into Applications. The first time, right-click it → Open → Open (it isn't notarized by Apple).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="privacy">
+  <div class="wrap">
+    <div class="policy">
+      <h3 class="display" data-i18n="privacy_h">Privacy</h3>
+      <p data-i18n="privacy_1">dpomo has no accounts, no telemetry and no ads. Your settings, statistics and session stay on your computer.</p>
+      <p data-i18n-html="privacy_2">The only network request is the update check: once a day dpomo asks GitHub's public API (<code>api.github.com</code>) for the number of the latest version. Nothing about you is sent; GitHub sees a normal web request (see <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement">GitHub's privacy statement</a>). It never downloads or installs anything by itself. Turn it off in the settings, with <code>check_updates = false</code>, or in the Windows installer.</p>
+    </div>
+    <div class="policy" id="code-signing-policy">
+      <h3 class="display">Code signing policy</h3>
+      <p data-i18n-html="sign_1">Windows releases are built from the <a href="https://github.com/diegorezm/dpomo">source code</a> by GitHub Actions and will be signed once SignPath Foundation accepts the project (application pending).</p>
+      <p>Free code signing provided by <a href="https://about.signpath.io">SignPath.io</a>, certificate by <a href="https://signpath.org">SignPath Foundation</a>.</p>
+      <ul>
+        <li data-i18n-html="sign_roles_1">Committers and reviewers: <a href="https://github.com/diegorezm">@diegorezm</a></li>
+        <li data-i18n-html="sign_roles_2">Approvers: <a href="https://github.com/diegorezm">@diegorezm</a></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span data-i18n-html="footer">Made with Rust and <a href="https://github.com/emilk/egui">egui</a> · <a href="https://github.com/diegorezm/dpomo">Source code</a> · MIT license</span>
+  </div>
+</footer>
+
+<script>
+(() => {
+  // ---- translations (English is in the HTML; this is the Portuguese) ----
+  const PT = {
+    nav_download: "Baixar",
+    h1: "Um Pomodoro aconchegante com um amiguinho",
+    lead: "Foque por 25 minutos, descanse 5. O dpomo marca o tempo na bandeja do sistema, e o seu companheiro trabalha e descansa junto com você.",
+    download: "Baixar",
+    other_systems: "Outros sistemas",
+    meta: "Grátis e de código aberto (MIT) · Windows, Linux, macOS · Sem conta, sem anúncios",
+    focus: "Foco", break: "Pausa", long: "Longa",
+    features_h: "Pequeno, bonito, do seu jeito",
+    features_sub: "Tudo que um Pomodoro precisa, nada que ele não precisa.",
+    f1_h: "Um companheiro", f1: "Um axolote, uma capivara ou um tomate que acena, trabalha, relaxa e cochila com você. Ou desenhe o seu em SVG.",
+    f2_h: "Fica na bandeja", f2: "Feche a janela e o timer continua. Um som e uma notificação avisam quando é a hora.",
+    f3_h: "Do seu jeito", f3: "Temas, layouts, sons, atalhos e tempos. Tudo num único <code>config.toml</code> que você edita com o app aberto.",
+    f4_h: "Levinho", f4: "0% de CPU pausado, uns 12 MB de memória aberto e 7 MB na bandeja.",
+    f5_h: "Continua de onde parou", f5: "Reiniciou o computador no meio da sessão? Ele retoma. E conta seu tempo de foco por dia.",
+    f6_h: "Privado", f6: "Sem conta, sem telemetria, sem anúncios. Seus dados ficam no seu computador.",
+    dl_h: "Baixar", dl_sub: "Grátis para sempre. Escolha seu sistema.",
+    dl_win: "Instalador (.exe)",
+    win_note: "Clique em Avançar até o fim; não pede senha de administrador. Se aparecer \"O Windows protegeu o computador\", clique em Mais informações → Executar assim mesmo (o instalador ainda não é assinado).",
+    win_portable: "Versão portátil (.zip)",
+    dl_deb: "Ubuntu / Debian (.deb)",
+    linux_note: "Dois cliques no arquivo, ou <code>sudo apt install ./dpomo-linux-amd64.deb</code>. No GNOME, a extensão AppIndicator mostra o ícone na bandeja.",
+    linux_tar: "Outras distros (.tar.gz)",
+    dl_mac: "Apple Silicon + Intel (.dmg)",
+    mac_note: "Arraste o dpomo para Aplicativos. Na primeira vez, clique com o botão direito → Abrir → Abrir (ele não é notarizado pela Apple).",
+    privacy_h: "Privacidade",
+    privacy_1: "O dpomo não tem conta, telemetria nem anúncios. Seus ajustes, estatísticas e sessão ficam no seu computador.",
+    privacy_2: "A única conexão de rede é a verificação de atualização: uma vez por dia o dpomo pergunta à API pública do GitHub (<code>api.github.com</code>) qual é o número da versão mais nova. Nada sobre você é enviado; o GitHub vê uma requisição web comum (veja a <a href=\"https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement\">declaração de privacidade do GitHub</a>). Ele nunca baixa nem instala nada sozinho. Para desligar: nos ajustes, com <code>check_updates = false</code> ou no instalador do Windows.",
+    sign_1: "As versões para Windows são compiladas a partir do <a href=\"https://github.com/diegorezm/dpomo\">código-fonte</a> pelo GitHub Actions e serão assinadas assim que a SignPath Foundation aceitar o projeto (pedido em andamento).",
+    sign_roles_1: "Commits e revisão: <a href=\"https://github.com/diegorezm\">@diegorezm</a>",
+    sign_roles_2: "Aprovação: <a href=\"https://github.com/diegorezm\">@diegorezm</a>",
+    footer: "Feito com Rust e <a href=\"https://github.com/emilk/egui\">egui</a> · <a href=\"https://github.com/diegorezm/dpomo\">Código-fonte</a> · Licença MIT",
+  };
+  const OS_NAMES = { windows: "Windows", mac: "macOS", linux: "Linux (.deb)" };
+  const EN = {};
+  document.querySelectorAll("[data-i18n]").forEach(el => EN[el.dataset.i18n] = el.textContent);
+  document.querySelectorAll("[data-i18n-html]").forEach(el => EN[el.dataset.i18nHtml] = el.innerHTML);
+
+  let lang = "en";
+  try { lang = localStorage.getItem("dpomo-lang") || ""; } catch {}
+  if (!lang) lang = (navigator.language || "").toLowerCase().startsWith("pt") ? "pt" : "en";
+
+  function applyLang() {
+    const t = lang === "pt" ? PT : EN;
+    document.documentElement.lang = lang === "pt" ? "pt-BR" : "en";
+    document.querySelectorAll("[data-i18n]").forEach(el => { const v = t[el.dataset.i18n]; if (v) el.textContent = v; });
+    document.querySelectorAll("[data-i18n-html]").forEach(el => { const v = t[el.dataset.i18nHtml]; if (v) el.innerHTML = v; });
+    document.getElementById("lang").textContent = lang === "pt" ? "EN" : "PT";
+  }
+  document.getElementById("lang").addEventListener("click", () => {
+    lang = lang === "pt" ? "en" : "pt";
+    try { localStorage.setItem("dpomo-lang", lang); } catch {}
+    applyLang();
+  });
+  applyLang();
+
+  // ---- main download button follows the visitor's OS ----
+  const ua = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || navigator.userAgent;
+  const os = /win/i.test(ua) ? "windows" : /mac/i.test(ua) && !/iphone|ipad/i.test(navigator.userAgent) ? "mac"
+           : /linux/i.test(ua) && !/android/i.test(navigator.userAgent) ? "linux" : null;
+  const FILES = { windows: "dpomo-setup.exe", mac: "dpomo-macos.dmg", linux: "dpomo-linux-amd64.deb" };
+  if (os) {
+    document.getElementById("main-download").href = "https://github.com/diegorezm/dpomo/releases/latest/download/" + FILES[os];
+    document.getElementById("main-os").textContent = OS_NAMES[os];
+  }
+
+  // ---- the little demo: same phases and poses as the app ----
+  const demo = document.getElementById("demo");
+  const pose = document.getElementById("pose");
+  const time = document.getElementById("time");
+  const bar = document.getElementById("progress");
+  const playIcon = document.getElementById("play-icon");
+  const MINUTES = { focus: 25, short: 5, long: 15 };
+  const POSE = { focus: "focus", short: "short_break", long: "long_break" };
+  let phase = "focus", character = "axolotl", left = 25 * 60, timer = null;
+
+  function render() {
+    const running = timer !== null;
+    const p = phase === "focus" && !running ? "idle" : POSE[phase];
+    pose.src = `characters/${character}/${p}.svg`;
+    time.textContent = `${String(Math.floor(left / 60)).padStart(2, "0")}:${String(left % 60).padStart(2, "0")}`;
+    bar.style.width = `${(1 - left / (MINUTES[phase] * 60)) * 100}%`;
+    playIcon.setAttribute("d", running ? "M6 4h4v16H6zM14 4h4v16h-4z" : "M7 4v16l13-8z");
+    demo.dataset.phase = phase;
+    document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-pressed", b.dataset.phase === phase));
+    document.querySelectorAll(".friend").forEach(b => b.setAttribute("aria-pressed", b.dataset.char === character));
+  }
+  function stop() { clearInterval(timer); timer = null; }
+  function setPhase(p) { stop(); phase = p; left = MINUTES[p] * 60; render(); }
+  document.querySelectorAll(".tab").forEach(b => b.addEventListener("click", () => setPhase(b.dataset.phase)));
+  document.querySelectorAll(".friend").forEach(b => b.addEventListener("click", () => { character = b.dataset.char; render(); }));
+  document.getElementById("reset").addEventListener("click", () => setPhase(phase));
+  document.getElementById("skip").addEventListener("click", () => setPhase(phase === "focus" ? "short" : "focus"));
+  document.getElementById("play").addEventListener("click", () => {
+    if (timer) { stop(); } else {
+      timer = setInterval(() => {
+        left -= 1;
+        if (left <= 0) { setPhase(phase === "focus" ? "short" : "focus"); return; }
+        render();
+      }, 1000);
+    }
+    render();
+  });
+  render();
+})();
+</script>
+</body>
+</html>

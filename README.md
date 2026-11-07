@@ -3,7 +3,7 @@
 A **beautiful**, **lightweight** and **customizable** Pomodoro timer, with a little friend who works
 and rests with you. 🦎💗 Built with Rust and [egui](https://github.com/emilk/egui).
 
-**English** · [Português](README.pt-BR.md)
+**English** · [Português](README.pt-BR.md) · 🌐 [Website](https://diegorezm.github.io/dpomo/)
 
 ![dpomo](assets/screenshot.png)
 

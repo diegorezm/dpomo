@@ -3,7 +3,7 @@
 Um timer Pomodoro **bonito**, **leve** e **do seu jeito**, com um amiguinho que trabalha e descansa
 junto com você. 🦎💗 Feito em Rust com [egui](https://github.com/emilk/egui).
 
-[English](README.md) · **Português**
+[English](README.md) · **Português** · 🌐 [Site](https://diegorezm.github.io/dpomo/)
 
 ![dpomo](assets/screenshot.png)
 

@@ -19,8 +19,8 @@ The release workflow now installs every package on fresh Windows, Ubuntu 22.04/2
       account (needs 2FA on GitHub and SignPath). After acceptance, follow AGENTS.md → "Code signing"
       (create the SignPath project + set `SIGNPATH_ORGANIZATION_ID` / `SIGNPATH_API_TOKEN`). The
       workflow, installer and README policy are ready.
-- [ ] **macOS notarization**: needs the Apple Developer Program (US$ 99/year). Then set the five
-      `APPLE_*` secrets listed in AGENTS.md; the workflow is ready.
+- macOS notarization: **not planned** (the Apple Developer Program costs US$ 99/year and dpomo is a
+  free hobby project with no budget). The workflow supports it if that ever changes (AGENTS.md).
 
 ## Code
 
@@ -35,4 +35,5 @@ The release workflow now installs every package on fresh Windows, Ubuntu 22.04/2
 ## Project
 
 - [ ] Publish to winget / Scoop / Homebrew / AUR.
-- [ ] Website or GitHub Pages with screenshots and download buttons.
+- [ ] Website: add the Google Search Console verification tag in `site/index.html` and submit
+      `sitemap.xml` (needs the owner's Google account).
