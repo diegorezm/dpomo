@@ -58,7 +58,7 @@ Só escreva o que quiser mudar, o resto usa o padrão.
 ### Criar seu próprio tema 🎨
 
 Temas são arquivos `.toml`. Coloque o seu na pasta `themes`, ao lado do `config.toml`
-(ex.: `%APPDATA%\dpomo	hemes\dracula.toml`):
+(ex.: `%APPDATA%\dpomo\themes\dracula.toml`):
 
 ```toml
 name = "Dracula"
