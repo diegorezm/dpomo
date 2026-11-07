@@ -30,6 +30,10 @@ Run all four locally before you commit.
 | `eframe` 0.37 / `egui` 0.37 | GUI. **glow** backend, `default-features = false` → ~5 MB binary. Don't switch to wgpu. |
 | `serde` + `toml` | Config file. |
 | `dirs` | Locates the OS config dir. |
+| `tray-icon` | Tray icon + menu. `default-features = false, features = ["ksni"]`: Linux uses D-Bus (KSNI), **no GTK**. |
+| `notify-rust` | Native notifications (WinRT toast / D-Bus / macOS). |
+| `auto-launch` | "Start with the system" (registry Run key / `.desktop` / LaunchAgent). |
+| `windows-registry` | Windows only: registers the toast AppUserModelID. |
 
 egui 0.37 API notes (it changed a lot vs. older tutorials you may remember):
 - `App::ui(&mut self, ui: &mut Ui, frame)` replaces `update(ctx, frame)`. Non-UI work goes in `App::logic(ctx, frame)`.
@@ -46,7 +50,11 @@ build.rs                 embeds themes/*.toml into the binary (generates BUILTIN
 themes/*.toml            built-in themes, one file each
 src/
 ├── main.rs              window options, loads Config, starts eframe
-├── app.rs               DpomoApp: owns ALL state, applies Actions, repaint scheduling, saving
+├── app.rs               DpomoApp: owns ALL state, applies Actions/Commands, repaint scheduling, saving
+├── command.rs           Command enum: requests from outside egui (tray, second launch)
+├── tray.rs              tray icon + menu, live ring icon (render_ring is also the window icon)
+├── instance.rs          single instance over 127.0.0.1:47613 (second launch → "show" → exit)
+├── system.rs            notifications, autostart, Windows AUMID registration
 ├── timer.rs             pure state machine (Phase, Timer, TimerEvent). No egui. Unit-tested.
 ├── config.rs            Config structs (serde, TOML), load/save, defaults. Unit-tested.
 ├── theme.rs             Theme struct, Themes registry (built-in + user files), apply-to-egui, hex serde
@@ -61,8 +69,20 @@ src/
 
 ```
 input ─► view fn (draws, returns Action) ─► App::apply_* ─► Timer / Config mutation
+tray / 2nd launch ─► mpsc Command + ctx.request_repaint() ─► App::handle_commands (in logic)
                                              App::logic ─► Timer::tick ─► TimerEvent ─► App::on_timer_event
 ```
+
+### Background / daemon model
+
+- Closing the window (with tray enabled) sends `CancelClose` + `Visible(false)`. The process keeps running.
+- **While hidden, eframe never calls `App::ui`, only `App::logic`.** So everything that must work in the
+  background (ticking, commands, tray updates, notifications, title) lives in `logic`. `ui` is drawing only.
+- Viewport commands sent from `logic` are processed even when hidden (that's how "show window" works).
+- Hidden + running = one wake-up per second (see `schedule_repaint`). Paused = no wake-ups at all.
+- Quitting = `App::quit`: save config, drop the tray (avoids a ghost icon on Windows), `process::exit(0)`.
+- If the tray can't be created (e.g. Linux without a StatusNotifier host) the app disables `behavior.tray`
+  and never hides the window, so the user can't get stuck with an invisible app.
 
 - **Views never mutate `Timer`.** They return an `Action` enum. Settings view is the one exception: it edits `Config` in place (it's a form).
 - **`Timer` takes `now: Instant` as a parameter** everywhere. Never call `Instant::now()` inside `timer.rs`; that is what makes it testable.
@@ -104,6 +124,10 @@ Hook into `App::on_timer_event`. Put any heavy work (audio decoding, HTTP) on a 
 ### Add a new phase
 Add it to `Phase` + `Phase::ALL`, then fix every `match` the compiler flags (labels, `TimerSettings::duration`, `Theme::accent`, `Timer::next_phase`).
 
+### Add a tray menu item
+Add a `Command` variant, a `MenuItem::with_id("<id>", …)` in `Tray::new`, map the id in the `MenuEvent`
+handler, and handle the variant in `App::handle_commands`.
+
 ## Conventions
 
 - UI text is **Portuguese (pt-BR)**; code, comments and docs for agents are English.
@@ -120,6 +144,11 @@ There's no automated UI test. Run the app and look at it, in a dark theme (defau
 Tip: set the theme by editing the config file (path is shown at the bottom of the settings screen), e.g. `%APPDATA%\dpomo\config.toml` on Windows.
 
 ## Gotchas
+
+- Only one dpomo runs at a time. When testing, kill the old one first or your new build will just
+  "show" the old one and exit immediately. (`Get-Process dpomo | Stop-Process` / `pkill dpomo`)
+- Tests that touch the OS (autostart) are `#[ignore]`: `cargo test -- --ignored`.
+- Windows toasts need the AUMID registered in `system::init` (HKCU, no admin). Without it they show as "Windows PowerShell".
 
 - The config is saved when leaving the settings screen and on window close — not on every change. If you add settings outside the settings screen, call `App::save`.
 - Theme names are display names (`"Rosé Pine"`), not file names. `theme::DEFAULT_NAME` must match the `name` in `themes/rose-pine.toml` (tested).

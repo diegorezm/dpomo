@@ -1,13 +1,18 @@
 //! Glue between config, timer and views. Owns all mutable state.
 
+use std::net::TcpListener;
+use std::sync::mpsc::{Receiver, Sender, channel};
 use std::time::{Duration, Instant};
 
 use egui::{Key, Modifiers, ViewportCommand};
 
+use crate::command::Command;
 use crate::config::Config;
 use crate::theme::{Theme, Themes};
 use crate::timer::{Timer, TimerEvent, format_remaining};
+use crate::tray::{Tray, TrayState};
 use crate::ui::{settings_view, timer_view};
+use crate::{instance, system};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum View {
@@ -28,11 +33,28 @@ pub struct DpomoApp {
     applied_theme: Option<(Theme, f32)>,
     applied_on_top: Option<bool>,
     title: String,
+    /// Commands from the tray and from later launches (see `command.rs`).
+    commands: (Sender<Command>, Receiver<Command>),
+    tray: Option<Tray>,
+    window_visible: bool,
 }
 
 impl DpomoApp {
-    pub fn new(_cc: &eframe::CreationContext<'_>, config: Config) -> Self {
+    /// `listener` is the single-instance socket, if we own it.
+    pub fn new(
+        cc: &eframe::CreationContext<'_>,
+        config: Config,
+        listener: Option<TcpListener>,
+        start_hidden: bool,
+    ) -> Self {
+        let commands = channel();
+        if let Some(listener) = listener {
+            instance::listen(listener, cc.egui_ctx.clone(), commands.0.clone());
+        }
         Self {
+            commands,
+            tray: None,
+            window_visible: !start_hidden,
             themes: Themes::load(),
             timer: Timer::new(&config.timer),
             settings: settings_view::State::default(),
@@ -85,7 +107,11 @@ impl DpomoApp {
     }
 
     fn on_timer_event(&mut self, ctx: &egui::Context, event: TimerEvent) {
-        let TimerEvent::Finished { .. } = event;
+        let TimerEvent::Finished { finished, next } = event;
+        if self.config.behavior.system_notification {
+            let started = self.timer.is_running();
+            system::notify_finished(finished, next, started, &self.config.timer);
+        }
         let time = ctx.input(|i| i.time);
         self.ring.restart(0.0, time);
         if self.config.behavior.notify_on_finish {
@@ -94,7 +120,7 @@ impl DpomoApp {
             ));
         }
         if self.config.behavior.focus_on_finish {
-            ctx.send_viewport_cmd(ViewportCommand::Focus);
+            self.set_window_visible(ctx, true);
         }
     }
 
@@ -153,7 +179,104 @@ impl DpomoApp {
     fn leave_settings(&mut self) {
         self.settings.notice = None;
         self.view = View::Timer;
+        self.apply_autostart();
         self.save();
+    }
+
+    /// Touch the OS autostart entry only when the setting actually changed.
+    fn apply_autostart(&mut self) {
+        let wanted = self.config.behavior.start_with_system;
+        if wanted == self.saved.behavior.start_with_system {
+            return;
+        }
+        if let Err(e) = system::set_autostart(wanted) {
+            self.config.behavior.start_with_system = !wanted;
+            self.settings.system_error = Some(format!("Iniciar com o sistema falhou: {e}"));
+        }
+    }
+
+    fn set_window_visible(&mut self, ctx: &egui::Context, visible: bool) {
+        self.window_visible = visible;
+        ctx.send_viewport_cmd(ViewportCommand::Visible(visible));
+        if visible {
+            ctx.send_viewport_cmd(ViewportCommand::Minimized(false));
+            ctx.send_viewport_cmd(ViewportCommand::Focus);
+        }
+    }
+
+    fn handle_commands(&mut self, ctx: &egui::Context, now: Instant) {
+        while let Ok(cmd) = self.commands.1.try_recv() {
+            match cmd {
+                Command::ShowWindow => self.set_window_visible(ctx, true),
+                Command::ToggleWindow => self.set_window_visible(ctx, !self.window_visible),
+                Command::ToggleTimer => {
+                    self.apply_timer_action(ctx, timer_view::Action::Toggle, now)
+                }
+                Command::Skip => self.apply_timer_action(ctx, timer_view::Action::Skip, now),
+                Command::Reset => self.apply_timer_action(ctx, timer_view::Action::Reset, now),
+                Command::Quit => self.quit(),
+            }
+        }
+    }
+
+    fn quit(&mut self) -> ! {
+        self.apply_autostart();
+        self.save();
+        // Drop the tray first so Windows doesn't leave a ghost icon behind.
+        self.tray = None;
+        std::process::exit(0);
+    }
+
+    /// Create / remove the tray icon to match the config, and refresh it.
+    fn sync_tray(&mut self, ctx: &egui::Context, now: Instant) {
+        if !self.config.behavior.tray {
+            self.tray = None;
+            return;
+        }
+        if self.tray.is_none() {
+            match Tray::new(ctx, self.commands.0.clone()) {
+                Ok(tray) => {
+                    self.tray = Some(tray);
+                    self.settings.system_error = None;
+                }
+                Err(e) => {
+                    eprintln!("dpomo: tray unavailable: {e}");
+                    self.settings.system_error = Some(format!("Bandeja indisponível: {e}"));
+                    self.config.behavior.tray = false;
+                    // Never stay hidden without a way back.
+                    if !self.window_visible {
+                        self.set_window_visible(ctx, true);
+                    }
+                    return;
+                }
+            }
+        }
+
+        let phase = self.timer.phase();
+        let tooltip = if self.timer.is_pristine() {
+            format!("dpomo · {}", phase.label())
+        } else {
+            let paused = if self.timer.is_running() {
+                ""
+            } else {
+                " (pausado)"
+            };
+            format!(
+                "dpomo · {} {}{paused}",
+                format_remaining(self.timer.remaining(now)),
+                phase.label()
+            )
+        };
+        let state = TrayState {
+            tooltip,
+            progress: self.timer.progress(now),
+            running: self.timer.is_running(),
+            window_visible: self.window_visible,
+            accent: self.config.theme(&self.themes).accent(phase),
+        };
+        if let Some(tray) = &mut self.tray {
+            tray.update(state);
+        }
     }
 
     /// Push theme / window settings to egui only when they change.
@@ -199,7 +322,8 @@ impl DpomoApp {
         if !self.timer.is_running() {
             return;
         }
-        let visible = !ctx.input(|i| i.viewport().minimized.unwrap_or(false));
+        let visible =
+            self.window_visible && !ctx.input(|i| i.viewport().minimized.unwrap_or(false));
         if visible && self.config.appearance.smooth_animation {
             ctx.request_repaint_after(Duration::from_millis(33));
         } else {
@@ -218,10 +342,12 @@ impl DpomoApp {
 impl eframe::App for DpomoApp {
     fn logic(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         let now = Instant::now();
+        self.handle_commands(ctx, now);
         self.timer.sync_settings(&self.config.timer);
         if let Some(event) = self.timer.tick(now, &self.config.timer) {
             self.on_timer_event(ctx, event);
         }
+        self.sync_tray(ctx, now);
         self.update_title(ctx, now);
         self.schedule_repaint(ctx, now);
     }
@@ -233,7 +359,15 @@ impl eframe::App for DpomoApp {
         self.handle_shortcuts(&ctx, now);
 
         if ctx.input(|i| i.viewport().close_requested()) {
-            self.save();
+            if self.tray.is_some() && self.config.behavior.close_to_tray {
+                ctx.send_viewport_cmd(ViewportCommand::CancelClose);
+                self.set_window_visible(&ctx, false);
+                if self.view == View::Settings {
+                    self.leave_settings();
+                }
+            } else {
+                self.quit();
+            }
         }
 
         let theme = self.config.theme(&self.themes);

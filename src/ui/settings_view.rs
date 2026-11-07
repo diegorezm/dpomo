@@ -24,6 +24,8 @@ pub struct State {
     pub export_name: String,
     /// Feedback from the last action, e.g. "Tema salvo em …".
     pub notice: Option<String>,
+    /// Why the tray / autostart couldn't be set up, if it failed.
+    pub system_error: Option<String>,
 }
 
 impl Default for State {
@@ -31,6 +33,7 @@ impl Default for State {
         Self {
             export_name: "Meu tema".to_owned(),
             notice: None,
+            system_error: None,
         }
     }
 }
@@ -144,10 +147,31 @@ pub fn show(
                     "Piscar na barra de tarefas ao terminar",
                 );
                 ui.checkbox(
+                    &mut b.system_notification,
+                    "Notificação do sistema ao terminar",
+                );
+                ui.checkbox(
                     &mut b.focus_on_finish,
                     "Trazer janela para frente ao terminar",
                 );
                 ui.checkbox(&mut b.time_in_title, "Tempo no título da janela");
+            });
+
+            section(ui, theme, "Segundo plano", |ui| {
+                let b = &mut config.behavior;
+                ui.checkbox(&mut b.tray, "Ícone na bandeja do sistema");
+                ui.add_enabled_ui(b.tray, |ui| {
+                    ui.checkbox(&mut b.close_to_tray, "Fechar a janela esconde na bandeja")
+                        .on_hover_text(
+                            "O timer continua rodando. Para sair, use \"Sair\" no menu da bandeja.",
+                        );
+                    ui.checkbox(&mut b.start_hidden, "Abrir escondido na bandeja");
+                });
+                ui.checkbox(&mut b.start_with_system, "Iniciar com o sistema")
+                    .on_hover_text("Abre escondido na bandeja quando você liga o computador");
+                if let Some(err) = &state.system_error {
+                    ui.label(RichText::new(err).size(11.0).color(theme.focus));
+                }
             });
 
             ui.add_space(4.0);

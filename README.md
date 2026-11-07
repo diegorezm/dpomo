@@ -12,7 +12,18 @@ Você trabalha focado por **25 minutos**, descansa **5**. A cada **4 sessões**,
 
 1. Abra o app.
 2. Aperte o botão grande (ou **Espaço**) para começar.
-3. Quando o tempo acabar, o app avisa piscando na barra de tarefas.
+3. Quando o tempo acabar, você recebe uma **notificação**. 🔔
+
+### Fica rodando em segundo plano
+
+O dpomo mora na **bandeja do sistema** (os ícones pequenos perto do relógio):
+
+- Fechar a janela **não fecha o app**: ele continua contando lá na bandeja.
+- O ícone mostra o **anel de progresso** ao vivo; passe o mouse para ver o tempo.
+- **Clique** no ícone para mostrar/esconder a janela; **botão direito** abre o menu
+  (iniciar/pausar, pular, reiniciar, **sair**).
+- Abriu o dpomo de novo sem querer? Tudo bem, ele só mostra a janela que já estava aberta.
+- Quer que ele abra sozinho quando ligar o computador? Ative **Iniciar com o sistema** nos ajustes.
 
 ### Atalhos
 
@@ -33,6 +44,7 @@ Clique no ícone de ajustes (canto superior direito). Você pode mudar:
 - 💍 **Anel**: espessura e brilho
 - 🔍 **Tamanho** da interface
 - 📌 **Sempre no topo**, iniciar fases automaticamente e mais
+- 🌙 **Segundo plano**: bandeja, notificações, iniciar com o sistema
 
 Tudo é salvo num arquivo de texto simples que você também pode editar na mão:
 
@@ -93,6 +105,7 @@ cargo install --git https://github.com/diegorezm/dpomo
 ```
 
 > **Linux:** pode ser preciso instalar `libxkbcommon-dev`, `libgl1-mesa-dev` e `libwayland-dev` antes.
+> Para ver o ícone na bandeja no GNOME, instale a extensão *AppIndicator* (KDE já funciona direto).
 
 ## Licença
 

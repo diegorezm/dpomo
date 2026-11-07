@@ -92,6 +92,16 @@ pub struct Behavior {
     pub focus_on_finish: bool,
     /// Show remaining time in the window title (visible in the taskbar).
     pub time_in_title: bool,
+    /// System tray icon with live progress and a menu.
+    pub tray: bool,
+    /// Closing the window hides it to the tray instead of quitting.
+    pub close_to_tray: bool,
+    /// Native desktop notification when a phase ends.
+    pub system_notification: bool,
+    /// Launch on login (hidden, in the tray).
+    pub start_with_system: bool,
+    /// Start hidden in the tray when launched manually too.
+    pub start_hidden: bool,
 }
 
 impl Default for Behavior {
@@ -101,6 +111,11 @@ impl Default for Behavior {
             notify_on_finish: true,
             focus_on_finish: false,
             time_in_title: true,
+            tray: true,
+            close_to_tray: true,
+            system_notification: true,
+            start_with_system: false,
+            start_hidden: false,
         }
     }
 }

@@ -22,6 +22,16 @@ egui = "0.37.0"
 dirs = "7.0.0"
 serde = { version = "1.0.229", features = ["derive"] }
 toml = "1.2.1"
+# System tray. On Linux the KSNI (D-Bus) backend avoids a GTK dependency.
+tray-icon = { version = "0.26.1", default-features = false, features = ["ksni"] }
+# Native desktop notifications (toast / D-Bus / NotificationCenter).
+notify-rust = "4.18.2"
+# "Start with the system" (registry Run key / .desktop autostart / LaunchAgent).
+auto-launch = "0.6.0"
+
+[target.'cfg(windows)'.dependencies]
+# Registers an AppUserModelID so toasts say "dpomo" (already in the tree via auto-launch).
+windows-registry = "0.6.1"
 
 [profile.release]
 opt-level = 3
