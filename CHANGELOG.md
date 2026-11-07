@@ -37,6 +37,7 @@ versions follow [Semantic Versioning](https://semver.org/).
 ### Fixed
 - Windows without a working OpenGL driver (virtual machines, remote desktop, Windows on ARM, CI
   runners): dpomo closed right away; it now falls back to Direct3D 12.
+- macOS: the first notification no longer opens a "Choose Application" dialog.
 
 ## [0.1.0] - 2026-11-07
 
