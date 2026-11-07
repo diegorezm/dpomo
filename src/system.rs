@@ -13,6 +13,21 @@ pub fn init() {
     }
 }
 
+/// Hand idle pages back to the OS. Most of the working set right after startup
+/// is the GPU driver's init work, never touched again, so this drops "Memory"
+/// in Task Manager from ~110 MB to ~15 MB. Pages that are still needed come
+/// back on demand; nothing is freed or lost.
+pub fn trim_memory() {
+    #[cfg(windows)]
+    // SAFETY: plain Win32 calls on our own process pseudo-handle.
+    unsafe {
+        use windows_sys::Win32::System::{
+            ProcessStatus::K32EmptyWorkingSet, Threading::GetCurrentProcess,
+        };
+        K32EmptyWorkingSet(GetCurrentProcess());
+    }
+}
+
 #[cfg(windows)]
 fn register_windows_app_id() -> Result<(), Box<dyn std::error::Error>> {
     let dir = crate::config::Config::path()

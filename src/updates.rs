@@ -29,18 +29,39 @@ pub fn spawn_checker(ctx: egui::Context, tx: Sender<Command>) {
     });
 }
 
+/// Asks the OS's own `curl` (built into Windows 10+, macOS and most Linux
+/// distros) instead of bundling an HTTP + TLS stack: that kept ~2 MB out of
+/// the binary. No curl = no update check, silently.
 fn latest_version() -> Result<String, Box<dyn std::error::Error>> {
-    let agent = ureq::Agent::config_builder()
-        .timeout_global(Some(Duration::from_secs(10)))
-        .build()
-        .new_agent();
-    let body: serde_json::Value = agent
-        .get(API_URL)
-        .header("User-Agent", concat!("dpomo/", env!("CARGO_PKG_VERSION")))
-        .header("Accept", "application/vnd.github+json")
-        .call()?
-        .body_mut()
-        .read_json()?;
+    #[cfg(windows)]
+    let mut cmd = {
+        use std::os::windows::process::CommandExt;
+        // Absolute path: never pick up a `curl.exe` from the working directory.
+        let root = std::env::var_os("SystemRoot").unwrap_or_else(|| r"C:\Windows".into());
+        let mut cmd =
+            std::process::Command::new(std::path::Path::new(&root).join(r"System32\curl.exe"));
+        cmd.creation_flags(0x0800_0000); // CREATE_NO_WINDOW: no console flash
+        cmd
+    };
+    #[cfg(not(windows))]
+    let mut cmd = std::process::Command::new("curl");
+    let out = cmd
+        .args([
+            "--silent",
+            "--show-error",
+            "--fail",
+            "--location",
+            "--max-time",
+            "10",
+        ])
+        .args(["--user-agent", concat!("dpomo/", env!("CARGO_PKG_VERSION"))])
+        .args(["--header", "Accept: application/vnd.github+json", API_URL])
+        .stdin(std::process::Stdio::null())
+        .output()?;
+    if !out.status.success() {
+        return Err(String::from_utf8_lossy(&out.stderr).trim().into());
+    }
+    let body: serde_json::Value = serde_json::from_slice(&out.stdout)?;
     let tag = body["tag_name"].as_str().ok_or("no tag_name")?;
     Ok(tag.trim_start_matches('v').to_owned())
 }

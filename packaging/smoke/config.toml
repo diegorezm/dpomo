@@ -1,0 +1,10 @@
+# Config used by the smoke tests: a 1-minute focus so a full phase ends quickly.
+[timer]
+focus_minutes = 1
+auto_start_breaks = true
+
+[appearance]
+language = "en"
+
+[behavior]
+check_updates = false

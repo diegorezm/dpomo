@@ -19,6 +19,7 @@ use crate::{instance, sound, system, updates};
 
 /// How often a running session is written to `state.toml` (crash safety).
 const STATE_SAVE_INTERVAL: Duration = Duration::from_secs(30);
+const TRIM_MEMORY_DELAY: Duration = Duration::from_secs(2);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum View {
@@ -50,6 +51,9 @@ pub struct DpomoApp {
     last_state_save: Instant,
     applied_language: Option<Language>,
     update_checker_started: bool,
+    /// When to give memory back to the OS: shortly after startup and after hiding
+    /// (see `system::trim_memory`).
+    trim_memory_at: Option<Instant>,
 }
 
 impl DpomoApp {
@@ -60,10 +64,14 @@ impl DpomoApp {
         listener: Option<TcpListener>,
         start_hidden: bool,
         config_error: Option<String>,
+        initial_command: Option<Command>,
     ) -> Self {
         install_fonts(&cc.egui_ctx);
         egui_extras::install_image_loaders(&cc.egui_ctx);
         let commands = channel();
+        if let Some(cmd) = initial_command {
+            let _ = commands.0.send(cmd);
+        }
         if let Some(listener) = listener {
             instance::listen(listener, cc.egui_ctx.clone(), commands.0.clone());
         }
@@ -85,6 +93,7 @@ impl DpomoApp {
             last_state_save: Instant::now(),
             applied_language: None,
             update_checker_started: false,
+            trim_memory_at: Some(Instant::now() + TRIM_MEMORY_DELAY),
             commands,
             tray: None,
             window_visible: !start_hidden,
@@ -310,6 +319,7 @@ impl DpomoApp {
 
     fn set_window_visible(&mut self, ctx: &egui::Context, visible: bool) {
         self.window_visible = visible;
+        self.trim_memory_at = (!visible).then(|| Instant::now() + TRIM_MEMORY_DELAY);
         ctx.send_viewport_cmd(ViewportCommand::Visible(visible));
         if visible {
             ctx.send_viewport_cmd(ViewportCommand::Minimized(false));
@@ -490,6 +500,20 @@ impl DpomoApp {
     }
 
     /// The app is idle (zero CPU) unless the timer runs or an animation plays.
+    /// Startup leaves ~100 MB of GPU driver init pages that are never touched
+    /// again; trim them once the first frames are out (and again after hiding).
+    fn trim_memory_when_due(&mut self, ctx: &egui::Context, now: Instant) {
+        let Some(at) = self.trim_memory_at else {
+            return;
+        };
+        if now >= at {
+            self.trim_memory_at = None;
+            system::trim_memory();
+        } else {
+            ctx.request_repaint_after(at - now);
+        }
+    }
+
     fn schedule_repaint(&self, ctx: &egui::Context, now: Instant) {
         if !self.timer.is_running() {
             return;
@@ -574,6 +598,7 @@ impl eframe::App for DpomoApp {
         }
         self.sync_tray(ctx, now);
         self.update_title(ctx, now);
+        self.trim_memory_when_due(ctx, now);
         self.schedule_repaint(ctx, now);
     }
 

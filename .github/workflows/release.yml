@@ -97,9 +97,71 @@ jobs:
           name: macos
           path: dist/*
 
+  # Smoke tests: install each package on a fresh runner and run a real
+  # 1-minute pomodoro (packaging/smoke/). Screenshots + logs are uploaded as
+  # "smoke-*" artifacts. Nothing is published unless they all pass.
+  smoke-windows:
+    needs: windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows
+          path: dist
+      - run: packaging/smoke/smoke-windows.ps1 dist/dpomo-setup.exe smoke
+        shell: pwsh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-windows
+          path: smoke
+
+  smoke-linux:
+    needs: linux
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: linux
+          path: dist
+      # Installing the .deb with apt proves its declared dependencies resolve.
+      - run: sudo apt-get update && sudo apt-get install -y ./dist/dpomo-linux-amd64.deb xvfb dunst imagemagick libgl1-mesa-dri
+      - run: dbus-run-session -- bash packaging/smoke/smoke-linux.sh smoke
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-${{ matrix.os }}
+          path: smoke
+
+  smoke-macos:
+    needs: macos
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, macos-15-intel]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: macos
+          path: dist
+      - run: bash packaging/smoke/smoke-macos.sh dist/dpomo-macos.dmg smoke
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-${{ matrix.os }}
+          path: smoke
+
   release:
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [windows, linux, macos]
+    needs: [windows, linux, macos, smoke-windows, smoke-linux, smoke-macos]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4

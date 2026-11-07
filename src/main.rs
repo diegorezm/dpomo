@@ -19,12 +19,20 @@ mod updates;
 use instance::Instance;
 
 fn main() -> eframe::Result {
-    // A second launch just shows the window of the one already running.
-    let listener = match instance::acquire() {
+    // A second launch hands its request (default: "show") to the one already
+    // running and exits. `dpomo --toggle` etc. work for OS-level shortcuts.
+    let request = instance::request_from_args();
+    let listener = match instance::acquire(request) {
         Instance::Primary(listener) => Some(listener),
         Instance::AlreadyRunning => return Ok(()),
         Instance::Unknown => None,
     };
+    // Not running yet: `--quit` has nothing to do; other requests run after startup.
+    if request == "quit" {
+        return Ok(());
+    }
+    let initial_command =
+        instance::command_for(request).filter(|c| *c != command::Command::ShowWindow);
 
     // Messages produced while loading follow the OS language until the
     // config says otherwise.
@@ -60,6 +68,7 @@ fn main() -> eframe::Result {
                 listener,
                 start_hidden,
                 config_error,
+                initial_command,
             )))
         }),
     )
