@@ -1,0 +1,31 @@
+[package]
+name = "dpomo"
+version = "0.1.0"
+edition = "2024"
+description = "A beautiful, customizable and lightweight Pomodoro timer built with Rust + egui."
+license = "MIT"
+repository = "https://github.com/diegorezm/dpomo"
+readme = "README.md"
+keywords = ["pomodoro", "timer", "egui", "productivity"]
+categories = ["gui"]
+
+[dependencies]
+# glow (OpenGL) instead of the default wgpu: much smaller binary and faster startup.
+eframe = { version = "0.37.0", default-features = false, features = [
+    "accesskit",
+    "default_fonts",
+    "glow",
+    "wayland",
+    "x11",
+] }
+egui = "0.37.0"
+dirs = "7.0.0"
+serde = { version = "1.0.229", features = ["derive"] }
+toml = "1.2.1"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+strip = true
+panic = "abort"
