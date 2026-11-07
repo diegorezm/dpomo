@@ -11,7 +11,8 @@ mkdir -p "$cfg"
 cp "$(dirname "$0")/config.toml" "$cfg/config.toml"
 
 hdiutil attach "$dmg" -mountpoint /Volumes/dpomo -nobrowse
-cp -R /Volumes/dpomo/dpomo.app "$HOME/Applications/" 2>/dev/null || { mkdir -p "$HOME/Applications"; cp -R /Volumes/dpomo/dpomo.app "$HOME/Applications/"; }
+mkdir -p "$HOME/Applications"
+cp -R /Volumes/dpomo/dpomo.app "$HOME/Applications/"
 hdiutil detach /Volumes/dpomo
 app="$HOME/Applications/dpomo.app"
 bin="$app/Contents/MacOS/dpomo"

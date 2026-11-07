@@ -23,11 +23,34 @@ env:
 jobs:
   windows:
     runs-on: windows-latest
+    env:
+      # Code signing turns on once the SignPath variable/secret exist (see AGENTS.md).
+      SIGN: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - run: cargo build --release --locked
+      # Sign dpomo.exe first (it goes inside the installer), then the installer.
+      - name: Upload unsigned exe
+        id: unsigned-exe
+        if: env.SIGN == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: unsigned-exe
+          path: target/release/dpomo.exe
+      - name: Sign exe (SignPath)
+        if: env.SIGN == 'true'
+        uses: signpath/github-action-submit-signing-request@v3
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: dpomo
+          signing-policy-slug: release-signing
+          artifact-configuration-slug: exe
+          github-artifact-id: ${{ steps.unsigned-exe.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: target/release
       - name: Installer (Inno Setup)
         shell: pwsh
         run: |
@@ -36,6 +59,25 @@ jobs:
           if (-not (Test-Path $iscc)) { choco install innosetup --no-progress -y }
           & $iscc /Qp "/DAppVersion=$version" packaging\windows\dpomo.iss
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Upload unsigned installer
+        id: unsigned-installer
+        if: env.SIGN == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: unsigned-installer
+          path: dist/dpomo-setup.exe
+      - name: Sign installer (SignPath)
+        if: env.SIGN == 'true'
+        uses: signpath/github-action-submit-signing-request@v3
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: dpomo
+          signing-policy-slug: release-signing
+          artifact-configuration-slug: installer
+          github-artifact-id: ${{ steps.unsigned-installer.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: dist
       - name: Portable zip
         shell: pwsh
         run: Compress-Archive -Path target\release\dpomo.exe, LICENSE, README.md -DestinationPath dist\dpomo-windows-portable.zip
@@ -70,6 +112,9 @@ jobs:
 
   macos:
     runs-on: macos-latest
+    env:
+      # Developer ID signing + notarization turn on once the Apple secrets exist (see AGENTS.md).
+      NOTARIZE: ${{ secrets.APPLE_CERTIFICATE_P12 != '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -79,6 +124,18 @@ jobs:
       - run: |
           cargo build --release --locked --target aarch64-apple-darwin
           cargo build --release --locked --target x86_64-apple-darwin
+      - name: Import Developer ID certificate
+        if: env.NOTARIZE == 'true'
+        env:
+          APPLE_CERTIFICATE_P12: ${{ secrets.APPLE_CERTIFICATE_P12 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          echo "$APPLE_CERTIFICATE_P12" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security create-keychain -p ci build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p ci build.keychain
+          security import "$RUNNER_TEMP/cert.p12" -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k ci build.keychain
       - name: App bundle + dmg
         run: |
           version=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
@@ -88,10 +145,24 @@ jobs:
             target/aarch64-apple-darwin/release/dpomo target/x86_64-apple-darwin/release/dpomo
           cp assets/icon.icns "$app/Contents/Resources/dpomo.icns"
           sed "s/VERSION/$version/g" packaging/macos/Info.plist > "$app/Contents/Info.plist"
-          # Ad-hoc signature: not notarized, but required to run on Apple Silicon.
-          codesign --force --deep --sign - "$app"
+          if [ "$NOTARIZE" = true ]; then
+            codesign --force --options runtime --timestamp --sign "Developer ID Application" "$app"
+          else
+            # Ad-hoc signature: not notarized, but required to run on Apple Silicon.
+            codesign --force --deep --sign - "$app"
+          fi
           ln -s /Applications dmg/Applications
           hdiutil create -volname dpomo -srcfolder dmg -ov -format UDZO dist/dpomo-macos.dmg
+      - name: Notarize dmg
+        if: env.NOTARIZE == 'true'
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+        run: |
+          codesign --timestamp --sign "Developer ID Application" dist/dpomo-macos.dmg
+          xcrun notarytool submit dist/dpomo-macos.dmg --apple-id "$APPLE_ID" --team-id "$APPLE_TEAM_ID" --password "$APPLE_APP_PASSWORD" --wait
+          xcrun stapler staple dist/dpomo-macos.dmg
       - uses: actions/upload-artifact@v4
         with:
           name: macos

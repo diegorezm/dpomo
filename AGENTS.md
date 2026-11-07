@@ -37,7 +37,8 @@ Run all four locally before you commit.
 | `windows-registry` | Windows only: registers the toast AppUserModelID. |
 | `rodio` | Phase-end sounds. Only `playback` + `wav`/`mp3`/`vorbis`. Linux builds need `libasound2-dev`. |
 | `chrono` (`clock`, `serde`) | Local dates for statistics / "same day" session restore. |
-| `ureq` + `serde_json` | Daily update check (GitHub API, rustls). |
+| `serde_json` | Parses the daily update check answer. The request itself runs the OS's `curl` (no HTTP/TLS crate: −1.6 MB). |
+| `windows-sys` | Windows only: trims the working set (`system::trim_memory`). Already in the tree via winit. |
 | `sys-locale` | OS language for `language = "auto"`. |
 
 egui 0.37 API notes (it changed a lot vs. older tutorials you may remember):
@@ -60,6 +61,7 @@ tools/gen_tomato.py      generates characters/tomato/*.svg
 tools/gen_capybara.py    generates characters/capybara/*.svg
 tools/gen_icon.py        generates assets/icon.{svg,png,ico,icns} from the axolotl head
 packaging/               installer sources (Inno Setup .iss, Linux .desktop, macOS Info.plist)
+packaging/smoke/         smoke tests run by release.yml on the real packages (one script per OS)
 .github/workflows/       ci.yml (fmt/clippy/test), release.yml (installers on v* tags)
 examples/svg_preview.rs  renders SVGs to a PNG grid (check art without running the app)
 src/
@@ -71,7 +73,8 @@ src/
 ├── state.rs             state.toml: current session (resume after restart) + daily statistics
 ├── updates.rs           daily "new version?" check against GitHub releases (notify only)
 ├── tray.rs              tray icon + menu, live ring icon (render_ring is also the window icon)
-├── instance.rs          single instance over 127.0.0.1:47613 (second launch → "show" → exit)
+├── instance.rs          single instance over 127.0.0.1:47613; later launches send a request
+│                        ("show", or `--toggle/--skip/--reset/--quit`) and exit
 ├── system.rs            notifications, autostart, Windows AUMID registration
 ├── timer.rs             pure state machine (Phase, Timer, TimerEvent). No egui. Unit-tested.
 ├── config.rs            Config structs (serde, TOML), load/save, defaults. Unit-tested.
@@ -114,6 +117,10 @@ tray / 2nd launch ─► mpsc Command + ctx.request_repaint() ─► App::handle
 - Repaints are scheduled in `App::schedule_repaint`: ~30 fps while running with `smooth_animation`, otherwise exactly once per displayed second. Nothing when paused.
 - Animations (`animate_bool`, `RingAnim`) request repaints only while they run.
 - Don't allocate big things per frame; don't load fonts/images per frame; don't call `Theme::apply` per frame.
+- Memory: the OpenGL driver's startup leaves ~100 MB of pages that are never touched again.
+  `App::trim_memory_when_due` calls `system::trim_memory` (Windows `EmptyWorkingSet`) 2 s after startup
+  and 2 s after hiding: ~110 MB → ~12 MB open, ~7 MB in the tray. Keep glow: wgpu was measured at
+  300–400 MB (DX12/Vulkan drivers) and +3–5 MB of binary (measured on an AMD GPU, Nov 2026).
 
 ## Recipes
 
@@ -180,6 +187,8 @@ nothing stays open while idle. Custom files go through `rodio::Decoder` (wav/mp3
 
 ### Update check
 `updates::spawn_checker` runs once at startup (+5 s) and every 24 h, only if `behavior.check_updates`.
+The request is the OS's `curl` (`%SystemRoot%\System32\curl.exe` on Windows, absolute path on purpose,
+`CREATE_NO_WINDOW`); no curl = no check, silently. The `.deb` *recommends* curl.
 It sends `Command::UpdateAvailable(version)`; the app shows a badge (main screen) and a button (settings)
 that open the releases page. It must never download or install anything. README "Privacy" documents it.
 
@@ -217,6 +226,12 @@ Built-ins: `axolotl` (default), `tomato`, `capybara`. Edit `tools/gen_<name>.py`
 `star`, `heart`, color sentinels) from `gen_axolotl.py` so all characters share one style: 200×160 canvas,
 `#3b2a2a` outlines at 3.5 px, ground shadow at y≈142, faces readable (don't cover them with props).
 
+### Command-line requests
+`dpomo --toggle|--skip|--reset|--show|--quit` (`instance::FLAGS`). If dpomo is running, the request goes
+over the single-instance socket as `dpomo:<verb>\n` and the new process exits; if not, dpomo starts and
+applies it (`--quit` just exits). Each verb maps to a `Command` in `instance::command_for`. Users bind
+these to global shortcuts; the smoke tests use them to drive the app.
+
 ### Add a tray menu item
 Add a `Command` variant, a `MenuItem::with_id("<id>", …)` in `Tray::new`, map the id in the `MenuEvent`
 handler, and handle the variant in `App::handle_commands`.
@@ -236,6 +251,13 @@ handler, and handle the variant in `App::handle_commands`.
 To release: bump `version` in `Cargo.toml`, add a `CHANGELOG.md` entry, commit, `git tag vX.Y.Z && git push origin vX.Y.Z`.
 To test packaging without publishing: run the workflow manually (workflow_dispatch) and download the artifacts.
 
+**Smoke tests** (`smoke-*` jobs, scripts in `packaging/smoke/`): each package is installed on fresh runners
+(Windows installer; `.deb` with apt on Ubuntu 22.04 + 24.04 under Xvfb + D-Bus + dunst; `.dmg` on macOS
+arm64 + Intel), dpomo runs a real 1-minute focus driven by `dpomo --toggle`, quits with `--quit`, and the
+script checks `state.toml` recorded the session (Windows also uninstalls and checks the registry cleanup).
+Screenshots and logs are uploaded as `smoke-*` artifacts — **look at them** after packaging changes.
+The release job only publishes if every smoke test passes.
+
 - File names have **no version** on purpose: README links use `releases/latest/download/<file>`. Don't rename them.
 - Never change `AppId` in the `.iss` file (breaks upgrades/uninstall).
 - The installer is per-user (`PrivilegesRequired=lowest`), kills a running dpomo before installing, and on
@@ -244,7 +266,20 @@ To test packaging without publishing: run the workflow manually (workflow_dispat
   `icon.png/.ico/.icns` are generated from it — rerun `python tools/gen_icon.py` (needs Pillow) after changes.
   The `.ico` is embedded into the `.exe` by `build.rs` (`winresource`); the window icon is rasterized from
   `icon.svg` at startup (`main.rs::window_icon`).
-- Nothing is code-signed/notarized (costs money). README tells users how to get past SmartScreen/Gatekeeper.
+- **Code signing** is wired in `release.yml` but stays off until configured:
+  - Windows (free, SignPath Foundation): after the project is accepted at https://signpath.org/apply, create
+    in SignPath a project `dpomo`, a signing policy `release-signing`, artifact configurations `exe`
+    (zip root containing `dpomo.exe`) and `installer` (zip root containing `dpomo-setup.exe`), link the
+    GitHub connector, then add the repo variable `SIGNPATH_ORGANIZATION_ID` and secret `SIGNPATH_API_TOKEN`.
+    Every release then waits for a manual approval in SignPath. Update README "Code signing policy" (drop
+    "application pending") and the SmartScreen notes.
+  - SignPath rules we must keep: README "Code signing policy" section (attribution line, roles, privacy),
+    update check disclosed + optional at install time (the installer's *Check for new versions* task),
+    uninstaller, MFA on GitHub and SignPath, product name/version in file metadata.
+  - macOS (needs the paid Apple Developer Program): secrets `APPLE_CERTIFICATE_P12` (base64 Developer ID
+    Application .p12), `APPLE_CERTIFICATE_PASSWORD`, `APPLE_ID`, `APPLE_TEAM_ID`, `APPLE_APP_PASSWORD`
+    (app-specific password). With them set, the app is signed with hardened runtime and the dmg notarized
+    + stapled; without them it stays ad-hoc signed.
 
 ## Conventions
 

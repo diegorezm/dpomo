@@ -66,6 +66,21 @@ dpomo lives in the **system tray** (the small icons next to the clock):
 
 Every shortcut can be changed in `config.toml` (the `[keys]` section, see [Configuration](#configuration)).
 
+### Command line
+
+Running `dpomo` again with one of these talks to the dpomo that's already running (or starts it):
+
+| Command | What it does |
+| ------- | ------------ |
+| `dpomo --toggle` | Start / pause |
+| `dpomo --skip` | Skip to the next phase |
+| `dpomo --reset` | Restart the phase |
+| `dpomo --show` | Show the window |
+| `dpomo --quit` | Quit |
+
+Handy for a **global shortcut**: bind `dpomo --toggle` to a key in your desktop's keyboard settings
+(on Windows: a shortcut to `dpomo.exe --toggle` with a *Shortcut key* in its properties).
+
 ## Make it yours
 
 Click the settings icon (top-right corner). You can change:
@@ -217,14 +232,30 @@ Measured on Windows 11 (release build, 16-core CPU):
 | Running, window open | ~0.2% of the machine | smooth 30 fps animation (turn it off for less) |
 | Running, hidden in the tray | ~0.05% | wakes up once per second |
 
-The app is a ~10 MB executable. Memory shows as ~110 MB, but most of that is the GPU driver's OpenGL
-runtime loaded into the process (on our test machine the driver alone was ~80 MB).
+Memory (Task Manager's "Memory" column): **~12 MB** open and paused, **~45 MB** while the smooth
+animation runs, **~7 MB** hidden in the tray. The executable is ~9 MB.
 
 ## Privacy
 
-dpomo has no accounts, no telemetry and no ads. The only network request is the update check: once a
-day it asks GitHub's public API for the latest release version. It never downloads or installs anything
-by itself. Turn it off with `check_updates = false` (or in the settings).
+dpomo has no accounts, no telemetry and no ads. Your settings, statistics and session stay on your
+computer, in the config folder.
+
+The only network request is the **update check**: once a day dpomo asks GitHub's public API
+(`api.github.com`) for the number of the latest release. Nothing about you is sent, only a normal web
+request (GitHub sees your IP address, see [GitHub's privacy statement](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement)).
+It never downloads or installs anything by itself. Turn it off in the settings, with
+`check_updates = false`, or by unchecking *Check for new versions* in the Windows installer.
+
+## Code signing policy
+
+Windows releases are built from this repository by GitHub Actions ([release.yml](.github/workflows/release.yml))
+and will be signed once the project is accepted by SignPath Foundation (application pending):
+Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by [SignPath Foundation](https://signpath.org).
+
+- Committers and reviewers: [@diegorezm](https://github.com/diegorezm)
+- Approvers: [@diegorezm](https://github.com/diegorezm)
+
+See [Privacy](#privacy) for what dpomo sends over the network.
 
 ## Build it yourself
 

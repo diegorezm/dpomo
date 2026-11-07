@@ -21,9 +21,19 @@ versions follow [Semantic Versioning](https://semver.org/).
   are configurable.
 - Installers: Windows (Inno Setup + portable zip), Linux (`.deb`, `.tar.gz`) and macOS (`.dmg`).
 - App icon (the axolotl's face) for the executable, window, installer and notifications.
+- Command line: `dpomo --toggle`, `--skip`, `--reset`, `--show`, `--quit` control the running app
+  (bind them to a global shortcut).
+- Release pipeline smoke tests: every package is installed on fresh Windows, Ubuntu 22.04/24.04 and
+  macOS (arm64 + Intel) machines and runs a real pomodoro before anything is published.
+- Windows installer option to turn off the update check; code signing (SignPath) and macOS
+  notarization are wired in the release workflow, ready to switch on.
 
 ### Changed
 - The cozy layout fills the whole window (no card border).
+- Much lower memory use: ~12 MB open and ~7 MB in the tray (was ~110 MB), by handing the GPU
+  driver's unused startup memory back to Windows.
+- Smaller executable (~9 MB): the update check uses the system's `curl` instead of a bundled
+  HTTPS stack.
 
 ## [0.1.0] - 2026-11-07
 

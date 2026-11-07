@@ -16,6 +16,10 @@ mod tray;
 mod ui;
 mod updates;
 
+use std::cell::RefCell;
+use std::net::TcpListener;
+use std::rc::Rc;
+
 use instance::Instance;
 
 fn main() -> eframe::Result {
@@ -44,31 +48,84 @@ fn main() -> eframe::Result {
     let start_hidden = config.behavior.tray
         && (config.behavior.start_hidden || std::env::args().any(|a| a == "--hidden"));
 
-    let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default()
-            .with_title("dpomo")
-            .with_app_id("dpomo")
-            .with_icon(window_icon())
-            .with_visible(!start_hidden)
-            .with_inner_size([
-                config.window.width.max(280.0),
-                config.window.height.max(380.0),
-            ])
-            .with_min_inner_size([280.0, 380.0]),
-        ..Default::default()
+    let viewport = egui::ViewportBuilder::default()
+        .with_title("dpomo")
+        .with_app_id("dpomo")
+        .with_icon(window_icon())
+        .with_visible(!start_hidden)
+        .with_inner_size([
+            config.window.width.max(280.0),
+            config.window.height.max(380.0),
+        ])
+        .with_min_inner_size([280.0, 380.0]);
+
+    // Handed to the app by whichever renderer manages to start.
+    let startup = Rc::new(RefCell::new(Some(Startup {
+        config,
+        listener,
+        start_hidden,
+        config_error,
+        initial_command,
+    })));
+
+    // OpenGL (glow) first: by far the lightest. `DPOMO_RENDERER=wgpu` skips it.
+    let force_wgpu = cfg!(windows) && std::env::var("DPOMO_RENDERER").is_ok_and(|r| r == "wgpu");
+    let result = if force_wgpu {
+        Err(eframe::Error::AppCreation(
+            "glow skipped (DPOMO_RENDERER=wgpu)".into(),
+        ))
+    } else {
+        run(eframe::Renderer::Glow, viewport.clone(), &startup)
     };
 
+    // No usable OpenGL (virtual machines, remote desktops, Windows on ARM
+    // without the GL compatibility pack): Direct3D 12 through wgpu, which
+    // also has a software fallback. Heavier, but it opens.
+    #[cfg(windows)]
+    if let Err(e) = &result
+        && startup.borrow().is_some()
+    {
+        eprintln!("dpomo: OpenGL unavailable ({e}), trying Direct3D 12");
+        return run(eframe::Renderer::Wgpu, viewport, &startup);
+    }
+    result
+}
+
+/// What `DpomoApp::new` needs besides the egui context.
+struct Startup {
+    config: config::Config,
+    listener: Option<TcpListener>,
+    start_hidden: bool,
+    config_error: Option<String>,
+    initial_command: Option<command::Command>,
+}
+
+fn run(
+    renderer: eframe::Renderer,
+    viewport: egui::ViewportBuilder,
+    startup: &Rc<RefCell<Option<Startup>>>,
+) -> eframe::Result {
+    let startup = Rc::clone(startup);
+    let options = eframe::NativeOptions {
+        viewport,
+        renderer,
+        ..Default::default()
+    };
     eframe::run_native(
         "dpomo",
         options,
         Box::new(move |cc| {
+            let s = startup
+                .borrow_mut()
+                .take()
+                .expect("the app is created once");
             Ok(Box::new(app::DpomoApp::new(
                 cc,
-                config,
-                listener,
-                start_hidden,
-                config_error,
-                initial_command,
+                s.config,
+                s.listener,
+                s.start_hidden,
+                s.config_error,
+                s.initial_command,
             )))
         }),
     )

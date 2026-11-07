@@ -24,10 +24,11 @@ Start-Process $Setup -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTA
 $exe = "$env:LOCALAPPDATA\Programs\dpomo\dpomo.exe"
 if (-not (Test-Path $exe)) { throw "not installed at $exe" }
 
-$p = Start-Process $exe -PassThru
+# stderr shows which renderer started (CI runners have no OpenGL → Direct3D 12 fallback).
+$p = Start-Process $exe -PassThru -RedirectStandardError "$Out\dpomo.log"
 Start-Sleep 8
 Shot '1-started'
-if ($p.HasExited) { throw 'dpomo exited at startup' }
+if ($p.HasExited) { Get-Content "$Out\dpomo.log"; throw 'dpomo exited at startup' }
 "working set after startup: {0:N1} MB" -f ((Get-Process -Id $p.Id).WorkingSet64 / 1MB)
 
 Dpomo '--toggle'

@@ -13,6 +13,10 @@ AppId={{8C3F1C2A-6E7B-4D7E-9B1A-5D2F0A9C4E11}
 AppName=dpomo
 AppVersion={#AppVersion}
 AppVerName=dpomo {#AppVersion}
+; File metadata (SignPath checks product name/version when signing).
+VersionInfoVersion={#AppVersion}
+VersionInfoProductName=dpomo
+VersionInfoProductVersion={#AppVersion}
 AppPublisher=diegorezm
 AppPublisherURL=https://github.com/diegorezm/dpomo
 AppSupportURL=https://github.com/diegorezm/dpomo/issues
@@ -41,8 +45,15 @@ CloseApplications=no
 Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "brazilianportuguese"; MessagesFile: "compiler:Languages\BrazilianPortuguese.isl"
 
+[CustomMessages]
+english.Privacy=Privacy
+english.CheckUpdates=Check for new versions once a day (asks api.github.com for the latest version number; nothing about you is sent)
+brazilianportuguese.Privacy=Privacidade
+brazilianportuguese.CheckUpdates=Procurar novas versões uma vez por dia (pergunta ao api.github.com o número da versão mais nova; nada sobre você é enviado)
+
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+Name: "checkupdates"; Description: "{cm:CheckUpdates}"; GroupDescription: "{cm:Privacy}"; Check: IsFirstInstall
 
 [Files]
 Source: "..\..\target\release\dpomo.exe"; DestDir: "{app}"; Flags: ignoreversion
@@ -72,4 +83,27 @@ var
 begin
   Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /IM dpomo.exe', '', SW_HIDE, ewWaitUntilTerminated, Code);
   Result := '';
+end;
+
+// Config file the app creates on first launch.
+function ConfigPath(): String;
+begin
+  Result := ExpandConstant('{userappdata}\dpomo\config.toml');
+end;
+
+// Only offered on a first install; after that the setting lives in the app.
+function IsFirstInstall(): Boolean;
+begin
+  Result := not FileExists(ConfigPath());
+end;
+
+// "Check for new versions" unchecked: start with the update check off.
+// Settings missing from the file use their defaults.
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if (CurStep = ssPostInstall) and IsFirstInstall() and not WizardIsTaskSelected('checkupdates') then
+  begin
+    ForceDirectories(ExtractFileDir(ConfigPath()));
+    SaveStringToFile(ConfigPath(), '[behavior]'#13#10'check_updates = false'#13#10, False);
+  end;
 end;

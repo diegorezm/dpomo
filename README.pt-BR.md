@@ -66,6 +66,21 @@ O dpomo mora na **bandeja do sistema** (os ícones pequenos perto do relógio):
 
 Dá para trocar qualquer atalho no `config.toml` (seção `[keys]`, veja [Configuração](#configuração)).
 
+### Linha de comando
+
+Rodar `dpomo` de novo com uma destas opções conversa com o dpomo que já está aberto (ou abre ele):
+
+| Comando | O que faz |
+| ------- | --------- |
+| `dpomo --toggle` | Iniciar / pausar |
+| `dpomo --skip` | Pular para a próxima fase |
+| `dpomo --reset` | Reiniciar a fase |
+| `dpomo --show` | Mostrar a janela |
+| `dpomo --quit` | Sair |
+
+Útil para um **atalho global**: associe `dpomo --toggle` a uma tecla nas configurações de teclado do
+sistema (no Windows: um atalho para `dpomo.exe --toggle` com uma *Tecla de atalho* nas propriedades).
+
 ## Personalizar
 
 Clique no ícone de ajustes (canto superior direito). Você pode mudar:
@@ -218,14 +233,31 @@ Medido no Windows 11 (versão release, CPU de 16 núcleos):
 | Rodando, janela aberta | ~0,2% da máquina | animação suave a 30 fps (dá para desligar) |
 | Rodando, escondido na bandeja | ~0,05% | acorda uma vez por segundo |
 
-O executável tem ~10 MB. A memória aparece como ~110 MB, mas quase tudo é o driver de vídeo (OpenGL)
-carregado no processo (na máquina de teste, só o driver ocupava ~80 MB).
+Memória (coluna "Memória" do Gerenciador de Tarefas): **~12 MB** aberto e pausado, **~45 MB** com a
+animação suave rodando, **~7 MB** escondido na bandeja. O executável tem ~9 MB.
 
 ## Privacidade
 
-O dpomo não tem conta, telemetria nem anúncios. A única conexão de rede é a verificação de atualização:
-uma vez por dia ele pergunta à API pública do GitHub qual é a versão mais nova. Ele nunca baixa nem
-instala nada sozinho. Para desligar: `check_updates = false` (ou nos ajustes).
+O dpomo não tem conta, telemetria nem anúncios. Seus ajustes, estatísticas e sessão ficam no seu
+computador, na pasta de configuração.
+
+A única conexão de rede é a **verificação de atualização**: uma vez por dia o dpomo pergunta à API
+pública do GitHub (`api.github.com`) qual é o número da versão mais nova. Nada sobre você é enviado, só
+uma requisição web comum (o GitHub vê seu endereço IP, veja a [declaração de privacidade do GitHub](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement)).
+Ele nunca baixa nem instala nada sozinho. Para desligar: nos ajustes, com `check_updates = false` ou
+desmarcando *Procurar novas versões* no instalador do Windows.
+
+## Política de assinatura de código (Code signing policy)
+
+As versões para Windows são compiladas a partir deste repositório pelo GitHub Actions
+([release.yml](.github/workflows/release.yml)) e serão assinadas assim que o projeto for aceito pela
+SignPath Foundation (pedido em andamento):
+Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by [SignPath Foundation](https://signpath.org).
+
+- Commits e revisão: [@diegorezm](https://github.com/diegorezm)
+- Aprovação: [@diegorezm](https://github.com/diegorezm)
+
+Veja [Privacidade](#privacidade) para o que o dpomo envia pela rede.
 
 ## Compilar você mesmo
 
