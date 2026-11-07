@@ -38,6 +38,8 @@ versions follow [Semantic Versioning](https://semver.org/).
 - Windows without a working OpenGL driver (virtual machines, remote desktop, Windows on ARM, CI
   runners): dpomo closed right away; it now falls back to Direct3D 12.
 - macOS: the first notification no longer opens a "Choose Application" dialog.
+- Windows 11: the title bar takes the theme's colors instead of the system's (a light theme
+  had a dark title bar when Windows was in dark mode or used accent-colored title bars).
 
 ## [0.1.0] - 2026-11-07
 

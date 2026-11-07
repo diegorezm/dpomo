@@ -35,6 +35,43 @@ pub fn trim_memory() {
     }
 }
 
+/// Windows 11 paints the title bar in the system's colors (dark mode, or the
+/// accent color if "show accent color on title bars" is on). Paint it with the
+/// theme instead so it blends into the window. Older Windows ignores this.
+#[allow(unused_variables)]
+pub fn color_title_bar(frame: &eframe::Frame, background: egui::Color32, text: egui::Color32) {
+    #[cfg(windows)]
+    {
+        use raw_window_handle::{HasWindowHandle, RawWindowHandle};
+        use windows_sys::Win32::Graphics::Dwm::{
+            DWMWA_CAPTION_COLOR, DWMWA_TEXT_COLOR, DwmSetWindowAttribute,
+        };
+        let Ok(handle) = frame.window_handle() else {
+            return;
+        };
+        let RawWindowHandle::Win32(handle) = handle.as_raw() else {
+            return;
+        };
+        let hwnd = handle.hwnd.get() as windows_sys::Win32::Foundation::HWND;
+        // COLORREF is 0x00BBGGRR.
+        let colorref = |c: egui::Color32| u32::from_le_bytes([c.r(), c.g(), c.b(), 0]);
+        for (attribute, color) in [
+            (DWMWA_CAPTION_COLOR, colorref(background)),
+            (DWMWA_TEXT_COLOR, colorref(text)),
+        ] {
+            // SAFETY: valid window handle from eframe; a 4-byte COLORREF.
+            unsafe {
+                DwmSetWindowAttribute(
+                    hwnd,
+                    attribute as u32,
+                    (&color as *const u32).cast(),
+                    size_of::<u32>() as u32,
+                );
+            }
+        }
+    }
+}
+
 #[cfg(windows)]
 fn register_windows_app_id() -> Result<(), Box<dyn std::error::Error>> {
     let dir = crate::config::Config::path()

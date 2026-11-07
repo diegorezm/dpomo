@@ -56,14 +56,16 @@ serde_json = "1"
 egui_extras = { version = "0.37.0", default-features = false, features = ["svg"] }
 
 [target.'cfg(windows)'.dependencies]
+# Window handle for coloring the title bar (already in the tree via eframe).
+raw-window-handle = "0.6"
 # Fallback renderer when OpenGL is missing (VMs, remote desktop, Windows on ARM):
 # Direct3D 12 only, with its software rasterizer. Not used on a normal PC.
 eframe = { version = "0.37.0", default-features = false, features = ["wgpu_no_default_features"] }
 wgpu = { version = "30", default-features = false, features = ["dx12", "wgsl", "std"] }
 # Registers an AppUserModelID so toasts say "dpomo" (already in the tree via auto-launch).
 windows-registry = "0.6.1"
-# Trims the working set while hidden in the tray (already in the tree via winit).
-windows-sys = { version = "0.61", features = ["Win32_System_ProcessStatus", "Win32_System_Threading"] }
+# Trims the working set while hidden; colors the title bar (already in the tree via winit).
+windows-sys = { version = "0.61", features = ["Win32_Graphics_Dwm", "Win32_System_ProcessStatus", "Win32_System_Threading"] }
 
 [target.'cfg(windows)'.build-dependencies]
 winresource = "0.1.34"

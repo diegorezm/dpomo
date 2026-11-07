@@ -452,7 +452,7 @@ impl DpomoApp {
     }
 
     /// Push theme / window settings to egui only when they change.
-    fn sync_environment(&mut self, ctx: &egui::Context) {
+    fn sync_environment(&mut self, ctx: &egui::Context, frame: &eframe::Frame) {
         let language = self.config.appearance.language;
         if self.applied_language != Some(language) {
             i18n::set(language);
@@ -468,6 +468,14 @@ impl DpomoApp {
         if self.applied_theme != Some((theme, scale)) {
             theme.apply(ctx);
             ctx.set_zoom_factor(scale);
+            // The OS draws the title bar in its own colors; match ours instead,
+            // or a light theme gets a dark bar (and vice versa).
+            ctx.send_viewport_cmd(ViewportCommand::SetTheme(if theme.is_dark() {
+                egui::SystemTheme::Dark
+            } else {
+                egui::SystemTheme::Light
+            }));
+            system::color_title_bar(frame, theme.background, theme.text);
             self.applied_theme = Some((theme, scale));
         }
 
@@ -602,10 +610,10 @@ impl eframe::App for DpomoApp {
         self.schedule_repaint(ctx, now);
     }
 
-    fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+    fn ui(&mut self, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
         let ctx = ui.ctx().clone();
         let now = Instant::now();
-        self.sync_environment(&ctx);
+        self.sync_environment(&ctx, frame);
         self.handle_shortcuts(&ctx, now);
 
         if ctx.input(|i| i.viewport().close_requested()) {
