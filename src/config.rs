@@ -8,7 +8,7 @@ use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 
-use crate::theme::{self, Theme};
+use crate::theme::{self, Theme, Themes};
 use crate::timer::Phase;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
@@ -59,7 +59,7 @@ impl TimerSettings {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Appearance {
-    /// A preset name from [`theme::PRESETS`], or `"custom"`.
+    /// A theme name (see `themes/*.toml`), or `"custom"`.
     pub theme: String,
     pub ring_thickness: f32,
     pub ui_scale: f32,
@@ -72,7 +72,7 @@ pub struct Appearance {
 impl Default for Appearance {
     fn default() -> Self {
         Self {
-            theme: theme::PRESETS[0].0.to_owned(),
+            theme: theme::DEFAULT_NAME.to_owned(),
             ring_thickness: 10.0,
             ui_scale: 1.0,
             smooth_animation: true,
@@ -136,11 +136,11 @@ impl Config {
     }
 
     /// The theme currently in effect.
-    pub fn theme(&self) -> Theme {
+    pub fn theme(&self, themes: &Themes) -> Theme {
         if self.appearance.theme == theme::CUSTOM {
             return self.custom_theme;
         }
-        theme::preset(&self.appearance.theme).unwrap_or(theme::PRESETS[0].1)
+        themes.get(&self.appearance.theme).unwrap_or_default()
     }
 }
 

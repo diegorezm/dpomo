@@ -1,0 +1,8 @@
+name = "Tokyo Night"
+background = "#1a1b26"
+surface = "#24283b"
+text = "#c0caf5"
+muted = "#9aa5ce"
+focus = "#f7768e"
+short_break = "#9ece6a"
+long_break = "#7aa2f7"

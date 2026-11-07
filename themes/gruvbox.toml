@@ -1,0 +1,8 @@
+name = "Gruvbox"
+background = "#282828"
+surface = "#3c3836"
+text = "#ebdbb2"
+muted = "#a89984"
+focus = "#fb4934"
+short_break = "#b8bb26"
+long_break = "#83a598"

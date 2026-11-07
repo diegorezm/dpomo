@@ -1,0 +1,8 @@
+name = "Paper"
+background = "#f7f5f0"
+surface = "#e9e5dc"
+text = "#2b2b2b"
+muted = "#7a7468"
+focus = "#e4572e"
+short_break = "#2a9d8f"
+long_break = "#6c63ff"

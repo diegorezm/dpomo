@@ -1,0 +1,8 @@
+name = "Mono"
+background = "#111111"
+surface = "#222222"
+text = "#f2f2f2"
+muted = "#8a8a8a"
+focus = "#f2f2f2"
+short_break = "#bdbdbd"
+long_break = "#9a9a9a"

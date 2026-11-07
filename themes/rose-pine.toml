@@ -1,0 +1,8 @@
+name = "Rosé Pine"
+background = "#191724"
+surface = "#26233a"
+text = "#e0def4"
+muted = "#908caa"
+focus = "#eb6f92"
+short_break = "#9ccfd8"
+long_break = "#c4a7e7"

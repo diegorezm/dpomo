@@ -1,0 +1,8 @@
+name = "Catppuccin"
+background = "#1e1e2e"
+surface = "#313244"
+text = "#cdd6f4"
+muted = "#a6adc8"
+focus = "#f38ba8"
+short_break = "#a6e3a1"
+long_break = "#89b4fa"

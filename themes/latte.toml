@@ -1,0 +1,8 @@
+name = "Latte"
+background = "#eff1f5"
+surface = "#dce0e8"
+text = "#4c4f69"
+muted = "#6c6f85"
+focus = "#d20f39"
+short_break = "#40a02b"
+long_break = "#1e66f5"

@@ -42,12 +42,14 @@ egui 0.37 API notes (it changed a lot vs. older tutorials you may remember):
 ## Architecture
 
 ```
+build.rs                 embeds themes/*.toml into the binary (generates BUILTIN list)
+themes/*.toml            built-in themes, one file each
 src/
 ├── main.rs              window options, loads Config, starts eframe
 ├── app.rs               DpomoApp: owns ALL state, applies Actions, repaint scheduling, saving
 ├── timer.rs             pure state machine (Phase, Timer, TimerEvent). No egui. Unit-tested.
 ├── config.rs            Config structs (serde, TOML), load/save, defaults. Unit-tested.
-├── theme.rs             Theme struct, PRESETS list, apply-to-egui, hex color serde
+├── theme.rs             Theme struct, Themes registry (built-in + user files), apply-to-egui, hex serde
 └── ui/
     ├── mod.rs
     ├── widgets.rs       hand-painted ring, icons, icon_button, pill, card
@@ -64,6 +66,7 @@ input ─► view fn (draws, returns Action) ─► App::apply_* ─► Timer / 
 
 - **Views never mutate `Timer`.** They return an `Action` enum. Settings view is the one exception: it edits `Config` in place (it's a form).
 - **`Timer` takes `now: Instant` as a parameter** everywhere. Never call `Instant::now()` inside `timer.rs`; that is what makes it testable.
+- **`App` owns the `Themes` registry**; `Config` only stores the theme *name*. Resolve with `config.theme(&themes)`.
 - **`App` caches what it pushed to egui** (`applied_theme`, `applied_on_top`, `title`) and only re-sends on change.
 
 ### Performance rules
@@ -74,8 +77,13 @@ input ─► view fn (draws, returns Action) ─► App::apply_* ─► Timer / 
 
 ## Recipes
 
-### Add a theme preset
-Add one line to `PRESETS` in `src/theme.rs` (`theme(bg, surface, text, muted, focus, short, long)` as `0xRRGGBB`). That's it — the settings picker and config pick it up automatically. Check contrast for text/muted on background, and test the screen.
+### Add a built-in theme
+Drop a file in `themes/` (copy an existing one). Fields: `name`, `background`, `surface`, `text`, `muted`, `focus`, `short_break`, `long_break`, all `"#rrggbb"`. No code changes: `build.rs` embeds every `themes/*.toml` and `cargo test` checks they parse and have unique names. The picker sorts dark themes first, then light, alphabetically. Check contrast for `text`/`muted` on `background` and look at it in the app.
+
+Users add themes the same way in `<config dir>/dpomo/themes/`; a user theme with the same `name` as a built-in replaces it. Bad files don't crash: they're skipped and listed in the settings screen (`Themes::errors`).
+
+### Add a theme color
+Add the field to `Theme` (with `#[serde(with = "hex")]`) **and to every file in `themes/`** (tests fail otherwise), then use it in views. Consider `#[serde(default = …)]` so users' existing theme files keep working.
 
 ### Add a setting
 1. Add the field to the right struct in `config.rs` (`TimerSettings`, `Appearance`, `Behavior`) **and** to its `Default` impl. All structs are `#[serde(default)]`, so old config files keep working.
@@ -114,6 +122,8 @@ Tip: set the theme by editing the config file (path is shown at the bottom of th
 ## Gotchas
 
 - The config is saved when leaving the settings screen and on window close — not on every change. If you add settings outside the settings screen, call `App::save`.
+- Theme names are display names (`"Rosé Pine"`), not file names. `theme::DEFAULT_NAME` must match the `name` in `themes/rose-pine.toml` (tested).
+- `"custom"` is reserved: it means `Config::custom_theme`, edited in the settings screen.
 - `Timer::sync_settings` only applies new durations to a phase that hasn't started; this is intentional.
 - `Timer::skip` does not count the skipped focus session as completed; `tick` (natural finish) does.
 - Release builds on Windows have no console (`windows_subsystem = "windows"`), so `eprintln!` is invisible there; debug builds show it.

@@ -29,7 +29,7 @@ Você trabalha focado por **25 minutos**, descansa **5**. A cada **4 sessões**,
 Clique no ícone de ajustes (canto superior direito). Você pode mudar:
 
 - ⏱️ **Tempos** de foco e pausas, e quantas sessões até a pausa longa
-- 🎨 **Tema**: 8 prontos (Rosé Pine, Catppuccin, Tokyo Night, Nord, Gruvbox, Mono, Latte, Paper) ou **o seu**, escolhendo cada cor
+- 🎨 **Tema**: 8 prontos (Rosé Pine, Catppuccin, Tokyo Night, Nord, Gruvbox, Mono, Latte, Paper) ou **o seu** (veja abaixo)
 - 💍 **Anel**: espessura e brilho
 - 🔍 **Tamanho** da interface
 - 📌 **Sempre no topo**, iniciar fases automaticamente e mais
@@ -54,6 +54,27 @@ theme = "Nord"
 ```
 
 Só escreva o que quiser mudar, o resto usa o padrão.
+
+### Criar seu próprio tema 🎨
+
+Temas são arquivos `.toml`. Coloque o seu na pasta `themes`, ao lado do `config.toml`
+(ex.: `%APPDATA%\dpomo	hemes\dracula.toml`):
+
+```toml
+name = "Dracula"
+background = "#282a36"   # fundo
+surface = "#44475a"      # cartões, botões e trilho do anel
+text = "#f8f8f2"         # texto
+muted = "#a4a8c4"        # texto secundário
+focus = "#ff79c6"        # cor do foco
+short_break = "#50fa7b"  # cor da pausa curta
+long_break = "#bd93f9"   # cor da pausa longa
+```
+
+Depois, nos ajustes, clique em **Recarregar temas**. Pronto!
+
+Prefere escolher as cores clicando? Selecione **Personalizado**, ajuste as cores e clique em
+**Salvar como arquivo**. Quer compartilhar? É só mandar o arquivo para alguém. 😉
 
 ## Instalar
 

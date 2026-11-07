@@ -5,7 +5,7 @@ use std::time::{Duration, Instant};
 use egui::{Key, Modifiers, ViewportCommand};
 
 use crate::config::Config;
-use crate::theme::Theme;
+use crate::theme::{Theme, Themes};
 use crate::timer::{Timer, TimerEvent, format_remaining};
 use crate::ui::{settings_view, timer_view};
 
@@ -19,8 +19,10 @@ pub struct DpomoApp {
     config: Config,
     /// Last state written to disk, to avoid pointless writes.
     saved: Config,
+    themes: Themes,
     timer: Timer,
     view: View,
+    settings: settings_view::State,
     ring: timer_view::RingAnim,
     /// Cache of what was pushed to egui / the window, so we only resend on change.
     applied_theme: Option<(Theme, f32)>,
@@ -31,7 +33,9 @@ pub struct DpomoApp {
 impl DpomoApp {
     pub fn new(_cc: &eframe::CreationContext<'_>, config: Config) -> Self {
         Self {
+            themes: Themes::load(),
             timer: Timer::new(&config.timer),
+            settings: settings_view::State::default(),
             saved: config.clone(),
             config,
             view: View::Timer,
@@ -121,14 +125,40 @@ impl DpomoApp {
         }
     }
 
+    fn apply_settings_action(&mut self, action: settings_view::Action) {
+        use settings_view::Action;
+        match action {
+            Action::Back => self.leave_settings(),
+            Action::ResetDefaults => self.config = Config::default(),
+            Action::ReloadThemes => {
+                self.themes = Themes::load();
+                self.settings.notice =
+                    Some(format!("{} temas carregados", self.themes.iter().count()));
+            }
+            Action::ExportCustom => {
+                let name = self.settings.export_name.trim().to_owned();
+                self.settings.notice =
+                    Some(match Themes::export(&name, &self.config.custom_theme) {
+                        Ok(path) => {
+                            self.themes = Themes::load();
+                            self.config.appearance.theme = name;
+                            format!("Tema salvo em {}", path.display())
+                        }
+                        Err(e) => format!("Não foi possível salvar: {e}"),
+                    });
+            }
+        }
+    }
+
     fn leave_settings(&mut self) {
+        self.settings.notice = None;
         self.view = View::Timer;
         self.save();
     }
 
     /// Push theme / window settings to egui only when they change.
     fn sync_environment(&mut self, ctx: &egui::Context) {
-        let theme = self.config.theme();
+        let theme = self.config.theme(&self.themes);
         let scale = self.config.appearance.ui_scale.clamp(0.5, 3.0);
         if self.applied_theme != Some((theme, scale)) {
             theme.apply(ctx);
@@ -206,7 +236,7 @@ impl eframe::App for DpomoApp {
             self.save();
         }
 
-        let theme = self.config.theme();
+        let theme = self.config.theme(&self.themes);
         let frame = egui::Frame::new().fill(theme.background).inner_margin(16);
         egui::CentralPanel::default()
             .frame(frame)
@@ -218,11 +248,18 @@ impl eframe::App for DpomoApp {
                         self.apply_timer_action(&ctx, a, now);
                     }
                 }
-                View::Settings => match settings_view::show(ui, &mut self.config, &theme) {
-                    Some(settings_view::Action::Back) => self.leave_settings(),
-                    Some(settings_view::Action::ResetDefaults) => self.config = Config::default(),
-                    None => {}
-                },
+                View::Settings => {
+                    let action = settings_view::show(
+                        ui,
+                        &mut self.config,
+                        &self.themes,
+                        &mut self.settings,
+                        &theme,
+                    );
+                    if let Some(a) = action {
+                        self.apply_settings_action(a);
+                    }
+                }
             });
 
         // Keep the ring easing animation going.
@@ -235,6 +272,9 @@ impl eframe::App for DpomoApp {
     }
 
     fn clear_color(&self, _visuals: &egui::Visuals) -> [f32; 4] {
-        self.config.theme().background.to_normalized_gamma_f32()
+        self.config
+            .theme(&self.themes)
+            .background
+            .to_normalized_gamma_f32()
     }
 }

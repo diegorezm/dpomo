@@ -8,15 +8,40 @@ use egui::{
 
 use super::widgets::{self, Icon};
 use crate::config::Config;
-use crate::theme::{self, Theme};
+use crate::theme::{self, Theme, Themes};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Action {
     Back,
     ResetDefaults,
+    ReloadThemes,
+    /// Save the custom theme as `<themes dir>/<state.export_name>.toml`.
+    ExportCustom,
 }
 
-pub fn show(ui: &mut Ui, config: &mut Config, theme: &Theme) -> Option<Action> {
+/// Screen-local state owned by `App` (it outlives a single frame).
+pub struct State {
+    pub export_name: String,
+    /// Feedback from the last action, e.g. "Tema salvo em …".
+    pub notice: Option<String>,
+}
+
+impl Default for State {
+    fn default() -> Self {
+        Self {
+            export_name: "Meu tema".to_owned(),
+            notice: None,
+        }
+    }
+}
+
+pub fn show(
+    ui: &mut Ui,
+    config: &mut Config,
+    themes: &Themes,
+    state: &mut State,
+    theme: &Theme,
+) -> Option<Action> {
     let mut action = None;
 
     ui.horizontal(|ui| {
@@ -47,10 +72,49 @@ pub fn show(ui: &mut Ui, config: &mut Config, theme: &Theme) -> Option<Action> {
             });
 
             section(ui, theme, "Tema", |ui| {
-                theme_picker(ui, config);
+                theme_picker(ui, config, themes);
                 if config.appearance.theme == theme::CUSTOM {
                     ui.add_space(6.0);
                     custom_colors(ui, &mut config.custom_theme);
+                    ui.add_space(4.0);
+                    ui.horizontal(|ui| {
+                        let save = ui.button("Salvar como arquivo");
+                        ui.add(
+                            egui::TextEdit::singleline(&mut state.export_name)
+                                .hint_text("nome do tema")
+                                .desired_width(f32::INFINITY),
+                        );
+                        if save.clicked() && !state.export_name.trim().is_empty() {
+                            action = Some(Action::ExportCustom);
+                        }
+                    });
+                }
+                ui.add_space(4.0);
+                ui.horizontal(|ui| {
+                    if ui
+                        .button("Recarregar temas")
+                        .on_hover_text("Lê de novo os arquivos .toml da pasta de temas")
+                        .clicked()
+                    {
+                        action = Some(Action::ReloadThemes);
+                    }
+                });
+                if let Some(dir) = Themes::dir() {
+                    ui.label(
+                        RichText::new(format!("Seus temas: {}", dir.display()))
+                            .size(11.0)
+                            .color(theme.muted),
+                    );
+                }
+                for err in &themes.errors {
+                    ui.label(
+                        RichText::new(format!("Erro em {err}"))
+                            .size(11.0)
+                            .color(theme.focus),
+                    );
+                }
+                if let Some(notice) = &state.notice {
+                    ui.label(RichText::new(notice).size(11.0).color(theme.short_break));
                 }
             });
 
@@ -128,11 +192,10 @@ fn minutes_row(ui: &mut Ui, label: &str, value: &mut u32) {
     });
 }
 
-fn theme_picker(ui: &mut Ui, config: &mut Config) {
-    let current = config.theme();
-    let entries = theme::PRESETS
+fn theme_picker(ui: &mut Ui, config: &mut Config, themes: &Themes) {
+    let current = config.theme(themes);
+    let entries = themes
         .iter()
-        .map(|(n, t)| (*n, *t))
         .chain(std::iter::once((theme::CUSTOM, config.custom_theme)));
 
     let spacing = 8.0;
