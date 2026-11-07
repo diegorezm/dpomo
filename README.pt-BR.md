@@ -53,6 +53,13 @@ O dpomo mora na **bandeja do sistema** (os ícones pequenos perto do relógio):
 - Fechou o app ou reiniciou o computador no meio da sessão? Ele **continua de onde parou** (pausado).
 - Quer que ele abra sozinho quando ligar o computador? Ative **Iniciar com o sistema** nos ajustes.
 
+### Timer flutuante
+
+Quer o tempo sempre à vista? Ligue o **timer flutuante** (o botãozinho quadrado no topo da janela, a
+tecla `M` ou o menu da bandeja): uma janelinha que fica por cima de tudo com o tempo que falta, a fase e
+o seu companheiro. Arraste para onde quiser, puxe o canto para aumentar ou diminuir, clique duas vezes
+para abrir o dpomo. Ela continua funcionando com a janela principal escondida na bandeja.
+
 ### Atalhos
 
 | Tecla | O que faz |
@@ -61,8 +68,9 @@ O dpomo mora na **bandeja do sistema** (os ícones pequenos perto do relógio):
 | `R` | Reiniciar a fase |
 | `S` | Pular para a próxima fase |
 | `1` `2` `3` | Ir para foco / pausa curta / pausa longa |
+| `M` | Mostrar / esconder o timer flutuante |
 | `,` | Abrir ajustes |
-| `Esc` | Voltar dos ajustes |
+| `Esc` | Fechar os ajustes |
 
 Dá para trocar qualquer atalho no `config.toml` (seção `[keys]`, veja [Configuração](#configuração)).
 
@@ -76,6 +84,8 @@ Rodar `dpomo` de novo com uma destas opções conversa com o dpomo que já está
 | `dpomo --skip` | Pular para a próxima fase |
 | `dpomo --reset` | Reiniciar a fase |
 | `dpomo --show` | Mostrar a janela |
+| `dpomo --mini` | Mostrar / esconder o timer flutuante |
+| `dpomo --settings` | Abrir os ajustes |
 | `dpomo --quit` | Sair |
 
 Útil para um **atalho global**: associe `dpomo --toggle` a uma tecla nas configurações de teclado do
@@ -156,6 +166,13 @@ width = 360.0
 height = 500.0
 remember_size = true             # guarda o último tamanho ao fechar
 
+[mini]                           # timer flutuante: pequeno, sempre por cima
+enabled = false
+width = 260.0                    # arraste para mover, puxe o canto para redimensionar
+height = 96.0
+show_character = true
+# x = 1600.0 / y = 40.0 aparecem quando você move ele
+
 [keys]                           # nomes de tecla: "Space", "R", ",", "1", "F5", "Escape", "ArrowLeft"…
 toggle = "Space"
 reset = "R"
@@ -164,6 +181,7 @@ settings = ","
 focus = "1"
 short_break = "2"
 long_break = "3"
+mini = "M"
 back = "Escape"
 
 [custom_theme]                   # usado quando theme = "custom"

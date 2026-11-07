@@ -69,7 +69,11 @@ pub enum Icon {
     Reset,
     Skip,
     Settings,
-    Back,
+    /// Floating timer (picture-in-picture).
+    Mini,
+    /// Open the main window (arrow out of a box).
+    Expand,
+    Close,
 }
 
 /// Round icon button painted inside `rect`.
@@ -162,13 +166,42 @@ pub fn paint_icon(painter: &Painter, icon: Icon, c: Pos2, s: f32, color: Color32
                 painter.circle_filled(pos2(c.x + knob * w, y), s * 0.22, color);
             }
         }
-        Icon::Back => {
-            let pts = vec![
-                pos2(c.x + s * 0.3, c.y - s * 0.7),
-                pos2(c.x - s * 0.4, c.y),
-                pos2(c.x + s * 0.3, c.y + s * 0.7),
+        Icon::Mini => {
+            let outer = Rect::from_center_size(c, vec2(s * 2.0, s * 1.5));
+            painter.rect_stroke(
+                outer,
+                CornerRadius::same((s * 0.25) as u8),
+                Stroke::new(stroke.width * 0.8, color),
+                egui::StrokeKind::Middle,
+            );
+            let inner = Rect::from_min_max(
+                pos2(c.x + s * 0.05, c.y + s * 0.05),
+                pos2(outer.right() - s * 0.3, outer.bottom() - s * 0.3),
+            );
+            painter.rect_filled(inner, CornerRadius::same((s * 0.12) as u8), color);
+        }
+        Icon::Expand => {
+            let w = Stroke::new(stroke.width * 0.8, color);
+            let box_pts = vec![
+                pos2(c.x - s * 0.1, c.y - s * 0.8),
+                pos2(c.x - s * 0.8, c.y - s * 0.8),
+                pos2(c.x - s * 0.8, c.y + s * 0.8),
+                pos2(c.x + s * 0.8, c.y + s * 0.8),
+                pos2(c.x + s * 0.8, c.y + s * 0.1),
             ];
-            painter.add(PathShape::line(pts, stroke));
+            painter.add(PathShape::line(box_pts, w));
+            let tip = pos2(c.x + s * 0.9, c.y - s * 0.9);
+            painter.line_segment([pos2(c.x - s * 0.05, c.y + s * 0.05), tip], w);
+            painter.add(PathShape::line(
+                vec![tip + vec2(-s * 0.6, 0.0), tip, tip + vec2(0.0, s * 0.6)],
+                w,
+            ));
+        }
+        Icon::Close => {
+            let d = s * 0.65;
+            for (a, b) in [(vec2(-d, -d), vec2(d, d)), (vec2(-d, d), vec2(d, -d))] {
+                painter.line_segment([c + a, c + b], stroke);
+            }
         }
     }
 }

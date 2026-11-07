@@ -34,6 +34,7 @@ pub struct Config {
     pub behavior: Behavior,
     pub sound: Sound,
     pub window: Window,
+    pub mini: Mini,
     pub keys: Keys,
     /// Used when `appearance.theme = "custom"`.
     pub custom_theme: Theme,
@@ -203,6 +204,39 @@ impl Default for Window {
     }
 }
 
+/// The floating timer: a small borderless always-on-top window.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct Mini {
+    pub enabled: bool,
+    /// Size in points; changed by dragging its corner.
+    pub width: f32,
+    pub height: f32,
+    /// Screen position, set when the user moves it. Missing = top-right corner.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub x: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub y: Option<f32>,
+    pub show_character: bool,
+}
+
+impl Default for Mini {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            width: 260.0,
+            height: 96.0,
+            x: None,
+            y: None,
+            show_character: true,
+        }
+    }
+}
+
+impl Mini {
+    pub const MIN_SIZE: [f32; 2] = [120.0, 44.0];
+}
+
 /// Keyboard shortcuts. Values are egui key names: "Space", "R", ",", "1",
 /// "F5", "Escape", "ArrowLeft"… An unknown name falls back to the default.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -215,7 +249,9 @@ pub struct Keys {
     pub focus: String,
     pub short_break: String,
     pub long_break: String,
-    /// Leave the settings screen.
+    /// Show / hide the floating timer.
+    pub mini: String,
+    /// Close the settings window.
     pub back: String,
 }
 
@@ -229,6 +265,7 @@ impl Default for Keys {
             focus: "1".into(),
             short_break: "2".into(),
             long_break: "3".into(),
+            mini: "M".into(),
             back: "Escape".into(),
         }
     }

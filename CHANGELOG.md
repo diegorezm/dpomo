@@ -6,6 +6,11 @@ versions follow [Semantic Versioning](https://semver.org/).
 ## [1.0.0] - 2026-11-07
 
 ### Added
+- **Floating timer**: a small borderless window that stays on top with the time left, the phase,
+  the progress and the character. Drag to move, drag the corner to resize, double-click to open
+  dpomo; remembers its place and size (`[mini]`, key `M`, tray menu, `dpomo --mini`).
+- **Settings in their own window**, bigger and easier to read: a sidebar with the sections, larger
+  text, and explanations written under the options. Also in the tray menu and `dpomo --settings`.
 - **English UI** (now the main language) with Portuguese available; follows the OS by default
   (`appearance.language`).
 - **Sounds** when a phase ends: chime, bell, soft (synthesized, no audio files) or your own

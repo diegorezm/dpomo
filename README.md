@@ -53,6 +53,13 @@ dpomo lives in the **system tray** (the small icons next to the clock):
 - Closed the app or restarted your computer mid-session? It **picks up where you left off** (paused).
 - Want it to start with your computer? Turn on **Start when I log in** in the settings.
 
+### Floating timer
+
+Want the time always in sight? Turn on the **floating timer** (the small square button at the top of
+the window, the `M` key, or the tray menu): a little window that stays on top of everything with the time
+left, the phase and your companion. Drag it anywhere, drag its corner to make it bigger or smaller,
+double-click it to open dpomo. It keeps working while the main window is hidden in the tray.
+
 ### Shortcuts
 
 | Key | What it does |
@@ -61,8 +68,9 @@ dpomo lives in the **system tray** (the small icons next to the clock):
 | `R` | Restart the phase |
 | `S` | Skip to the next phase |
 | `1` `2` `3` | Go to focus / short break / long break |
+| `M` | Show / hide the floating timer |
 | `,` | Open settings |
-| `Esc` | Leave settings |
+| `Esc` | Close settings |
 
 Every shortcut can be changed in `config.toml` (the `[keys]` section, see [Configuration](#configuration)).
 
@@ -76,6 +84,8 @@ Running `dpomo` again with one of these talks to the dpomo that's already runnin
 | `dpomo --skip` | Skip to the next phase |
 | `dpomo --reset` | Restart the phase |
 | `dpomo --show` | Show the window |
+| `dpomo --mini` | Show / hide the floating timer |
+| `dpomo --settings` | Open the settings |
 | `dpomo --quit` | Quit |
 
 Handy for a **global shortcut**: bind `dpomo --toggle` to a key in your desktop's keyboard settings
@@ -156,6 +166,13 @@ width = 360.0
 height = 500.0
 remember_size = true             # keep the last size when closing
 
+[mini]                           # floating timer: small, always on top
+enabled = false
+width = 260.0                    # drag it to move, drag its corner to resize
+height = 96.0
+show_character = true
+# x = 1600.0 / y = 40.0 are added when you move it
+
 [keys]                           # key names: "Space", "R", ",", "1", "F5", "Escape", "ArrowLeft"…
 toggle = "Space"
 reset = "R"
@@ -164,6 +181,7 @@ settings = ","
 focus = "1"
 short_break = "2"
 long_break = "3"
+mini = "M"
 back = "Escape"
 
 [custom_theme]                   # used when theme = "custom"

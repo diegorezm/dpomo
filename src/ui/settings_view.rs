@@ -1,4 +1,4 @@
-//! Settings screen. Edits `Config` in place; `App` decides when to save.
+//! Settings window. Edits `Config` in place; `App` decides when to save.
 
 use egui::color_picker::{Alpha, color_edit_button_srgba};
 use egui::{
@@ -8,7 +8,8 @@ use egui::{
 
 use std::collections::HashMap;
 
-use super::widgets::{self, Icon};
+use super::cozy_view::display_font;
+use super::widgets;
 use crate::character::{CharacterImage, Characters, Pose};
 use crate::config::{self, Config};
 use crate::i18n::{Language, fill, tr};
@@ -18,7 +19,6 @@ use crate::theme::{self, Theme, Themes, mix};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Action {
-    Back,
     ResetDefaults,
     ReloadThemes,
     /// Save the custom theme as `<themes dir>/<state.export_name>.toml`.
@@ -29,10 +29,56 @@ pub enum Action {
     OverwriteConfig,
     PlaySound,
     OpenUpdatePage,
+    /// Put the floating timer back in its default corner.
+    MiniToCorner,
 }
 
-/// Screen-local state owned by `App` (it outlives a single frame).
+/// The pages listed in the sidebar.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Section {
+    Timer,
+    Appearance,
+    Theme,
+    Sound,
+    Mini,
+    Behavior,
+    Tray,
+    Stats,
+    ConfigFile,
+}
+
+impl Section {
+    const ALL: [Section; 9] = [
+        Section::Timer,
+        Section::Appearance,
+        Section::Theme,
+        Section::Sound,
+        Section::Mini,
+        Section::Behavior,
+        Section::Tray,
+        Section::Stats,
+        Section::ConfigFile,
+    ];
+
+    fn title(self) -> &'static str {
+        let t = tr();
+        match self {
+            Section::Timer => t.sec_timer,
+            Section::Appearance => t.sec_appearance,
+            Section::Theme => t.sec_theme,
+            Section::Sound => t.sec_sound,
+            Section::Mini => t.sec_mini,
+            Section::Behavior => t.sec_behavior,
+            Section::Tray => t.sec_tray,
+            Section::Stats => t.sec_stats,
+            Section::ConfigFile => t.sec_config_file,
+        }
+    }
+}
+
+/// Window-local state owned by `App` (it outlives a single frame).
 pub struct State {
+    pub section: Section,
     pub export_name: String,
     /// Feedback from the last action, e.g. "Theme saved to …".
     pub notice: Option<String>,
@@ -49,6 +95,7 @@ pub struct State {
 impl Default for State {
     fn default() -> Self {
         Self {
+            section: Section::Timer,
             export_name: tr().default_export_name.to_owned(),
             notice: None,
             system_error: None,
@@ -59,6 +106,8 @@ impl Default for State {
     }
 }
 
+/// The whole settings window: the sections in a sidebar, the selected one on
+/// the right. Bigger text than the main window, for readability.
 pub fn show(
     ui: &mut Ui,
     config: &mut Config,
@@ -68,21 +117,123 @@ pub fn show(
     state: &mut State,
     theme: &Theme,
 ) -> Option<Action> {
-    let t = tr();
+    readable_style(ui);
     let mut action = None;
 
-    ui.horizontal(|ui| {
-        let (rect, _) = ui.allocate_exact_size(vec2(32.0, 32.0), Sense::hover());
-        if widgets::icon_button(ui, rect, Icon::Back, theme.text, Color32::TRANSPARENT)
-            .on_hover_text(fill(t.hint_back, &[("key", &config.keys.back)]))
-            .clicked()
-        {
-            action = Some(Action::Back);
-        }
-        ui.label(RichText::new(t.settings).size(20.0).strong());
-    });
-    ui.add_space(8.0);
+    egui::Panel::left("settings_nav")
+        .exact_size(210.0)
+        .resizable(false)
+        .frame(egui::Frame::new().fill(theme.surface).inner_margin(14))
+        .show(ui, |ui| {
+            ui.add_space(4.0);
+            ui.label(
+                RichText::new(tr().settings)
+                    .font(display_font(24.0))
+                    .color(theme.text),
+            );
+            ui.add_space(10.0);
+            ui.spacing_mut().item_spacing.y = 4.0;
+            for section in Section::ALL {
+                if nav_item(ui, theme, section.title(), state.section == section).clicked() {
+                    state.section = section;
+                    state.notice = None;
+                }
+            }
+            ui.with_layout(Layout::bottom_up(Align::Min), |ui| {
+                ui.label(
+                    RichText::new(concat!("dpomo v", env!("CARGO_PKG_VERSION")))
+                        .size(12.5)
+                        .color(theme.muted),
+                );
+            });
+        });
 
+    egui::CentralPanel::default()
+        .frame(
+            egui::Frame::new()
+                .fill(theme.background)
+                .inner_margin(egui::Margin::symmetric(28, 20)),
+        )
+        .show(ui, |ui| {
+            if let Some(a) = banners(ui, state, theme) {
+                action = Some(a);
+            }
+            egui::ScrollArea::vertical()
+                .auto_shrink(false)
+                .show(ui, |ui| {
+                    ui.label(
+                        RichText::new(state.section.title())
+                            .font(display_font(30.0))
+                            .color(theme.text),
+                    );
+                    ui.add_space(6.0);
+                    let a = match state.section {
+                        Section::Timer => timer_page(ui, config, theme),
+                        Section::Appearance => {
+                            appearance_page(ui, config, characters, state, theme)
+                        }
+                        Section::Theme => theme_page(ui, config, themes, characters, state, theme),
+                        Section::Sound => sound_page(ui, config, theme),
+                        Section::Mini => mini_page(ui, config, theme),
+                        Section::Behavior => behavior_page(ui, config, theme),
+                        Section::Tray => tray_page(ui, config, state, theme),
+                        Section::Stats => stats_page(ui, totals, theme),
+                        Section::ConfigFile => config_page(ui, theme),
+                    };
+                    if a.is_some() {
+                        action = a;
+                    }
+                    ui.add_space(16.0);
+                });
+        });
+
+    action
+}
+
+/// Larger text and roomier controls than egui's defaults.
+fn readable_style(ui: &mut Ui) {
+    let style = ui.style_mut();
+    for (text_style, size) in [
+        (egui::TextStyle::Body, 15.5),
+        (egui::TextStyle::Button, 15.5),
+        (egui::TextStyle::Small, 12.5),
+        (egui::TextStyle::Monospace, 14.0),
+    ] {
+        if let Some(font) = style.text_styles.get_mut(&text_style) {
+            font.size = size;
+        }
+    }
+    style.spacing.item_spacing = vec2(10.0, 10.0);
+    style.spacing.button_padding = vec2(10.0, 5.0);
+    style.spacing.interact_size.y = 28.0;
+    style.spacing.icon_width = 18.0;
+    style.spacing.icon_width_inner = 10.0;
+    style.spacing.slider_width = 180.0;
+}
+
+fn nav_item(ui: &mut Ui, theme: &Theme, title: &str, selected: bool) -> egui::Response {
+    let (rect, response) = ui.allocate_exact_size(vec2(ui.available_width(), 36.0), Sense::click());
+    let hover = ui.ctx().animate_bool(response.id, response.hovered());
+    let fill = if selected {
+        mix(theme.surface, theme.focus, 0.2)
+    } else {
+        mix(theme.surface, theme.text, 0.06 * hover)
+    };
+    ui.painter().rect_filled(rect, CornerRadius::same(10), fill);
+    ui.painter().text(
+        rect.left_center() + vec2(12.0, 0.0),
+        egui::Align2::LEFT_CENTER,
+        title,
+        egui::FontId::proportional(15.5),
+        if selected { theme.text } else { theme.muted },
+    );
+    response.on_hover_cursor(CursorIcon::PointingHand)
+}
+
+/// Config error / update notices, shown above every page.
+fn banners(ui: &mut Ui, state: &State, theme: &Theme) -> Option<Action> {
+    let t = tr();
+    let mut action = None;
     if let Some(err) = &state.config_error {
         widgets::card(ui, theme, |ui| {
             ui.label(
@@ -90,12 +241,8 @@ pub fn show(
                     .strong()
                     .color(theme.focus),
             );
-            ui.label(RichText::new(err).size(12.0));
-            ui.label(
-                RichText::new(t.config_error_help)
-                    .size(11.0)
-                    .color(theme.muted),
-            );
+            ui.label(RichText::new(err).monospace());
+            hint(ui, t.config_error_help, theme);
             ui.horizontal(|ui| {
                 if ui.button(t.open_config).clicked() {
                     action = Some(Action::OpenConfigFile);
@@ -107,7 +254,6 @@ pub fn show(
         });
         ui.add_space(8.0);
     }
-
     if let Some(version) = &state.update {
         let text = fill(t.update_badge, &[("version", version)]);
         if ui
@@ -122,236 +268,302 @@ pub fn show(
         }
         ui.add_space(8.0);
     }
-
-    egui::ScrollArea::vertical()
-        .auto_shrink(false)
-        .show(ui, |ui| {
-            section(ui, theme, t.sec_timer, |ui| {
-                let tm = &mut config.timer;
-                minutes_row(ui, t.focus, &mut tm.focus_minutes);
-                minutes_row(ui, t.short_break, &mut tm.short_break_minutes);
-                minutes_row(ui, t.long_break, &mut tm.long_break_minutes);
-                row(ui, t.sessions_before_long_break, |ui| {
-                    ui.add(DragValue::new(&mut tm.sessions_before_long_break).range(1..=12));
-                });
-                ui.checkbox(&mut tm.auto_start_breaks, t.auto_start_breaks);
-                ui.checkbox(&mut tm.auto_start_focus, t.auto_start_focus);
-            });
-
-            section(ui, theme, t.sec_appearance, |ui| {
-                let a = &mut config.appearance;
-                row(ui, t.language, |ui| {
-                    // Right-to-left layout: last option first.
-                    ui.selectable_value(&mut a.language, Language::Portuguese, "Português");
-                    ui.selectable_value(&mut a.language, Language::English, "English");
-                    ui.selectable_value(&mut a.language, Language::Auto, t.language_auto);
-                });
-                row(ui, t.style, |ui| {
-                    ui.selectable_value(&mut a.layout, config::Layout::Classic, t.style_classic);
-                    ui.selectable_value(&mut a.layout, config::Layout::Cozy, t.style_cozy);
-                });
-                match a.layout {
-                    config::Layout::Cozy => {
-                        ui.label(t.character);
-                        character_picker(
-                            ui,
-                            &mut a.character,
-                            characters,
-                            &mut state.thumbnails,
-                            theme,
-                        );
-                    }
-                    config::Layout::Classic => {
-                        row(ui, t.ring_thickness, |ui| {
-                            ui.add(
-                                Slider::new(&mut a.ring_thickness, 2.0..=28.0).show_value(false),
-                            );
-                        });
-                        ui.checkbox(&mut a.glow, t.ring_glow);
-                    }
-                }
-                row(ui, t.ui_scale, |ui| {
-                    ui.add(
-                        Slider::new(&mut a.ui_scale, 0.75..=1.75)
-                            .step_by(0.05)
-                            .fixed_decimals(2),
-                    );
-                });
-                ui.checkbox(&mut a.show_session_dots, t.show_sessions);
-                ui.checkbox(&mut a.smooth_animation, t.smooth_animation)
-                    .on_hover_text(t.smooth_animation_hint);
-            });
-
-            section(ui, theme, t.sec_theme, |ui| {
-                theme_picker(ui, config, themes);
-                if config.appearance.theme == theme::CUSTOM {
-                    ui.add_space(6.0);
-                    custom_colors(ui, &mut config.custom_theme);
-                    ui.add_space(4.0);
-                    ui.horizontal(|ui| {
-                        let save = ui.button(t.save_as_file);
-                        ui.add(
-                            egui::TextEdit::singleline(&mut state.export_name)
-                                .hint_text(t.theme_name_hint)
-                                .desired_width(f32::INFINITY),
-                        );
-                        if save.clicked() && !state.export_name.trim().is_empty() {
-                            action = Some(Action::ExportCustom);
-                        }
-                    });
-                }
-                ui.add_space(4.0);
-                if ui
-                    .button(t.reload_files)
-                    .on_hover_text(t.reload_files_hint)
-                    .clicked()
-                {
-                    action = Some(Action::ReloadThemes);
-                }
-                let small = |ui: &mut Ui, text: String, color: Color32| {
-                    ui.label(RichText::new(text).size(11.0).color(color));
-                };
-                if let Some(dir) = Themes::dir() {
-                    small(
-                        ui,
-                        fill(t.your_themes, &[("path", &dir.display().to_string())]),
-                        theme.muted,
-                    );
-                }
-                if let Some(dir) = Characters::dir() {
-                    small(
-                        ui,
-                        fill(t.your_characters, &[("path", &dir.display().to_string())]),
-                        theme.muted,
-                    );
-                }
-                for err in themes.errors.iter().chain(&characters.errors) {
-                    small(ui, fill(t.error_in, &[("error", err)]), theme.focus);
-                }
-                if let Some(notice) = &state.notice {
-                    small(ui, notice.clone(), theme.short_break);
-                }
-            });
-
-            section(ui, theme, t.sec_sound, |ui| {
-                let s = &mut config.sound;
-                ui.checkbox(&mut s.enabled, t.sound_enabled);
-                ui.add_enabled_ui(s.enabled, |ui| {
-                    ui.horizontal_wrapped(|ui| {
-                        for kind in SoundKind::ALL {
-                            let label = match kind {
-                                SoundKind::Chime => t.sound_chime,
-                                SoundKind::Bell => t.sound_bell,
-                                SoundKind::Soft => t.sound_soft,
-                                SoundKind::File => t.sound_file,
-                            };
-                            ui.selectable_value(&mut s.kind, kind, label);
-                        }
-                    });
-                    if s.kind == SoundKind::File {
-                        ui.add(
-                            egui::TextEdit::singleline(&mut s.file)
-                                .hint_text(t.sound_file_hint)
-                                .desired_width(f32::INFINITY),
-                        );
-                    }
-                    row(ui, t.volume, |ui| {
-                        if ui.button(t.play_test).clicked() {
-                            action = Some(Action::PlaySound);
-                        }
-                        ui.add(Slider::new(&mut s.volume, 0.0..=1.0).show_value(false));
-                    });
-                });
-            });
-
-            section(ui, theme, t.sec_stats, |ui| {
-                for (label, stats) in [
-                    (t.stats_today, totals.today),
-                    (t.stats_week, totals.week),
-                    (t.stats_total, totals.all_time),
-                ] {
-                    row(ui, label, |ui| {
-                        ui.label(
-                            RichText::new(format!(
-                                "{} · {}",
-                                t.sessions(stats.sessions),
-                                format_minutes(stats.focus_minutes)
-                            ))
-                            .color(theme.muted),
-                        );
-                    });
-                }
-            });
-
-            section(ui, theme, t.sec_behavior, |ui| {
-                let b = &mut config.behavior;
-                ui.checkbox(&mut b.always_on_top, t.always_on_top);
-                ui.checkbox(&mut b.notify_on_finish, t.flash_taskbar);
-                ui.checkbox(&mut b.system_notification, t.system_notification);
-                ui.checkbox(&mut b.focus_on_finish, t.focus_on_finish);
-                ui.checkbox(&mut b.time_in_title, t.time_in_title);
-                ui.checkbox(&mut b.check_updates, t.check_updates);
-            });
-
-            section(ui, theme, t.sec_tray, |ui| {
-                let b = &mut config.behavior;
-                ui.checkbox(&mut b.tray, t.tray_icon);
-                ui.add_enabled_ui(b.tray, |ui| {
-                    ui.checkbox(&mut b.close_to_tray, t.close_to_tray)
-                        .on_hover_text(t.close_to_tray_hint);
-                    ui.checkbox(&mut b.start_hidden, t.start_hidden);
-                });
-                ui.checkbox(&mut b.start_with_system, t.start_with_system)
-                    .on_hover_text(t.start_with_system_hint);
-                if let Some(err) = &state.system_error {
-                    ui.label(RichText::new(err).size(11.0).color(theme.focus));
-                }
-            });
-
-            section(ui, theme, t.sec_config_file, |ui| {
-                ui.label(RichText::new(t.config_file_help).size(12.0));
-                if let Some(path) = Config::path() {
-                    ui.label(
-                        RichText::new(path.display().to_string())
-                            .size(11.0)
-                            .color(theme.muted),
-                    );
-                }
-                ui.horizontal(|ui| {
-                    if ui.button(t.open_config).clicked() {
-                        action = Some(Action::OpenConfigFile);
-                    }
-                    if ui.button(t.open_folder).clicked() {
-                        action = Some(Action::OpenConfigFolder);
-                    }
-                });
-            });
-            ui.horizontal(|ui| {
-                if ui.button(t.reset_defaults).clicked() {
-                    action = Some(Action::ResetDefaults);
-                }
-                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                    ui.label(
-                        RichText::new(concat!("dpomo v", env!("CARGO_PKG_VERSION")))
-                            .size(11.0)
-                            .color(theme.muted),
-                    );
-                });
-            });
-            ui.add_space(12.0);
-        });
-
     action
 }
 
-fn section(ui: &mut Ui, theme: &Theme, title: &str, add: impl FnOnce(&mut Ui)) {
-    ui.label(
-        RichText::new(title.to_uppercase())
-            .size(11.0)
-            .color(theme.muted),
-    );
-    widgets::card(ui, theme, add);
-    ui.add_space(10.0);
+fn timer_page(ui: &mut Ui, config: &mut Config, theme: &Theme) -> Option<Action> {
+    let t = tr();
+    let tm = &mut config.timer;
+    widgets::card(ui, theme, |ui| {
+        minutes_row(ui, t.focus, &mut tm.focus_minutes);
+        minutes_row(ui, t.short_break, &mut tm.short_break_minutes);
+        minutes_row(ui, t.long_break, &mut tm.long_break_minutes);
+        row(ui, t.sessions_before_long_break, |ui| {
+            ui.add(DragValue::new(&mut tm.sessions_before_long_break).range(1..=12));
+        });
+    });
+    ui.add_space(8.0);
+    widgets::card(ui, theme, |ui| {
+        ui.checkbox(&mut tm.auto_start_breaks, t.auto_start_breaks);
+        ui.checkbox(&mut tm.auto_start_focus, t.auto_start_focus);
+    });
+    None
+}
+
+fn appearance_page(
+    ui: &mut Ui,
+    config: &mut Config,
+    characters: &Characters,
+    state: &mut State,
+    theme: &Theme,
+) -> Option<Action> {
+    let t = tr();
+    let a = &mut config.appearance;
+    widgets::card(ui, theme, |ui| {
+        row(ui, t.language, |ui| {
+            // Right-to-left layout: last option first.
+            ui.selectable_value(&mut a.language, Language::Portuguese, "Português");
+            ui.selectable_value(&mut a.language, Language::English, "English");
+            ui.selectable_value(&mut a.language, Language::Auto, t.language_auto);
+        });
+        row(ui, t.style, |ui| {
+            ui.selectable_value(&mut a.layout, config::Layout::Classic, t.style_classic);
+            ui.selectable_value(&mut a.layout, config::Layout::Cozy, t.style_cozy);
+        });
+        hint(ui, t.style_hint, theme);
+    });
+    ui.add_space(8.0);
+    match a.layout {
+        config::Layout::Cozy => {
+            ui.label(RichText::new(t.character).strong());
+            character_picker(
+                ui,
+                &mut a.character,
+                characters,
+                &mut state.thumbnails,
+                theme,
+            );
+        }
+        config::Layout::Classic => {
+            widgets::card(ui, theme, |ui| {
+                row(ui, t.ring_thickness, |ui| {
+                    ui.add(Slider::new(&mut a.ring_thickness, 2.0..=28.0).show_value(false));
+                });
+                ui.checkbox(&mut a.glow, t.ring_glow);
+            });
+        }
+    }
+    ui.add_space(8.0);
+    widgets::card(ui, theme, |ui| {
+        row(ui, t.ui_scale, |ui| {
+            ui.add(
+                Slider::new(&mut a.ui_scale, 0.75..=1.75)
+                    .step_by(0.05)
+                    .fixed_decimals(2),
+            );
+        });
+        ui.checkbox(&mut a.show_session_dots, t.show_sessions);
+        ui.checkbox(&mut a.smooth_animation, t.smooth_animation);
+        hint_indented(ui, t.smooth_animation_hint, theme);
+    });
+    None
+}
+
+fn theme_page(
+    ui: &mut Ui,
+    config: &mut Config,
+    themes: &Themes,
+    characters: &Characters,
+    state: &mut State,
+    theme: &Theme,
+) -> Option<Action> {
+    let t = tr();
+    let mut action = None;
+    theme_picker(ui, config, themes);
+    if config.appearance.theme == theme::CUSTOM {
+        ui.add_space(8.0);
+        widgets::card(ui, theme, |ui| {
+            custom_colors(ui, &mut config.custom_theme);
+            ui.horizontal(|ui| {
+                let save = ui.button(t.save_as_file);
+                ui.add(
+                    egui::TextEdit::singleline(&mut state.export_name)
+                        .hint_text(t.theme_name_hint)
+                        .desired_width(f32::INFINITY),
+                );
+                if save.clicked() && !state.export_name.trim().is_empty() {
+                    action = Some(Action::ExportCustom);
+                }
+            });
+        });
+    }
+    ui.add_space(8.0);
+    widgets::card(ui, theme, |ui| {
+        if ui.button(t.reload_files).clicked() {
+            action = Some(Action::ReloadThemes);
+        }
+        hint(ui, t.reload_files_hint, theme);
+        if let Some(dir) = Themes::dir() {
+            hint(
+                ui,
+                &fill(t.your_themes, &[("path", &dir.display().to_string())]),
+                theme,
+            );
+        }
+        if let Some(dir) = Characters::dir() {
+            hint(
+                ui,
+                &fill(t.your_characters, &[("path", &dir.display().to_string())]),
+                theme,
+            );
+        }
+        for err in themes.errors.iter().chain(&characters.errors) {
+            ui.label(RichText::new(fill(t.error_in, &[("error", err)])).color(theme.focus));
+        }
+        if let Some(notice) = &state.notice {
+            ui.label(RichText::new(notice).color(theme.short_break));
+        }
+    });
+    action
+}
+
+fn sound_page(ui: &mut Ui, config: &mut Config, theme: &Theme) -> Option<Action> {
+    let t = tr();
+    let mut action = None;
+    let s = &mut config.sound;
+    widgets::card(ui, theme, |ui| {
+        ui.checkbox(&mut s.enabled, t.sound_enabled);
+        ui.add_enabled_ui(s.enabled, |ui| {
+            ui.horizontal_wrapped(|ui| {
+                for kind in SoundKind::ALL {
+                    let label = match kind {
+                        SoundKind::Chime => t.sound_chime,
+                        SoundKind::Bell => t.sound_bell,
+                        SoundKind::Soft => t.sound_soft,
+                        SoundKind::File => t.sound_file,
+                    };
+                    ui.selectable_value(&mut s.kind, kind, label);
+                }
+            });
+            if s.kind == SoundKind::File {
+                ui.add(
+                    egui::TextEdit::singleline(&mut s.file)
+                        .hint_text(t.sound_file_hint)
+                        .desired_width(f32::INFINITY),
+                );
+            }
+            row(ui, t.volume, |ui| {
+                if ui.button(t.play_test).clicked() {
+                    action = Some(Action::PlaySound);
+                }
+                ui.add(Slider::new(&mut s.volume, 0.0..=1.0).show_value(false));
+            });
+        });
+    });
+    action
+}
+
+fn mini_page(ui: &mut Ui, config: &mut Config, theme: &Theme) -> Option<Action> {
+    let t = tr();
+    let mut action = None;
+    let key = config.keys.mini.clone();
+    let m = &mut config.mini;
+    widgets::card(ui, theme, |ui| {
+        ui.checkbox(&mut m.enabled, t.mini_enabled);
+        hint_indented(ui, t.mini_help, theme);
+        ui.add_enabled_ui(m.enabled, |ui| {
+            ui.checkbox(&mut m.show_character, t.mini_show_character);
+            if ui.button(t.mini_to_corner).clicked() {
+                action = Some(Action::MiniToCorner);
+            }
+        });
+        hint(ui, &fill(t.mini_shortcut, &[("key", &key)]), theme);
+    });
+    action
+}
+
+fn behavior_page(ui: &mut Ui, config: &mut Config, theme: &Theme) -> Option<Action> {
+    let t = tr();
+    let b = &mut config.behavior;
+    widgets::card(ui, theme, |ui| {
+        ui.checkbox(&mut b.system_notification, t.system_notification);
+        ui.checkbox(&mut b.notify_on_finish, t.flash_taskbar);
+        ui.checkbox(&mut b.focus_on_finish, t.focus_on_finish);
+    });
+    ui.add_space(8.0);
+    widgets::card(ui, theme, |ui| {
+        ui.checkbox(&mut b.always_on_top, t.always_on_top);
+        ui.checkbox(&mut b.time_in_title, t.time_in_title);
+        ui.checkbox(&mut b.check_updates, t.check_updates);
+    });
+    None
+}
+
+fn tray_page(ui: &mut Ui, config: &mut Config, state: &State, theme: &Theme) -> Option<Action> {
+    let t = tr();
+    let b = &mut config.behavior;
+    widgets::card(ui, theme, |ui| {
+        ui.checkbox(&mut b.tray, t.tray_icon);
+        ui.add_enabled_ui(b.tray, |ui| {
+            ui.checkbox(&mut b.close_to_tray, t.close_to_tray);
+            hint_indented(ui, t.close_to_tray_hint, theme);
+            ui.checkbox(&mut b.start_hidden, t.start_hidden);
+        });
+    });
+    ui.add_space(8.0);
+    widgets::card(ui, theme, |ui| {
+        ui.checkbox(&mut b.start_with_system, t.start_with_system);
+        hint_indented(ui, t.start_with_system_hint, theme);
+        if let Some(err) = &state.system_error {
+            ui.label(RichText::new(err).color(theme.focus));
+        }
+    });
+    None
+}
+
+fn stats_page(ui: &mut Ui, totals: &Totals, theme: &Theme) -> Option<Action> {
+    let t = tr();
+    widgets::card(ui, theme, |ui| {
+        for (label, stats) in [
+            (t.stats_today, totals.today),
+            (t.stats_week, totals.week),
+            (t.stats_total, totals.all_time),
+        ] {
+            row(ui, label, |ui| {
+                ui.label(
+                    RichText::new(format!(
+                        "{} · {}",
+                        t.sessions(stats.sessions),
+                        format_minutes(stats.focus_minutes)
+                    ))
+                    .color(theme.muted),
+                );
+            });
+        }
+    });
+    None
+}
+
+fn config_page(ui: &mut Ui, theme: &Theme) -> Option<Action> {
+    let t = tr();
+    let mut action = None;
+    widgets::card(ui, theme, |ui| {
+        ui.add(egui::Label::new(t.config_file_help).wrap());
+        if let Some(path) = Config::path() {
+            ui.label(
+                RichText::new(path.display().to_string())
+                    .monospace()
+                    .color(theme.muted),
+            );
+        }
+        ui.horizontal(|ui| {
+            if ui.button(t.open_config).clicked() {
+                action = Some(Action::OpenConfigFile);
+            }
+            if ui.button(t.open_folder).clicked() {
+                action = Some(Action::OpenConfigFolder);
+            }
+        });
+    });
+    ui.add_space(8.0);
+    if ui.button(t.reset_defaults).clicked() {
+        action = Some(Action::ResetDefaults);
+    }
+    action
+}
+
+/// A muted explanation under a setting.
+fn hint(ui: &mut Ui, text: &str, theme: &Theme) {
+    ui.add(egui::Label::new(RichText::new(text).size(13.5).color(theme.muted)).wrap());
+}
+
+/// Like `hint`, lined up with a checkbox's text.
+fn hint_indented(ui: &mut Ui, text: &str, theme: &Theme) {
+    ui.horizontal(|ui| {
+        let indent = ui.spacing().icon_width + ui.spacing().icon_spacing;
+        ui.add_space(indent);
+        hint(ui, text, theme);
+    });
 }
 
 fn row(ui: &mut Ui, label: &str, add: impl FnOnce(&mut Ui)) {
@@ -373,8 +585,13 @@ fn theme_picker(ui: &mut Ui, config: &mut Config, themes: &Themes) {
         .iter()
         .chain(std::iter::once((theme::CUSTOM, config.custom_theme)));
 
-    let spacing = 8.0;
-    let width = ((ui.available_width() - spacing) / 2.0).floor();
+    let spacing = 10.0;
+    let columns = if ui.available_width() > 520.0 {
+        3.0
+    } else {
+        2.0
+    };
+    let width = ((ui.available_width() - spacing * (columns - 1.0)) / columns).floor();
     let mut chosen = None;
     ui.spacing_mut().item_spacing = vec2(spacing, spacing);
     ui.horizontal_wrapped(|ui| {
@@ -409,16 +626,18 @@ fn character_picker(
     thumbnails: &mut HashMap<String, CharacterImage>,
     theme: &Theme,
 ) {
-    let spacing = 8.0;
+    let spacing = 10.0;
     let columns = 3.0;
-    let width = ((ui.available_width() - spacing * (columns - 1.0)) / columns).floor();
+    let width = ((ui.available_width() - spacing * (columns - 1.0)) / columns)
+        .min(180.0)
+        .floor();
     let art = vec2(width - 12.0, (width - 12.0) / 1.25);
     ui.spacing_mut().item_spacing = vec2(spacing, spacing);
     ui.horizontal_wrapped(|ui| {
         for c in characters.iter() {
             let selected = *current == c.id;
             let (rect, response) =
-                ui.allocate_exact_size(vec2(width, art.y + 34.0), Sense::click());
+                ui.allocate_exact_size(vec2(width, art.y + 36.0), Sense::click());
             let hover = ui.ctx().animate_bool(response.id, response.hovered());
             let border = if selected {
                 Stroke::new(2.0, theme.focus)
@@ -427,8 +646,8 @@ fn character_picker(
             };
             ui.painter().rect(
                 rect,
-                CornerRadius::same(10),
-                theme.background,
+                CornerRadius::same(12),
+                theme.surface,
                 border,
                 egui::StrokeKind::Inside,
             );
@@ -440,10 +659,10 @@ fn character_picker(
                 .paint_at(ui, art_rect);
             let name_color = if selected { theme.text } else { theme.muted };
             ui.painter().text(
-                egui::pos2(rect.center().x, rect.bottom() - 14.0),
+                egui::pos2(rect.center().x, rect.bottom() - 15.0),
                 egui::Align2::CENTER_CENTER,
                 c.display_name(),
-                egui::FontId::proportional(13.0),
+                egui::FontId::proportional(14.5),
                 name_color,
             );
             if response.on_hover_cursor(CursorIcon::PointingHand).clicked() {
@@ -454,10 +673,10 @@ fn character_picker(
 }
 
 fn swatch(ui: &mut Ui, name: &str, t: &Theme, selected: bool, width: f32) -> egui::Response {
-    let (rect, response) = ui.allocate_exact_size(vec2(width, 44.0), Sense::click());
+    let (rect, response) = ui.allocate_exact_size(vec2(width, 50.0), Sense::click());
     let hover = ui.ctx().animate_bool(response.id, response.hovered());
     let painter = ui.painter();
-    let radius = CornerRadius::same(10);
+    let radius = CornerRadius::same(12);
     let border = if selected {
         Stroke::new(2.0, t.focus)
     } else {
@@ -465,10 +684,10 @@ fn swatch(ui: &mut Ui, name: &str, t: &Theme, selected: bool, width: f32) -> egu
     };
     painter.rect(rect, radius, t.background, border, egui::StrokeKind::Inside);
     painter.text(
-        rect.left_center() + vec2(12.0, 0.0),
+        rect.left_center() + vec2(14.0, 0.0),
         egui::Align2::LEFT_CENTER,
         name,
-        egui::FontId::proportional(13.0),
+        egui::FontId::proportional(14.5),
         t.text,
     );
     for (i, c) in [t.focus, t.short_break, t.long_break]
@@ -476,8 +695,8 @@ fn swatch(ui: &mut Ui, name: &str, t: &Theme, selected: bool, width: f32) -> egu
         .enumerate()
     {
         painter.circle_filled(
-            rect.right_center() - vec2(14.0 + 12.0 * i as f32, 0.0),
-            4.5,
+            rect.right_center() - vec2(16.0 + 13.0 * i as f32, 0.0),
+            5.0,
             c,
         );
     }

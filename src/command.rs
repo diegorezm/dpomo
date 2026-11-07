@@ -10,6 +10,9 @@ pub enum Command {
     ToggleTimer,
     Skip,
     Reset,
+    /// Show / hide the floating timer.
+    ToggleMini,
+    OpenSettings,
     Quit,
     /// `config.toml` changed on disk.
     ReloadConfig,

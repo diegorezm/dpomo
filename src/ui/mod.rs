@@ -3,6 +3,7 @@
 //! the timer directly, which keeps all state changes in one place.
 
 pub mod cozy_view;
+pub mod mini_view;
 pub mod settings_view;
 pub mod timer_view;
 pub mod widgets;

@@ -41,6 +41,8 @@ The release workflow now installs every package on fresh Windows, Ubuntu 22.04/2
       build is ~12.7 MB because of the Direct3D fallback (worth it).
 - [x] Command line: `dpomo --toggle/--skip/--reset/--show/--quit` (also usable as global shortcuts).
 - [x] Windows 11 title bar uses the theme's colors.
+- [x] Settings in their own bigger window (sidebar, larger text, explanations under options).
+- [x] Floating timer: borderless always-on-top window, movable and resizable, remembers its place.
 - [ ] More languages (add a `Strings` static in `src/i18n.rs` + a `Language` variant).
 - [ ] Statistics view with a small weekly chart (data is already in `state.toml`).
 - [ ] Optional ticking sound during focus.

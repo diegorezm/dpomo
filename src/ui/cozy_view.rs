@@ -113,6 +113,13 @@ pub fn show(ui: &mut Ui, input: Inputs<'_>) -> Option<Action> {
     {
         action = Some(Action::OpenSettings);
     }
+    let mini = Rect::from_center_size(pos2(card.left() + 26.0, gear.center().y), gear.size());
+    if widgets::icon_button(ui, mini, Icon::Mini, theme.muted, Color32::TRANSPARENT)
+        .on_hover_text(fill(tr().hint_mini, &[("key", &config.keys.mini)]))
+        .clicked()
+    {
+        action = Some(Action::ToggleMini);
+    }
 
     // --- Vertical budget ---------------------------------------------------
     let controls_h = 48.0;

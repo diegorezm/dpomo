@@ -48,10 +48,11 @@ fn main() -> eframe::Result {
     let start_hidden = config.behavior.tray
         && (config.behavior.start_hidden || std::env::args().any(|a| a == "--hidden"));
 
+    let icon = std::sync::Arc::new(window_icon());
     let viewport = egui::ViewportBuilder::default()
         .with_title("dpomo")
         .with_app_id("dpomo")
-        .with_icon(window_icon())
+        .with_icon(icon.clone())
         .with_visible(!start_hidden)
         .with_inner_size([
             config.window.width.max(280.0),
@@ -66,6 +67,7 @@ fn main() -> eframe::Result {
         start_hidden,
         config_error,
         initial_command,
+        icon,
     })));
 
     // OpenGL (glow) first: by far the lightest. `DPOMO_RENDERER=wgpu` skips it.
@@ -98,6 +100,7 @@ struct Startup {
     start_hidden: bool,
     config_error: Option<String>,
     initial_command: Option<command::Command>,
+    icon: std::sync::Arc<egui::IconData>,
 }
 
 fn run(
@@ -126,6 +129,7 @@ fn run(
                 s.start_hidden,
                 s.config_error,
                 s.initial_command,
+                s.icon,
             )))
         }),
     )

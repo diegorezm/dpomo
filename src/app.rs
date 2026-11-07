@@ -4,27 +4,33 @@ use std::net::TcpListener;
 use std::sync::mpsc::{Receiver, Sender, channel};
 use std::time::{Duration, Instant};
 
-use egui::{Modifiers, ViewportCommand};
+use std::sync::Arc;
+
+use egui::{Modifiers, Pos2, Vec2, ViewportBuilder, ViewportCommand, ViewportId, pos2, vec2};
 
 use crate::character::{CharacterImage, Characters};
 use crate::command::Command;
-use crate::config::{Config, Keys, Layout, LoadError};
+use crate::config::{Config, Keys, Layout, LoadError, Mini};
 use crate::i18n::{self, Language, fill, tr};
 use crate::state::{self, Session, State};
 use crate::theme::{Theme, Themes};
 use crate::timer::{Phase, Timer, TimerEvent, format_remaining};
 use crate::tray::{Tray, TrayState};
-use crate::ui::{cozy_view, settings_view, timer_view};
+use crate::ui::{cozy_view, mini_view, settings_view, timer_view};
 use crate::{instance, sound, system, updates};
 
 /// How often a running session is written to `state.toml` (crash safety).
 const STATE_SAVE_INTERVAL: Duration = Duration::from_secs(30);
 const TRIM_MEMORY_DELAY: Duration = Duration::from_secs(2);
+/// Save the floating timer's position/size once it has been still this long.
+const MINI_SAVE_DELAY: Duration = Duration::from_secs(1);
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum View {
-    Timer,
-    Settings,
+fn settings_viewport() -> ViewportId {
+    ViewportId::from_hash_of("dpomo_settings")
+}
+
+fn mini_viewport() -> ViewportId {
+    ViewportId::from_hash_of("dpomo_mini")
 }
 
 pub struct DpomoApp {
@@ -35,8 +41,19 @@ pub struct DpomoApp {
     characters: Characters,
     character_image: CharacterImage,
     timer: Timer,
-    view: View,
+    /// The settings window is open.
+    settings_open: bool,
     settings: settings_view::State,
+    /// Floating timer: its character image, where it was created (kept for
+    /// as long as it's open, so egui doesn't fight the user's moves) and when
+    /// it was last moved/resized (saved after `MINI_SAVE_DELAY`).
+    mini_image: CharacterImage,
+    mini_spawn: Option<(Pos2, Vec2)>,
+    mini_moved_at: Option<Instant>,
+    icon: Arc<egui::IconData>,
+    /// Passes left before re-coloring the windows' title bars (new windows
+    /// only exist on the pass after they're first shown).
+    style_windows_in: u8,
     ring: timer_view::RingAnim,
     /// Cache of what was pushed to egui / the window, so we only resend on change.
     applied_theme: Option<(Theme, f32)>,
@@ -65,6 +82,7 @@ impl DpomoApp {
         start_hidden: bool,
         config_error: Option<String>,
         initial_command: Option<Command>,
+        icon: Arc<egui::IconData>,
     ) -> Self {
         install_fonts(&cc.egui_ctx);
         egui_extras::install_image_loaders(&cc.egui_ctx);
@@ -107,7 +125,12 @@ impl DpomoApp {
             },
             saved: config.clone(),
             config,
-            view: View::Timer,
+            settings_open: false,
+            mini_image: CharacterImage::default(),
+            mini_spawn: None,
+            mini_moved_at: None,
+            icon,
+            style_windows_in: 0,
             ring: timer_view::RingAnim::default(),
             applied_theme: None,
             applied_on_top: None,
@@ -165,11 +188,10 @@ impl DpomoApp {
             Action::Reset => self.with_ring_anim(ctx, now, |t, c| t.reset(&c.timer)),
             Action::Skip => self.with_ring_anim(ctx, now, |t, c| t.skip(&c.timer)),
             Action::SwitchTo(p) => self.with_ring_anim(ctx, now, |t, c| t.switch_to(p, &c.timer)),
-            Action::OpenSettings => self.view = View::Settings,
+            Action::OpenSettings => return self.open_settings(ctx),
+            Action::ToggleMini => return self.toggle_mini(),
         }
-        if action != Action::OpenSettings {
-            self.save_state(now);
-        }
+        self.save_state(now);
     }
 
     fn on_timer_event(&mut self, ctx: &egui::Context, event: TimerEvent, now: Instant) {
@@ -206,46 +228,50 @@ impl DpomoApp {
         let pressed = |name: &str, default: &str| {
             ctx.input_mut(|i| i.consume_key(Modifiers::NONE, Keys::key(name, default)))
         };
-        match self.view {
-            View::Timer => {
-                use timer_view::Action;
-                let bindings = [
-                    (&k.toggle, &d.toggle, Action::Toggle),
-                    (&k.reset, &d.reset, Action::Reset),
-                    (&k.skip, &d.skip, Action::Skip),
-                    (&k.settings, &d.settings, Action::OpenSettings),
-                    (&k.focus, &d.focus, Action::SwitchTo(Phase::Focus)),
-                    (
-                        &k.short_break,
-                        &d.short_break,
-                        Action::SwitchTo(Phase::ShortBreak),
-                    ),
-                    (
-                        &k.long_break,
-                        &d.long_break,
-                        Action::SwitchTo(Phase::LongBreak),
-                    ),
-                ];
-                let action = bindings
-                    .into_iter()
-                    .find(|(name, default, _)| pressed(name, default))
-                    .map(|(_, _, action)| action);
-                if let Some(a) = action {
-                    self.apply_timer_action(ctx, a, now);
-                }
-            }
-            View::Settings => {
-                if pressed(&k.back, &d.back) {
-                    self.leave_settings();
-                }
-            }
+        use timer_view::Action;
+        let bindings = [
+            (&k.toggle, &d.toggle, Action::Toggle),
+            (&k.reset, &d.reset, Action::Reset),
+            (&k.skip, &d.skip, Action::Skip),
+            (&k.settings, &d.settings, Action::OpenSettings),
+            (&k.mini, &d.mini, Action::ToggleMini),
+            (&k.focus, &d.focus, Action::SwitchTo(Phase::Focus)),
+            (
+                &k.short_break,
+                &d.short_break,
+                Action::SwitchTo(Phase::ShortBreak),
+            ),
+            (
+                &k.long_break,
+                &d.long_break,
+                Action::SwitchTo(Phase::LongBreak),
+            ),
+        ];
+        let action = bindings
+            .into_iter()
+            .find(|(name, default, _)| pressed(name, default))
+            .map(|(_, _, action)| action);
+        if let Some(a) = action {
+            self.apply_timer_action(ctx, a, now);
         }
     }
 
-    fn apply_settings_action(&mut self, action: settings_view::Action) {
+    fn apply_settings_action(&mut self, ctx: &egui::Context, action: settings_view::Action) {
         use settings_view::Action;
         match action {
-            Action::Back => self.leave_settings(),
+            Action::MiniToCorner => {
+                self.config.mini.x = None;
+                self.config.mini.y = None;
+                if let Some((_, size)) = self.mini_spawn {
+                    let corner = mini_corner(ctx, size);
+                    self.mini_spawn = Some((corner, size));
+                    ctx.send_viewport_cmd_to(
+                        mini_viewport(),
+                        ViewportCommand::OuterPosition(corner),
+                    );
+                }
+                self.save();
+            }
             Action::OpenConfigFile | Action::OpenConfigFolder => {
                 let path = Config::path().and_then(|p| match action {
                     Action::OpenConfigFile => Some(p),
@@ -298,10 +324,25 @@ impl DpomoApp {
         }
     }
 
-    fn leave_settings(&mut self) {
+    fn open_settings(&mut self, ctx: &egui::Context) {
+        if self.settings_open {
+            ctx.send_viewport_cmd_to(settings_viewport(), ViewportCommand::Focus);
+        } else {
+            self.settings_open = true;
+            self.style_windows_in = 2;
+        }
+        ctx.request_repaint();
+    }
+
+    fn close_settings(&mut self) {
         self.settings.notice = None;
-        self.view = View::Timer;
+        self.settings_open = false;
         self.apply_autostart();
+        self.save();
+    }
+
+    fn toggle_mini(&mut self) {
+        self.config.mini.enabled = !self.config.mini.enabled;
         self.save();
     }
 
@@ -337,6 +378,8 @@ impl DpomoApp {
                 }
                 Command::Skip => self.apply_timer_action(ctx, timer_view::Action::Skip, now),
                 Command::Reset => self.apply_timer_action(ctx, timer_view::Action::Reset, now),
+                Command::ToggleMini => self.toggle_mini(),
+                Command::OpenSettings => self.open_settings(ctx),
                 Command::Quit => self.quit(),
                 Command::ReloadConfig => self.reload_config(),
                 Command::UpdateAvailable(version) => {
@@ -452,7 +495,7 @@ impl DpomoApp {
     }
 
     /// Push theme / window settings to egui only when they change.
-    fn sync_environment(&mut self, ctx: &egui::Context, frame: &eframe::Frame) {
+    fn sync_environment(&mut self, ctx: &egui::Context) {
         let language = self.config.appearance.language;
         if self.applied_language != Some(language) {
             i18n::set(language);
@@ -475,7 +518,7 @@ impl DpomoApp {
             } else {
                 egui::SystemTheme::Light
             }));
-            system::color_title_bar(frame, theme.background, theme.text);
+            self.style_windows_in = 1;
             self.applied_theme = Some((theme, scale));
         }
 
@@ -580,11 +623,156 @@ impl DpomoApp {
             })
             .inner;
         match clicked {
-            Some(true) => self.apply_settings_action(settings_view::Action::OpenUpdatePage),
-            Some(false) => self.view = View::Settings,
+            Some(true) => self.apply_settings_action(ctx, settings_view::Action::OpenUpdatePage),
+            Some(false) => {
+                self.settings.section = settings_view::Section::ConfigFile;
+                self.open_settings(ctx);
+            }
             None => {}
         }
     }
+
+    /// The settings window (its own OS window, drawn in this pass).
+    fn settings_window(&mut self, ctx: &egui::Context, theme: &Theme) {
+        let builder = ViewportBuilder::default()
+            .with_title(format!("dpomo · {}", tr().settings))
+            .with_app_id("dpomo")
+            .with_icon(self.icon.clone())
+            .with_inner_size([780.0, 640.0])
+            .with_min_inner_size([600.0, 440.0]);
+        let totals = self.app_state.totals(state::today());
+        let back = Keys::key(&self.config.keys.back, &Keys::default().back);
+        let mut close = false;
+        let action = ctx.show_viewport_immediate(settings_viewport(), builder, |ui, _| {
+            close = ui.input_mut(|i| {
+                i.viewport().close_requested() || i.consume_key(Modifiers::NONE, back)
+            });
+            settings_view::show(
+                ui,
+                &mut self.config,
+                &self.themes,
+                &self.characters,
+                &totals,
+                &mut self.settings,
+                theme,
+            )
+        });
+        if let Some(a) = action {
+            self.apply_settings_action(ctx, a);
+        }
+        if close {
+            self.close_settings();
+        }
+    }
+
+    /// The floating timer: borderless, always on top, moved/resized by the user.
+    fn mini_window(&mut self, ctx: &egui::Context, theme: &Theme, now: Instant) {
+        if !self.config.mini.enabled {
+            self.mini_spawn = None;
+            return;
+        }
+        let m = &self.config.mini;
+        let (spawn_pos, spawn_size) = match self.mini_spawn {
+            Some(spawn) => spawn,
+            None => {
+                let size = vec2(m.width, m.height).max(Mini::MIN_SIZE.into());
+                let pos = match (m.x, m.y) {
+                    (Some(x), Some(y)) => pos2(x, y),
+                    _ => mini_corner(ctx, size),
+                };
+                self.style_windows_in = 2;
+                self.mini_spawn = Some((pos, size));
+                (pos, size)
+            }
+        };
+        let builder = ViewportBuilder::default()
+            .with_title("dpomo")
+            .with_app_id("dpomo")
+            .with_icon(self.icon.clone())
+            .with_decorations(false)
+            .with_resizable(true)
+            .with_taskbar(false)
+            .with_window_level(egui::WindowLevel::AlwaysOnTop)
+            .with_position(spawn_pos)
+            .with_inner_size(spawn_size)
+            .with_min_inner_size(Mini::MIN_SIZE);
+
+        let mut closed = false;
+        let mut geometry = None;
+        let action = ctx.show_viewport_immediate(mini_viewport(), builder, |ui, _| {
+            let zoom = ui.ctx().zoom_factor();
+            closed = ui.input(|i| i.viewport().close_requested());
+            // Viewport rects are in ui points; the config stores OS points.
+            geometry = ui.input(|i| {
+                let v = i.viewport();
+                Some((
+                    v.outer_rect?.min.to_vec2() * zoom,
+                    v.inner_rect?.size() * zoom,
+                ))
+            });
+            egui::CentralPanel::default()
+                .frame(egui::Frame::new().fill(theme.background))
+                .show(ui, |ui| {
+                    mini_view::show(
+                        ui,
+                        mini_view::Inputs {
+                            timer: &self.timer,
+                            config: &self.config,
+                            theme,
+                            character: self.characters.get(&self.config.appearance.character),
+                            image: &mut self.mini_image,
+                            now,
+                        },
+                    )
+                })
+                .inner
+        });
+
+        if let Some((pos, size)) = geometry {
+            let m = &mut self.config.mini;
+            let moved = m.x.is_none_or(|x| (x - pos.x).abs() >= 1.0)
+                || m.y.is_none_or(|y| (y - pos.y).abs() >= 1.0)
+                || (m.width - size.x).abs() >= 1.0
+                || (m.height - size.y).abs() >= 1.0;
+            if moved {
+                (m.x, m.y) = (Some(pos.x.round()), Some(pos.y.round()));
+                (m.width, m.height) = (size.x.round(), size.y.round());
+                self.mini_moved_at = Some(now);
+            }
+        }
+        if let Some(at) = self.mini_moved_at {
+            if now.duration_since(at) >= MINI_SAVE_DELAY {
+                self.mini_moved_at = None;
+                self.save();
+            } else {
+                ctx.request_repaint_after(MINI_SAVE_DELAY);
+            }
+        }
+
+        match action {
+            Some(mini_view::Action::Toggle) => {
+                self.apply_timer_action(ctx, timer_view::Action::Toggle, now)
+            }
+            Some(mini_view::Action::Skip) => {
+                self.apply_timer_action(ctx, timer_view::Action::Skip, now)
+            }
+            Some(mini_view::Action::OpenMain) => self.set_window_visible(ctx, true),
+            Some(mini_view::Action::Close) => closed = true,
+            None => {}
+        }
+        if closed {
+            self.toggle_mini();
+        }
+    }
+}
+
+/// Default spot for the floating timer: top-right of the main window's screen.
+fn mini_corner(ctx: &egui::Context, size: Vec2) -> Pos2 {
+    let zoom = ctx.zoom_factor();
+    let monitor = ctx
+        .input_for(ViewportId::ROOT, |i| i.viewport().monitor_size)
+        .map_or(vec2(1280.0, 800.0), |m| m * zoom);
+    pos2((monitor.x - size.x - 24.0).max(0.0), 24.0)
 }
 
 impl eframe::App for DpomoApp {
@@ -610,10 +798,10 @@ impl eframe::App for DpomoApp {
         self.schedule_repaint(ctx, now);
     }
 
-    fn ui(&mut self, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
+    fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         let ctx = ui.ctx().clone();
         let now = Instant::now();
-        self.sync_environment(&ctx, frame);
+        self.sync_environment(&ctx);
         self.handle_shortcuts(&ctx, now);
 
         if ctx.input(|i| i.viewport().close_requested()) {
@@ -623,63 +811,54 @@ impl eframe::App for DpomoApp {
                 self.save();
                 self.save_state(now);
                 self.set_window_visible(&ctx, false);
-                if self.view == View::Settings {
-                    self.leave_settings();
-                }
             } else {
                 self.quit();
             }
         }
 
         let theme = self.config.theme(&self.themes);
-        let cozy = self.config.appearance.layout == Layout::Cozy && self.view == View::Timer;
+        let cozy = self.config.appearance.layout == Layout::Cozy;
         // The cozy view applies its own padding.
         let frame = egui::Frame::new()
             .fill(theme.background)
             .inner_margin(if cozy { 0 } else { 16 });
-        egui::CentralPanel::default()
-            .frame(frame)
-            .show(ui, |ui| match self.view {
-                View::Timer => {
-                    let action = match self.config.appearance.layout {
-                        Layout::Cozy => cozy_view::show(
-                            ui,
-                            cozy_view::Inputs {
-                                timer: &self.timer,
-                                config: &self.config,
-                                theme: &theme,
-                                anim: &self.ring,
-                                character: self.characters.get(&self.config.appearance.character),
-                                image: &mut self.character_image,
-                                now,
-                            },
-                        ),
-                        Layout::Classic => {
-                            timer_view::show(ui, &self.timer, &self.config, &theme, &self.ring, now)
-                        }
-                    };
-                    if let Some(a) = action {
-                        self.apply_timer_action(&ctx, a, now);
-                    }
+        egui::CentralPanel::default().frame(frame).show(ui, |ui| {
+            let action = match self.config.appearance.layout {
+                Layout::Cozy => cozy_view::show(
+                    ui,
+                    cozy_view::Inputs {
+                        timer: &self.timer,
+                        config: &self.config,
+                        theme: &theme,
+                        anim: &self.ring,
+                        character: self.characters.get(&self.config.appearance.character),
+                        image: &mut self.character_image,
+                        now,
+                    },
+                ),
+                Layout::Classic => {
+                    timer_view::show(ui, &self.timer, &self.config, &theme, &self.ring, now)
                 }
-                View::Settings => {
-                    let action = settings_view::show(
-                        ui,
-                        &mut self.config,
-                        &self.themes,
-                        &self.characters,
-                        &self.app_state.totals(state::today()),
-                        &mut self.settings,
-                        &theme,
-                    );
-                    if let Some(a) = action {
-                        self.apply_settings_action(a);
-                    }
-                }
-            });
+            };
+            if let Some(a) = action {
+                self.apply_timer_action(&ctx, a, now);
+            }
+        });
+        self.badges(&ctx, &theme);
 
-        if self.view == View::Timer {
-            self.badges(&ctx, &theme);
+        // Other windows, drawn in this same pass (they keep the app drawing
+        // even while the main window is hidden in the tray).
+        if self.settings_open {
+            self.settings_window(&ctx, &theme);
+        }
+        self.mini_window(&ctx, &theme, now);
+        if self.style_windows_in > 0 {
+            self.style_windows_in -= 1;
+            if self.style_windows_in == 0 {
+                system::style_windows(theme.background, theme.text);
+            } else {
+                ctx.request_repaint();
+            }
         }
 
         // Keep the ring easing animation going.

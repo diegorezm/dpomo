@@ -103,7 +103,7 @@ pub struct Strings {
     pub hint_reset: &'static str,
     pub hint_toggle: &'static str,
     pub hint_skip: &'static str,
-    pub hint_back: &'static str,
+    pub hint_mini: &'static str,
     pub config_error_badge: &'static str,
     /// {version}
     pub update_badge: &'static str,
@@ -126,6 +126,7 @@ pub struct Strings {
     pub style: &'static str,
     pub style_cozy: &'static str,
     pub style_classic: &'static str,
+    pub style_hint: &'static str,
     pub character: &'static str,
     pub ring_thickness: &'static str,
     pub ring_glow: &'static str,
@@ -169,6 +170,16 @@ pub struct Strings {
     pub session_one: &'static str,
     /// {n}
     pub session_many: &'static str,
+
+    pub sec_mini: &'static str,
+    pub mini_enabled: &'static str,
+    pub mini_help: &'static str,
+    pub mini_show_character: &'static str,
+    pub mini_to_corner: &'static str,
+    /// {key}
+    pub mini_shortcut: &'static str,
+    pub mini_open_main: &'static str,
+    pub mini_close: &'static str,
 
     pub sec_behavior: &'static str,
     pub always_on_top: &'static str,
@@ -214,6 +225,8 @@ pub struct Strings {
     pub tray_pause: &'static str,
     pub tray_skip: &'static str,
     pub tray_reset: &'static str,
+    pub tray_mini: &'static str,
+    pub tray_settings: &'static str,
     pub tray_quit: &'static str,
 
     // Notifications ({min})
@@ -264,7 +277,7 @@ pub static EN: Strings = Strings {
     hint_reset: "Restart ({key})",
     hint_toggle: "Start / pause ({key})",
     hint_skip: "Skip ({key})",
-    hint_back: "Back ({key})",
+    hint_mini: "Floating timer ({key})",
     config_error_badge: "config.toml has an error (see settings)",
     update_badge: "Version {version} is available — click to download",
 
@@ -285,6 +298,7 @@ pub static EN: Strings = Strings {
     style: "Style",
     style_cozy: "Cozy",
     style_classic: "Classic",
+    style_hint: "Cozy shows your character; Classic shows a progress ring.",
     character: "Character",
     ring_thickness: "Ring thickness",
     ring_glow: "Ring glow",
@@ -325,6 +339,15 @@ pub static EN: Strings = Strings {
     session_one: "1 session",
     session_many: "{n} sessions",
 
+    sec_mini: "Floating timer",
+    mini_enabled: "Show the floating timer",
+    mini_help: "A small window that stays on top of everything with the time left. Drag it to move it, drag its bottom-right corner to resize it, double-click it to open dpomo.",
+    mini_show_character: "Show the character",
+    mini_to_corner: "Move it back to the corner",
+    mini_shortcut: "Shortcut in the main window: {key} · command line: dpomo --mini",
+    mini_open_main: "Open dpomo",
+    mini_close: "Hide the floating timer",
+
     sec_behavior: "Behavior",
     always_on_top: "Always on top",
     flash_taskbar: "Flash the taskbar when a phase ends",
@@ -364,6 +387,8 @@ pub static EN: Strings = Strings {
     tray_pause: "Pause",
     tray_skip: "Skip",
     tray_reset: "Restart",
+    tray_mini: "Floating timer",
+    tray_settings: "Settings…",
     tray_quit: "Quit",
 
     notify_focus_done: "Focus done! 🍅",
@@ -387,7 +412,7 @@ pub static PT_BR: Strings = Strings {
     hint_reset: "Reiniciar ({key})",
     hint_toggle: "Iniciar / pausar ({key})",
     hint_skip: "Pular ({key})",
-    hint_back: "Voltar ({key})",
+    hint_mini: "Timer flutuante ({key})",
     config_error_badge: "Erro no config.toml (ver ajustes)",
     update_badge: "Versão {version} disponível — clique para baixar",
 
@@ -408,6 +433,7 @@ pub static PT_BR: Strings = Strings {
     style: "Estilo",
     style_cozy: "Aconchegante",
     style_classic: "Clássico",
+    style_hint: "Aconchegante mostra seu personagem; Clássico mostra um anel de progresso.",
     character: "Personagem",
     ring_thickness: "Espessura do anel",
     ring_glow: "Brilho no anel",
@@ -448,6 +474,15 @@ pub static PT_BR: Strings = Strings {
     session_one: "1 sessão",
     session_many: "{n} sessões",
 
+    sec_mini: "Timer flutuante",
+    mini_enabled: "Mostrar o timer flutuante",
+    mini_help: "Uma janelinha que fica por cima de tudo com o tempo que falta. Arraste para mover, puxe o canto inferior direito para redimensionar, clique duas vezes para abrir o dpomo.",
+    mini_show_character: "Mostrar o personagem",
+    mini_to_corner: "Voltar para o canto",
+    mini_shortcut: "Atalho na janela principal: {key} · linha de comando: dpomo --mini",
+    mini_open_main: "Abrir o dpomo",
+    mini_close: "Esconder o timer flutuante",
+
     sec_behavior: "Comportamento",
     always_on_top: "Sempre no topo",
     flash_taskbar: "Piscar na barra de tarefas ao terminar",
@@ -487,6 +522,8 @@ pub static PT_BR: Strings = Strings {
     tray_pause: "Pausar",
     tray_skip: "Pular",
     tray_reset: "Reiniciar",
+    tray_mini: "Timer flutuante",
+    tray_settings: "Ajustes…",
     tray_quit: "Sair",
 
     notify_focus_done: "Foco concluído! 🍅",

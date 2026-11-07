@@ -46,6 +46,9 @@ impl Tray {
             &MenuItem::with_id("skip", t.tray_skip, true, None),
             &MenuItem::with_id("reset", t.tray_reset, true, None),
             &PredefinedMenuItem::separator(),
+            &MenuItem::with_id("mini", t.tray_mini, true, None),
+            &MenuItem::with_id("settings", t.tray_settings, true, None),
+            &PredefinedMenuItem::separator(),
             &MenuItem::with_id("quit", t.tray_quit, true, None),
         ])
         .map_err(|e| e.to_string())?;
@@ -65,6 +68,8 @@ impl Tray {
                 "toggle" => Command::ToggleTimer,
                 "skip" => Command::Skip,
                 "reset" => Command::Reset,
+                "mini" => Command::ToggleMini,
+                "settings" => Command::OpenSettings,
                 "quit" => Command::Quit,
                 _ => return,
             };

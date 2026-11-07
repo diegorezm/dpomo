@@ -893,7 +893,6 @@ dependencies = [
  "egui_extras",
  "notify-rust",
  "png 0.17.16",
- "raw-window-handle",
  "rodio",
  "serde",
  "serde_json",

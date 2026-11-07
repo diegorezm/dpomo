@@ -19,6 +19,7 @@ pub enum Action {
     Skip,
     SwitchTo(Phase),
     OpenSettings,
+    ToggleMini,
 }
 
 /// Eases the ring between two values after a jump (reset, phase change).
@@ -92,6 +93,19 @@ pub fn show(
     .clicked()
     {
         action = Some(Action::OpenSettings);
+    }
+    let mini = gear.translate(vec2(-34.0, 0.0));
+    if widgets::icon_button(
+        ui,
+        mini,
+        Icon::Mini,
+        theme.muted,
+        egui::Color32::TRANSPARENT,
+    )
+    .on_hover_text(fill(tr().hint_mini, &[("key", &config.keys.mini)]))
+    .clicked()
+    {
+        action = Some(Action::ToggleMini);
     }
 
     // --- Ring ------------------------------------------------------------

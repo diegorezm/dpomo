@@ -87,7 +87,8 @@ src/
     ├── widgets.rs       hand-painted ring, icons, icon_button, pill, card
     ├── cozy_view.rs     main screen, "cozy" layout (default): card + character + chunky timer
     ├── timer_view.rs    main screen, "classic" layout (ring); also owns Action + RingAnim shared by both
-    └── settings_view.rs settings screen, edits &mut Config → returns Option<settings_view::Action>
+    ├── mini_view.rs     the floating timer window's content (scales from 120×44 up)
+    └── settings_view.rs settings window (sidebar + pages), edits &mut Config → Option<settings_view::Action>
 ```
 
 ### Data flow (keep it this way)
@@ -157,8 +158,24 @@ Add the field to `Theme` (with `#[serde(with = "hex")]`) **and to every file in 
    the `bindings` table in `App::handle_shortcuts`. Shortcuts are never hard-coded.
 3. Handle it in `App::apply_timer_action`. Use `with_ring_anim` if the ring jumps.
 
-### Add a new screen
-Add a `View` variant in `app.rs`, a `ui/<name>_view.rs` with `pub fn show(…) -> Option<Action>`, and route it in `App::ui`.
+### Windows (viewports)
+The main window is the root viewport. **Settings** and the **floating timer** are their own OS windows,
+drawn with `ctx.show_viewport_immediate` from `App::ui` (`settings_window`, `mini_window`), so they can
+borrow `&mut self` directly. eframe keeps running `App::ui` while any child window is visible, even if
+the main one is hidden in the tray — that's what keeps the floating timer ticking.
+- Close a child window by no longer calling `show_viewport_immediate` for it (`settings_open = false`,
+  `config.mini.enabled = false`).
+- The floating timer is `with_decorations(false)` + always on top; it moves with
+  `ViewportCommand::StartDrag` and resizes with `BeginResize` (grip in `mini_view`). Its builder uses the
+  position/size from when it was opened (`mini_spawn`) so egui never fights the user; the live geometry is
+  copied into `config.mini` and saved 1 s after the last change.
+- New windows: `style_windows_in` re-colors every window's title bar (Windows 11) on the pass after
+  they appear (`system::style_windows`).
+
+### Add a settings page
+Add a `Section` variant (+ `Section::ALL`, title string) and a `<name>_page` fn in `settings_view.rs`.
+Pages are cards (`widgets::card`) of rows; put explanations under options with `hint`/`hint_indented`
+instead of hover tooltips.
 
 ### React to a phase finishing (sound, notification, stats…)
 Hook into `App::on_timer_event` (it already records stats, saves state, plays the sound and notifies).

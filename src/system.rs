@@ -35,39 +35,55 @@ pub fn trim_memory() {
     }
 }
 
-/// Windows 11 paints the title bar in the system's colors (dark mode, or the
-/// accent color if "show accent color on title bars" is on). Paint it with the
-/// theme instead so it blends into the window. Older Windows ignores this.
+/// Windows 11 paints title bars in the system's colors (dark mode, or the
+/// accent color if "show accent color on title bars" is on). Paint every dpomo
+/// window's bar with the theme instead, so it blends in, and round the
+/// borderless floating timer's corners. Older Windows ignores all of this.
 #[allow(unused_variables)]
-pub fn color_title_bar(frame: &eframe::Frame, background: egui::Color32, text: egui::Color32) {
+pub fn style_windows(background: egui::Color32, text: egui::Color32) {
     #[cfg(windows)]
     {
-        use raw_window_handle::{HasWindowHandle, RawWindowHandle};
+        use windows_sys::Win32::Foundation::{HWND, LPARAM};
         use windows_sys::Win32::Graphics::Dwm::{
-            DWMWA_CAPTION_COLOR, DWMWA_TEXT_COLOR, DwmSetWindowAttribute,
+            DWMWA_CAPTION_COLOR, DWMWA_TEXT_COLOR, DWMWA_WINDOW_CORNER_PREFERENCE, DWMWCP_ROUND,
+            DwmSetWindowAttribute,
         };
-        let Ok(handle) = frame.window_handle() else {
-            return;
-        };
-        let RawWindowHandle::Win32(handle) = handle.as_raw() else {
-            return;
-        };
-        let hwnd = handle.hwnd.get() as windows_sys::Win32::Foundation::HWND;
+        use windows_sys::Win32::System::Threading::GetCurrentThreadId;
+        use windows_sys::Win32::UI::WindowsAndMessaging::EnumThreadWindows;
+
+        unsafe extern "system" fn apply(hwnd: HWND, colors: LPARAM) -> windows_sys::core::BOOL {
+            // SAFETY: `colors` points at the array below, alive for the whole enumeration.
+            let [caption, text] = unsafe { *(colors as *const [u32; 2]) };
+            let round = DWMWCP_ROUND as u32;
+            for (attribute, value) in [
+                (DWMWA_CAPTION_COLOR, caption),
+                (DWMWA_TEXT_COLOR, text),
+                (DWMWA_WINDOW_CORNER_PREFERENCE, round),
+            ] {
+                // SAFETY: a window of our own thread and a 4-byte value.
+                unsafe {
+                    DwmSetWindowAttribute(
+                        hwnd,
+                        attribute as u32,
+                        (&value as *const u32).cast(),
+                        size_of::<u32>() as u32,
+                    );
+                }
+            }
+            1 // keep enumerating
+        }
+
         // COLORREF is 0x00BBGGRR.
         let colorref = |c: egui::Color32| u32::from_le_bytes([c.r(), c.g(), c.b(), 0]);
-        for (attribute, color) in [
-            (DWMWA_CAPTION_COLOR, colorref(background)),
-            (DWMWA_TEXT_COLOR, colorref(text)),
-        ] {
-            // SAFETY: valid window handle from eframe; a 4-byte COLORREF.
-            unsafe {
-                DwmSetWindowAttribute(
-                    hwnd,
-                    attribute as u32,
-                    (&color as *const u32).cast(),
-                    size_of::<u32>() as u32,
-                );
-            }
+        let colors = [colorref(background), colorref(text)];
+        // All dpomo windows (main, settings, floating timer) live on this thread.
+        // SAFETY: the callback only reads `colors`, which outlives the call.
+        unsafe {
+            EnumThreadWindows(
+                GetCurrentThreadId(),
+                Some(apply),
+                &colors as *const [u32; 2] as LPARAM,
+            );
         }
     }
 }

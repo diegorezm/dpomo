@@ -15,11 +15,13 @@ const ACK: &[u8] = b"dpomo:ok";
 
 /// Command-line requests for the running instance: `dpomo --<flag>`.
 /// Launching without one of these flags means "show".
-pub const FLAGS: [(&str, &str); 5] = [
+pub const FLAGS: [(&str, &str); 7] = [
     ("--show", "show"),
     ("--toggle", "toggle"),
     ("--skip", "skip"),
     ("--reset", "reset"),
+    ("--mini", "mini"),
+    ("--settings", "settings"),
     ("--quit", "quit"),
 ];
 
@@ -42,6 +44,8 @@ pub fn command_for(verb: &str) -> Option<Command> {
         "toggle" => Command::ToggleTimer,
         "skip" => Command::Skip,
         "reset" => Command::Reset,
+        "mini" => Command::ToggleMini,
+        "settings" => Command::OpenSettings,
         "quit" => Command::Quit,
         _ => return None,
     })
