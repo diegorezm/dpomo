@@ -389,14 +389,10 @@ impl eframe::App for DpomoApp {
 
         let theme = self.config.theme(&self.themes);
         let cozy = self.config.appearance.layout == Layout::Cozy && self.view == View::Timer;
-        let fill = if cozy {
-            cozy_view::backdrop(&theme, self.timer.phase())
-        } else {
-            theme.background
-        };
+        // The cozy view applies its own padding.
         let frame = egui::Frame::new()
-            .fill(fill)
-            .inner_margin(if cozy { 14 } else { 16 });
+            .fill(theme.background)
+            .inner_margin(if cozy { 0 } else { 16 });
         egui::CentralPanel::default()
             .frame(frame)
             .show(ui, |ui| match self.view {
@@ -447,12 +443,10 @@ impl eframe::App for DpomoApp {
     }
 
     fn clear_color(&self, _visuals: &egui::Visuals) -> [f32; 4] {
-        let theme = self.config.theme(&self.themes);
-        let color = match self.config.appearance.layout {
-            Layout::Cozy => cozy_view::backdrop(&theme, self.timer.phase()),
-            Layout::Classic => theme.background,
-        };
-        color.to_normalized_gamma_f32()
+        self.config
+            .theme(&self.themes)
+            .background
+            .to_normalized_gamma_f32()
     }
 }
 

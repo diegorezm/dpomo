@@ -133,9 +133,9 @@ Add it to `Phase` + `Phase::ALL`, then fix every `match` the compiler flags (lab
 
 ### Layouts
 `config.appearance.layout` picks `cozy_view` (default) or `timer_view` (classic). Both return the same
-`timer_view::Action`, so actions/shortcuts work in both. In cozy mode the window background is
-`cozy_view::backdrop(theme, phase)` (phase color mixed with the theme background) — keep `App::ui`'s frame
-fill and `App::clear_color` in sync with it. The display font family is `cozy_view::DISPLAY_FONT`
+`timer_view::Action`, so actions/shortcuts work in both. The cozy view fills the whole window edge to
+edge (no card/border — the user prefers it that way); `App::ui` gives it a zero-margin frame and the view
+pads itself. The display font family is `cozy_view::DISPLAY_FONT`
 (`cozy_view::display_font(size)`), installed in `app::install_fonts`.
 
 ### Characters

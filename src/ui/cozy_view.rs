@@ -1,12 +1,11 @@
-//! The "cozy" main screen: a card with phase pills, the character, a big
-//! chunky timer, a slim progress bar and small controls. The window behind
-//! the card takes the phase color.
+//! The "cozy" main screen: phase pills, the character, a big chunky timer,
+//! a slim progress bar and small controls, filling the whole window.
 
 use std::time::Instant;
 
 use egui::{
-    Align2, Color32, CornerRadius, CursorIcon, FontFamily, FontId, Rect, Sense, Shadow, Stroke,
-    StrokeKind, Ui, pos2, vec2,
+    Align2, Color32, CornerRadius, CursorIcon, FontFamily, FontId, Rect, Sense, Stroke, StrokeKind,
+    Ui, pos2, vec2,
 };
 
 use super::timer_view::{Action, RingAnim};
@@ -20,11 +19,6 @@ pub const DISPLAY_FONT: &str = "display";
 
 pub fn display_font(size: f32) -> FontId {
     FontId::new(size, FontFamily::Name(DISPLAY_FONT.into()))
-}
-
-/// Window color behind the card.
-pub fn backdrop(theme: &Theme, phase: Phase) -> Color32 {
-    mix(theme.accent(phase), theme.background, 0.3)
 }
 
 pub struct Inputs<'a> {
@@ -51,24 +45,9 @@ pub fn show(ui: &mut Ui, input: Inputs<'_>) -> Option<Action> {
     let accent = theme.accent(timer.phase());
     let time = ui.input(|i| i.time);
 
-    // --- Card ------------------------------------------------------------
+    // The view fills the whole window (App gives it a theme-background frame).
     let card = ui.max_rect();
-    let radius = CornerRadius::same(22);
     let painter = ui.painter().clone();
-    let shadow = Shadow {
-        offset: [0, 6],
-        blur: 22,
-        spread: 0,
-        color: Color32::from_black_alpha(50),
-    };
-    painter.add(shadow.as_shape(card, radius));
-    painter.rect(
-        card,
-        radius,
-        theme.background,
-        Stroke::new(2.0, mix(theme.background, theme.text, 0.12)),
-        StrokeKind::Inside,
-    );
     let inner = card.shrink(16.0);
 
     // --- Pills + settings -------------------------------------------------
