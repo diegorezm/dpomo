@@ -1,13 +1,21 @@
 # TODO
 
-Things that didn't make it into 1.0, roughly in priority order. Check items off (or delete them) as
-they're done, and add the change to `CHANGELOG.md`.
+Things that didn't make it into 1.0, roughly in priority order. Check items off as they're done
+(keep them, so it's clear what happened), and add the change to `CHANGELOG.md`.
 
 ## Needs a human
 
 The release workflow now installs every package on fresh Windows, Ubuntu 22.04/24.04 and macOS
 (arm64 + Intel) runners and runs a real pomodoro (see AGENTS.md → Smoke tests). What CI can't check:
 
+- [x] **Linux, automated** (smoke test on Ubuntu 22.04 + 24.04): the `.deb` installs with apt (its
+      dependencies resolve), the window renders, a phase ends, the notification shows, statistics are
+      saved, `dpomo --quit` exits.
+- [x] **macOS, automated** (smoke test on arm64 + Intel): the `.dmg` mounts, the signed app launches,
+      menu bar icon shows, a phase ends, statistics are saved. Found and fixed a "Choose Application"
+      dialog on the first notification.
+- [x] **Windows, automated**: silent install, a full phase, quit, uninstall leaves nothing behind.
+      Found and fixed: dpomo closed at startup on machines without OpenGL (now falls back to Direct3D 12).
 - [ ] **Linux on a real desktop** (GNOME + KDE, X11 + Wayland):
   - [ ] tray icon appears (GNOME needs the AppIndicator extension); left click shows/hides, menu works
   - [ ] sound plays (CI has no sound card)
@@ -15,6 +23,9 @@ The release workflow now installs every package on fresh Windows, Ubuntu 22.04/2
   - [ ] window decorations / HiDPI look right on Wayland
 - [ ] **macOS on a real Mac**: first launch after downloading (Gatekeeper: right-click → Open), menu bar
       icon, notification permission prompt, sound.
+- [x] Code signing wired into `release.yml` (SignPath for Windows, Developer ID + notarization for
+      macOS), off until configured. README/site have the required "Code signing policy" and privacy
+      text; the installer can turn the update check off.
 - [ ] **Windows code signing (free)**: apply at https://signpath.org/apply with the owner's GitHub
       account (needs 2FA on GitHub and SignPath). After acceptance, follow AGENTS.md → "Code signing"
       (create the SignPath project + set `SIGNPATH_ORGANIZATION_ID` / `SIGNPATH_API_TOKEN`). The
@@ -24,6 +35,12 @@ The release workflow now installs every package on fresh Windows, Ubuntu 22.04/2
 
 ## Code
 
+- [x] Memory: tried eframe's `wgpu` backend (300–400 MB, worse); kept glow and trim the working set
+      after startup / when hiding: ~110 MB → ~12 MB open, ~7 MB in the tray.
+- [x] Binary size: update check uses the OS's `curl` instead of ureq/rustls (−1.6 MB). The Windows
+      build is ~12.7 MB because of the Direct3D fallback (worth it).
+- [x] Command line: `dpomo --toggle/--skip/--reset/--show/--quit` (also usable as global shortcuts).
+- [x] Windows 11 title bar uses the theme's colors.
 - [ ] More languages (add a `Strings` static in `src/i18n.rs` + a `Language` variant).
 - [ ] Statistics view with a small weekly chart (data is already in `state.toml`).
 - [ ] Optional ticking sound during focus.
@@ -34,6 +51,7 @@ The release workflow now installs every package on fresh Windows, Ubuntu 22.04/2
 
 ## Project
 
+- [x] Website on GitHub Pages: https://diegorezm.github.io/dpomo/ (free, no custom domain).
 - [ ] Publish to winget / Scoop / Homebrew / AUR.
 - [ ] Website: add the Google Search Console verification tag in `site/index.html` and submit
       `sitemap.xml` (needs the owner's Google account).

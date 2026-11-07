@@ -313,7 +313,8 @@ Tip: set the theme by editing the config file (path is shown at the bottom of th
 
 ## Gotchas
 
-- Unfinished work and ideas live in `TODO.md`; user-visible changes go in `CHANGELOG.md`.
+- Unfinished work and ideas live in `TODO.md` (check items off, don't delete them); user-visible
+  changes go in `CHANGELOG.md`.
 
 - Only one dpomo runs at a time. When testing, kill the old one first or your new build will just
   "show" the old one and exit immediately. (`Get-Process dpomo | Stop-Process` / `pkill dpomo`)
