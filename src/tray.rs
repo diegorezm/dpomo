@@ -130,8 +130,7 @@ fn ring_icon(progress: f32, accent: Color32, running: bool) -> Icon {
 
 /// Anti-aliased ring as RGBA8 pixels. `progress` fills clockwise from 12
 /// o'clock; the rest is a faint track. A center dot means "running".
-/// Also used for the window icon.
-pub fn render_ring(size: u32, progress: f32, accent: Color32, running: bool) -> Vec<u8> {
+fn render_ring(size: u32, progress: f32, accent: Color32, running: bool) -> Vec<u8> {
     let c = size as f32 / 2.0;
     let outer = c - 0.5;
     let inner = outer - size as f32 * 0.2;

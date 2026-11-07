@@ -1,5 +1,6 @@
 //! Embeds `themes/*.toml` and `characters/<id>/*` into the binary, so adding
 //! a built-in theme or character is just dropping files in those folders.
+//! On Windows it also embeds the app icon into the .exe.
 
 use std::fmt::Write;
 use std::path::{Path, PathBuf};
@@ -10,6 +11,17 @@ fn main() {
     println!("cargo:rerun-if-changed=characters");
 
     let root = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
+
+    // Windows: embed the app icon and version info in the .exe.
+    #[cfg(windows)]
+    if env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("windows") {
+        println!("cargo:rerun-if-changed=assets/icon.ico");
+        let mut res = winresource::WindowsResource::new();
+        res.set_icon("assets/icon.ico")
+            .set("ProductName", "dpomo")
+            .set("FileDescription", "dpomo - Pomodoro timer");
+        res.compile().expect("failed to embed Windows resources");
+    }
     let out = PathBuf::from(env::var("OUT_DIR").unwrap());
 
     let mut code = String::from("pub const BUILTIN: &[(&str, &str)] = &[\n");

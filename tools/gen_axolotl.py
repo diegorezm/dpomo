@@ -158,11 +158,15 @@ poses["idle"] = svg("\n  ".join([
     star(30, 26, 7), star(18, 44, 4),
 ]))
 
-out_dir = sys.argv[1]
-os.makedirs(out_dir, exist_ok=True)
-for name, text in poses.items():
-    with open(os.path.join(out_dir, f"{name}.svg"), "w", encoding="utf8", newline="\n") as f:
-        f.write(text)
-with open(os.path.join(out_dir, "character.toml"), "w", encoding="utf8", newline="\n") as f:
-    f.write('name = "Axolote"\n')
-print("ok", list(poses))
+def main(out_dir):
+    os.makedirs(out_dir, exist_ok=True)
+    for name, text in poses.items():
+        with open(os.path.join(out_dir, f"{name}.svg"), "w", encoding="utf8", newline="\n") as f:
+            f.write(text)
+    with open(os.path.join(out_dir, "character.toml"), "w", encoding="utf8", newline="\n") as f:
+        f.write('name = "Axolote"\n')
+    print("ok", list(poses))
+
+
+if __name__ == "__main__":
+    main(sys.argv[1])

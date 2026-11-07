@@ -1,0 +1,116 @@
+# Builds installers for every OS and publishes them as a GitHub Release.
+#
+# Release:  bump `version` in Cargo.toml, commit, then
+#             git tag v0.2.0 && git push origin v0.2.0
+# Dry run:  Actions tab → Release → "Run workflow" (builds artifacts, no release).
+#
+# File names are stable (no version) so README links to
+# releases/latest/download/<file> always work.
+
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build --release --locked
+      - name: Installer (Inno Setup)
+        shell: pwsh
+        run: |
+          $version = (Select-String -Path Cargo.toml -Pattern '^version = "(.+)"').Matches[0].Groups[1].Value
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { choco install innosetup --no-progress -y }
+          & $iscc /Qp "/DAppVersion=$version" packaging\windows\dpomo.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Portable zip
+        shell: pwsh
+        run: Compress-Archive -Path target\release\dpomo.exe, LICENSE, README.md -DestinationPath dist\dpomo-windows-portable.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: dist/*
+
+  linux:
+    # Older Ubuntu = older glibc = the binary runs on more distros.
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: sudo apt-get update && sudo apt-get install -y libxkbcommon-dev libgl1-mesa-dev libwayland-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-deb
+      - run: cargo build --release --locked
+      - name: Package
+        run: |
+          mkdir -p dist
+          cargo deb --no-build --output dist/dpomo-linux-amd64.deb
+          mkdir -p pkg/dpomo
+          cp target/release/dpomo packaging/linux/dpomo.desktop assets/icon.png LICENSE README.md pkg/dpomo/
+          tar -C pkg -czf dist/dpomo-linux-x86_64.tar.gz dpomo
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux
+          path: dist/*
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin, x86_64-apple-darwin
+      - uses: Swatinem/rust-cache@v2
+      - run: |
+          cargo build --release --locked --target aarch64-apple-darwin
+          cargo build --release --locked --target x86_64-apple-darwin
+      - name: App bundle + dmg
+        run: |
+          version=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
+          app=dmg/dpomo.app
+          mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources" dist
+          lipo -create -output "$app/Contents/MacOS/dpomo" \
+            target/aarch64-apple-darwin/release/dpomo target/x86_64-apple-darwin/release/dpomo
+          cp assets/icon.icns "$app/Contents/Resources/dpomo.icns"
+          sed "s/VERSION/$version/g" packaging/macos/Info.plist > "$app/Contents/Info.plist"
+          # Ad-hoc signature: not notarized, but required to run on Apple Silicon.
+          codesign --force --deep --sign - "$app"
+          ln -s /Applications dmg/Applications
+          hdiutil create -volname dpomo -srcfolder dmg -ov -format UDZO dist/dpomo-macos.dmg
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: dist/*
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [windows, linux, macos]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "dpomo $GITHUB_REF_NAME" \
+            --generate-notes

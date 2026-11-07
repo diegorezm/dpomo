@@ -111,22 +111,36 @@ vira a cor de texto secundário do tema. Assim seu personagem combina com qualqu
 
 ## Instalar
 
-Você precisa do [Rust](https://rustup.rs) instalado.
+Baixe o arquivo do seu sistema e abra:
 
-```sh
-git clone https://github.com/diegorezm/dpomo
-cd dpomo
-cargo run --release
-```
+| Sistema | Download | Como instalar |
+| ------- | -------- | ------------- |
+| **Windows** | [dpomo-setup.exe](https://github.com/diegorezm/dpomo/releases/latest/download/dpomo-setup.exe) | Abra e clique em *Avançar* até o fim. Não pede senha de administrador. |
+| **Linux** (Ubuntu/Debian) | [dpomo-linux-amd64.deb](https://github.com/diegorezm/dpomo/releases/latest/download/dpomo-linux-amd64.deb) | Dois cliques no arquivo, ou `sudo apt install ./dpomo-linux-amd64.deb` |
+| **macOS** | [dpomo-macos.dmg](https://github.com/diegorezm/dpomo/releases/latest/download/dpomo-macos.dmg) | Arraste o dpomo para *Aplicativos*. |
 
-Ou instale direto:
+Outras opções (versão portátil para Windows, `.tar.gz` para outros Linux) estão na
+[página de releases](https://github.com/diegorezm/dpomo/releases/latest).
+
+> **Windows:** se aparecer "O Windows protegeu o computador", clique em *Mais informações* → *Executar assim mesmo*.
+> Isso acontece porque o instalador não é assinado digitalmente (assinatura custa caro 😅).
+>
+> **macOS:** na primeira vez, clique com o **botão direito** no dpomo → *Abrir* → *Abrir*.
+> O app não é notarizado pela Apple, então o macOS pede essa confirmação uma vez.
+>
+> **Linux:** para ver o ícone na bandeja no GNOME, instale a extensão *AppIndicator* (KDE já funciona direto).
+
+Para desinstalar no Windows: *Configurações → Aplicativos → dpomo → Desinstalar*.
+
+### Compilar você mesmo
+
+Precisa do [Rust](https://rustup.rs):
 
 ```sh
 cargo install --git https://github.com/diegorezm/dpomo
 ```
 
-> **Linux:** pode ser preciso instalar `libxkbcommon-dev`, `libgl1-mesa-dev` e `libwayland-dev` antes.
-> Para ver o ícone na bandeja no GNOME, instale a extensão *AppIndicator* (KDE já funciona direto).
+> **Linux:** instale antes `libxkbcommon-dev`, `libgl1-mesa-dev` e `libwayland-dev`.
 
 ## Licença
 

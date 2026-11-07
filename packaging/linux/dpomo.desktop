@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=dpomo
+GenericName=Pomodoro Timer
+Comment=Timer Pomodoro bonito e customizável
+Exec=dpomo
+Icon=dpomo
+Terminal=false
+Categories=Utility;Office;
+Keywords=pomodoro;timer;focus;foco;
+StartupWMClass=dpomo
