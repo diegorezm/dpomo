@@ -234,7 +234,10 @@ Medido no Windows 11 (versão release, CPU de 16 núcleos):
 | Rodando, escondido na bandeja | ~0,05% | acorda uma vez por segundo |
 
 Memória (coluna "Memória" do Gerenciador de Tarefas): **~12 MB** aberto e pausado, **~45 MB** com a
-animação suave rodando, **~7 MB** escondido na bandeja. O executável tem ~9 MB.
+animação suave rodando, **~7 MB** escondido na bandeja. O executável para Windows tem ~13 MB.
+
+Sem OpenGL na máquina (máquina virtual, área de trabalho remota, Windows ARM)? O dpomo passa a usar
+o Direct3D 12 sozinho; gasta mais memória assim, mas funciona.
 
 ## Privacidade
 

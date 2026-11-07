@@ -11,6 +11,13 @@ pub fn init() {
     if let Err(e) = register_windows_app_id() {
         eprintln!("dpomo: could not register app id: {e}");
     }
+    // Without this, the first notification makes macOS look up an app named
+    // "use_default" and pops a "Choose Application" dialog. Must match
+    // CFBundleIdentifier in packaging/macos/Info.plist.
+    #[cfg(target_os = "macos")]
+    if let Err(e) = notify_rust::set_application("io.github.diegorezm.dpomo") {
+        eprintln!("dpomo: could not set notification app: {e}");
+    }
 }
 
 /// Hand idle pages back to the OS. Most of the working set right after startup

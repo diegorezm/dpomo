@@ -233,7 +233,10 @@ Measured on Windows 11 (release build, 16-core CPU):
 | Running, hidden in the tray | ~0.05% | wakes up once per second |
 
 Memory (Task Manager's "Memory" column): **~12 MB** open and paused, **~45 MB** while the smooth
-animation runs, **~7 MB** hidden in the tray. The executable is ~9 MB.
+animation runs, **~7 MB** hidden in the tray. The Windows executable is ~13 MB.
+
+No OpenGL on your machine (virtual machine, remote desktop, Windows on ARM)? dpomo switches to
+Direct3D 12 by itself; it uses more memory that way, but it works.
 
 ## Privacy
 

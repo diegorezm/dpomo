@@ -38,6 +38,7 @@ Run all four locally before you commit.
 | `rodio` | Phase-end sounds. Only `playback` + `wav`/`mp3`/`vorbis`. Linux builds need `libasound2-dev`. |
 | `chrono` (`clock`, `serde`) | Local dates for statistics / "same day" session restore. |
 | `serde_json` | Parses the daily update check answer. The request itself runs the OS's `curl` (no HTTP/TLS crate: −1.6 MB). |
+| `wgpu` (Windows only, `dx12`) | Fallback renderer when OpenGL can't start (VMs, RDP, CI runners, Windows on ARM). `main.rs` tries glow first, then reruns `run_native` with wgpu. `DPOMO_RENDERER=wgpu` forces it. ~+3.8 MB on Windows only. |
 | `windows-sys` | Windows only: trims the working set (`system::trim_memory`). Already in the tree via winit. |
 | `sys-locale` | OS language for `language = "auto"`. |
 

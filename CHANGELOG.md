@@ -32,8 +32,11 @@ versions follow [Semantic Versioning](https://semver.org/).
 - The cozy layout fills the whole window (no card border).
 - Much lower memory use: ~12 MB open and ~7 MB in the tray (was ~110 MB), by handing the GPU
   driver's unused startup memory back to Windows.
-- Smaller executable (~9 MB): the update check uses the system's `curl` instead of a bundled
-  HTTPS stack.
+- The update check uses the system's `curl` instead of a bundled HTTPS stack (smaller executable).
+
+### Fixed
+- Windows without a working OpenGL driver (virtual machines, remote desktop, Windows on ARM, CI
+  runners): dpomo closed right away; it now falls back to Direct3D 12.
 
 ## [0.1.0] - 2026-11-07
 
