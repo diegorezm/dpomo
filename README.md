@@ -37,6 +37,8 @@ O dpomo mora na **bandeja do sistema** (os ícones pequenos perto do relógio):
 | `,`      | Abrir ajustes     |
 | `Esc`    | Voltar dos ajustes |
 
+Dá para trocar qualquer atalho no `config.toml` (seção `[keys]`, veja [Configuração](#configuração)).
+
 ## Personalizar
 
 Clique no ícone de ajustes (canto superior direito). Você pode mudar:
@@ -49,7 +51,10 @@ Clique no ícone de ajustes (canto superior direito). Você pode mudar:
 - 📌 **Sempre no topo**, iniciar fases automaticamente e mais
 - 🌙 **Segundo plano**: bandeja, notificações, iniciar com o sistema
 
-Tudo é salvo num arquivo de texto simples que você também pode editar na mão:
+## Configuração
+
+**Toda** a configuração fica num arquivo de texto, o `config.toml`. Os ajustes do app só editam esse
+arquivo por você. Ele é criado na primeira vez que o dpomo abre:
 
 | Sistema | Onde fica |
 | ------- | --------- |
@@ -57,18 +62,68 @@ Tudo é salvo num arquivo de texto simples que você também pode editar na mão
 | Linux   | `~/.config/dpomo/config.toml` |
 | macOS   | `~/Library/Application Support/dpomo/config.toml` |
 
-Exemplo:
+(Nos ajustes há os botões **Abrir config.toml** e **Abrir pasta**.)
+
+- **Mudou e salvou? O app aplica na hora**, não precisa reiniciar.
+- Pode apagar o que não quiser: o que faltar usa o padrão.
+- Errou algo? O app avisa qual linha está errada e **não mexe no seu arquivo** até você corrigir.
+
+Tudo o que dá para configurar (com os valores padrão):
 
 ```toml
 [timer]
-focus_minutes = 50
-short_break_minutes = 10
+focus_minutes = 25
+short_break_minutes = 5
+long_break_minutes = 15
+sessions_before_long_break = 4
+auto_start_breaks = false        # começar a pausa sozinho
+auto_start_focus = false         # começar o foco sozinho
 
 [appearance]
-theme = "Nord"
-```
+layout = "cozy"                  # "cozy" (axolote) ou "classic" (anel)
+character = "axolotl"            # pasta do personagem
+theme = "Rosé Pine"              # nome de um tema, ou "custom" (usa [custom_theme])
+ring_thickness = 10.0            # só no "classic"
+ui_scale = 1.0                   # tamanho da interface
+smooth_animation = true          # false = gasta menos CPU
+glow = true                      # brilho no anel ("classic")
+show_session_dots = true
 
-Só escreva o que quiser mudar, o resto usa o padrão.
+[behavior]
+always_on_top = false
+notify_on_finish = true          # piscar na barra de tarefas
+focus_on_finish = false          # trazer a janela pra frente
+time_in_title = true             # tempo no título da janela
+tray = true                      # ícone na bandeja
+close_to_tray = true             # fechar = esconder na bandeja
+system_notification = true
+start_with_system = false
+start_hidden = false             # abrir já escondido na bandeja
+
+[window]
+width = 360.0
+height = 500.0
+remember_size = true             # guarda o último tamanho ao fechar
+
+[keys]                           # nomes de tecla: "Space", "R", ",", "1", "F5", "Escape", "ArrowLeft"…
+toggle = "Space"
+reset = "R"
+skip = "S"
+settings = ","
+focus = "1"
+short_break = "2"
+long_break = "3"
+back = "Escape"
+
+[custom_theme]                   # usado quando theme = "custom"
+background = "#191724"
+surface = "#26233a"
+text = "#e0def4"
+muted = "#908caa"
+focus = "#eb6f92"
+short_break = "#9ccfd8"
+long_break = "#c4a7e7"
+```
 
 ### Criar seu próprio tema 🎨
 

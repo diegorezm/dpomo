@@ -1,15 +1,28 @@
 //! User settings, persisted as a human-editable TOML file.
 //!
+//! The file is the source of truth: it's written on first launch, the
+//! settings screen edits it, and hand edits are picked up live (see `watch`).
+//!
 //! Every struct uses `#[serde(default)]`, so adding a new field never breaks
 //! old config files: missing keys just fall back to `Default`.
 
 use std::path::PathBuf;
-use std::time::Duration;
+use std::sync::mpsc::Sender;
+use std::time::{Duration, SystemTime};
 
+use egui::Key;
 use serde::{Deserialize, Serialize};
 
+use crate::command::Command;
 use crate::theme::{self, Theme, Themes};
 use crate::timer::Phase;
+
+const HEADER: &str = "\
+# dpomo config. Edit freely: changes apply while the app is running.
+# Every key is optional; anything missing uses its default.
+# Docs: https://github.com/diegorezm/dpomo#configura%C3%A7%C3%A3o
+
+";
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
 #[serde(default)]
@@ -17,6 +30,8 @@ pub struct Config {
     pub timer: TimerSettings,
     pub appearance: Appearance,
     pub behavior: Behavior,
+    pub window: Window,
+    pub keys: Keys,
     /// Used when `appearance.theme = "custom"`.
     pub custom_theme: Theme,
 }
@@ -136,22 +151,110 @@ impl Default for Behavior {
     }
 }
 
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct Window {
+    /// Initial size, in points.
+    pub width: f32,
+    pub height: f32,
+    /// Update `width`/`height` with the last size when the window closes.
+    pub remember_size: bool,
+}
+
+impl Default for Window {
+    fn default() -> Self {
+        Self {
+            width: 360.0,
+            height: 500.0,
+            remember_size: true,
+        }
+    }
+}
+
+/// Keyboard shortcuts. Values are egui key names: "Space", "R", ",", "1",
+/// "F5", "Escape", "ArrowLeft"… An unknown name falls back to the default.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct Keys {
+    pub toggle: String,
+    pub reset: String,
+    pub skip: String,
+    pub settings: String,
+    pub focus: String,
+    pub short_break: String,
+    pub long_break: String,
+    /// Leave the settings screen.
+    pub back: String,
+}
+
+impl Default for Keys {
+    fn default() -> Self {
+        Self {
+            toggle: "Space".into(),
+            reset: "R".into(),
+            skip: "S".into(),
+            settings: ",".into(),
+            focus: "1".into(),
+            short_break: "2".into(),
+            long_break: "3".into(),
+            back: "Escape".into(),
+        }
+    }
+}
+
+impl Keys {
+    /// Parse `name`, or use `default` if it isn't a key name.
+    pub fn key(name: &str, default: &str) -> Key {
+        Key::from_name(name.trim())
+            .or_else(|| Key::from_name(default))
+            .unwrap_or(Key::Space)
+    }
+}
+
+/// Why the config file couldn't be used.
+#[derive(Debug, PartialEq)]
+pub enum LoadError {
+    Missing,
+    /// Short human-readable message (line + reason).
+    Invalid(String),
+}
+
 impl Config {
     pub fn path() -> Option<PathBuf> {
         dirs::config_dir().map(|d| d.join("dpomo").join("config.toml"))
     }
 
-    /// Load from disk. Never fails: on any problem, falls back to defaults.
-    pub fn load() -> Self {
-        let Some(path) = Self::path() else {
-            return Self::default();
-        };
-        match std::fs::read_to_string(&path) {
-            Ok(text) => toml::from_str(&text).unwrap_or_else(|e| {
-                eprintln!("dpomo: invalid config at {}: {e}", path.display());
-                Self::default()
-            }),
-            Err(_) => Self::default(),
+    pub fn read() -> Result<Self, LoadError> {
+        let path = Self::path().ok_or(LoadError::Missing)?;
+        let text = std::fs::read_to_string(&path).map_err(|_| LoadError::Missing)?;
+        Self::parse(&text)
+    }
+
+    fn parse(text: &str) -> Result<Self, LoadError> {
+        toml::from_str(text).map_err(|e| {
+            let line = e
+                .span()
+                .map(|s| text[..s.start.min(text.len())].lines().count().max(1));
+            LoadError::Invalid(match line {
+                Some(n) => format!("linha {n}: {}", e.message()),
+                None => e.message().to_owned(),
+            })
+        })
+    }
+
+    /// Startup load. Writes the defaults on first launch so the file is there
+    /// to edit. Also returns the error message if the file is broken.
+    pub fn load() -> (Self, Option<String>) {
+        match Self::read() {
+            Ok(config) => (config, None),
+            Err(LoadError::Missing) => {
+                let config = Self::default();
+                if let Err(e) = config.save() {
+                    eprintln!("dpomo: could not write default config: {e}");
+                }
+                (config, None)
+            }
+            Err(LoadError::Invalid(e)) => (Self::default(), Some(e)),
         }
     }
 
@@ -163,7 +266,30 @@ impl Config {
             std::fs::create_dir_all(dir)?;
         }
         let text = toml::to_string_pretty(self).map_err(std::io::Error::other)?;
-        std::fs::write(path, text)
+        std::fs::write(path, format!("{HEADER}{text}"))
+    }
+
+    fn modified() -> Option<SystemTime> {
+        std::fs::metadata(Self::path()?).ok()?.modified().ok()
+    }
+
+    /// Poll the file once a second and send `Command::ReloadConfig` when it
+    /// changes. One `stat` per second, no extra dependencies.
+    pub fn watch(ctx: egui::Context, tx: Sender<Command>) {
+        std::thread::spawn(move || {
+            let mut last = Self::modified();
+            loop {
+                std::thread::sleep(Duration::from_secs(1));
+                let now = Self::modified();
+                if now != last {
+                    last = now;
+                    if tx.send(Command::ReloadConfig).is_err() {
+                        return;
+                    }
+                    ctx.request_repaint();
+                }
+            }
+        });
     }
 
     /// The theme currently in effect.
@@ -186,6 +312,45 @@ mod tests {
         c.appearance.theme = "Nord".into();
         let text = toml::to_string_pretty(&c).unwrap();
         assert_eq!(toml::from_str::<Config>(&text).unwrap(), c);
+    }
+
+    #[test]
+    fn saved_file_with_header_parses() {
+        let text = format!(
+            "{HEADER}{}",
+            toml::to_string_pretty(&Config::default()).unwrap()
+        );
+        assert_eq!(Config::parse(&text), Ok(Config::default()));
+    }
+
+    #[test]
+    fn invalid_file_reports_line() {
+        let err = Config::parse("[timer]\nfocus_minutes = \"muito\"\n").unwrap_err();
+        let LoadError::Invalid(msg) = err else {
+            panic!("expected Invalid")
+        };
+        assert!(msg.starts_with("linha 2:"), "{msg}");
+    }
+
+    /// The README documents every setting with its default; keep them in sync.
+    #[test]
+    fn readme_reference_matches_defaults() {
+        // Normalize CRLF (Windows checkouts) so the search works everywhere.
+        let readme = include_str!("../README.md").replace("\r\n", "\n");
+        let start = readme
+            .find("```toml\n[timer]")
+            .expect("config reference in README")
+            + 8;
+        let end = start + readme[start..].find("```").unwrap();
+        let documented: Config = toml::from_str(&readme[start..end]).unwrap();
+        assert_eq!(documented, Config::default());
+    }
+
+    #[test]
+    fn unknown_key_names_fall_back() {
+        assert_eq!(Keys::key("F5", "Space"), Key::F5);
+        assert_eq!(Keys::key(",", "Space"), Key::Comma);
+        assert_eq!(Keys::key("banana", "R"), Key::R);
     }
 
     #[test]

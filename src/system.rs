@@ -63,6 +63,29 @@ pub fn notify_finished(finished: Phase, next: Phase, next_started: bool, setting
     });
 }
 
+/// Open a file or folder with the OS default app.
+pub fn open_path(path: &std::path::Path) -> std::io::Result<()> {
+    #[cfg(windows)]
+    let mut cmd = {
+        let mut c = std::process::Command::new("explorer");
+        c.arg(path);
+        c
+    };
+    #[cfg(target_os = "macos")]
+    let mut cmd = {
+        let mut c = std::process::Command::new("open");
+        c.arg(path);
+        c
+    };
+    #[cfg(not(any(windows, target_os = "macos")))]
+    let mut cmd = {
+        let mut c = std::process::Command::new("xdg-open");
+        c.arg(path);
+        c
+    };
+    cmd.spawn().map(|_| ())
+}
+
 /// Register or unregister dpomo to start (hidden, in the tray) on login.
 pub fn set_autostart(enabled: bool) -> Result<(), String> {
     let exe = std::env::current_exe().map_err(|e| e.to_string())?;

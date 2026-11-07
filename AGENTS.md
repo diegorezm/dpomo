@@ -115,14 +115,27 @@ Users add themes the same way in `<config dir>/dpomo/themes/`; a user theme with
 ### Add a theme color
 Add the field to `Theme` (with `#[serde(with = "hex")]`) **and to every file in `themes/`** (tests fail otherwise), then use it in views. Consider `#[serde(default = …)]` so users' existing theme files keep working.
 
+### Config file model
+`config.toml` is the single source of truth for **every** setting (the user asked for this explicitly).
+- `Config::load` writes defaults on first launch so the file always exists.
+- `Config::watch` polls the file's mtime once a second and sends `Command::ReloadConfig`;
+  `App::reload_config` applies it live. Our own saves also trigger it — harmless, the content is equal.
+- If the file is invalid: the app keeps running on the last good config, shows the error (line + reason) as a
+  badge on the main screen and a card in settings, and **`App::save` refuses to write** until the file is fixed
+  (or the user clicks "Substituir pelos ajustes atuais"). Never silently overwrite a user's file.
+- Saved files start with a short comment header (`config::HEADER`).
+- README has a full annotated `config.toml` reference under "Configuração": **update it when you add a setting.**
+
 ### Add a setting
-1. Add the field to the right struct in `config.rs` (`TimerSettings`, `Appearance`, `Behavior`) **and** to its `Default` impl. All structs are `#[serde(default)]`, so old config files keep working.
-2. Add a control in `settings_view.rs` inside the matching `section(…)`.
-3. Read it where needed. If it changes egui/window state, apply it in `App::sync_environment` with a change cache.
+1. Add the field to the right struct in `config.rs` (`TimerSettings`, `Appearance`, `Behavior`, `Window`, `Keys`) **and** to its `Default` impl. All structs are `#[serde(default)]`, so old config files keep working.
+2. Add a control in `settings_view.rs` inside the matching `section(…)` (optional for power-user knobs).
+3. Document it in the README's `config.toml` reference.
+4. Read it where needed. If it changes egui/window state, apply it in `App::sync_environment` with a change cache.
 
 ### Add a timer action / shortcut
 1. Add a variant to `timer_view::Action`.
-2. Emit it from `timer_view::show` (button) and/or `App::handle_shortcuts` (key).
+2. Emit it from the views (button) and/or add a binding: a field in `config::Keys` (+ default) and a row in
+   the `bindings` table in `App::handle_shortcuts`. Shortcuts are never hard-coded.
 3. Handle it in `App::apply_timer_action`. Use `with_ring_anim` if the ring jumps.
 
 ### Add a new screen

@@ -22,7 +22,7 @@ fn main() -> eframe::Result {
         Instance::Unknown => None,
     };
 
-    let config = config::Config::load();
+    let (config, config_error) = config::Config::load();
     system::init();
     // `--hidden` is what the autostart entry passes.
     let start_hidden = config.behavior.tray
@@ -34,7 +34,10 @@ fn main() -> eframe::Result {
             .with_app_id("dpomo")
             .with_icon(window_icon())
             .with_visible(!start_hidden)
-            .with_inner_size([360.0, 500.0])
+            .with_inner_size([
+                config.window.width.max(280.0),
+                config.window.height.max(380.0),
+            ])
             .with_min_inner_size([280.0, 380.0]),
         ..Default::default()
     };
@@ -48,6 +51,7 @@ fn main() -> eframe::Result {
                 config,
                 listener,
                 start_hidden,
+                config_error,
             )))
         }),
     )

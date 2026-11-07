@@ -18,6 +18,10 @@ pub enum Action {
     ReloadThemes,
     /// Save the custom theme as `<themes dir>/<state.export_name>.toml`.
     ExportCustom,
+    OpenConfigFile,
+    OpenConfigFolder,
+    /// Replace a broken config.toml with the current settings.
+    OverwriteConfig,
 }
 
 /// Screen-local state owned by `App` (it outlives a single frame).
@@ -27,6 +31,8 @@ pub struct State {
     pub notice: Option<String>,
     /// Why the tray / autostart couldn't be set up, if it failed.
     pub system_error: Option<String>,
+    /// `config.toml` is invalid; saving is paused until it's fixed.
+    pub config_error: Option<String>,
 }
 
 impl Default for State {
@@ -35,6 +41,7 @@ impl Default for State {
             export_name: "Meu tema".to_owned(),
             notice: None,
             system_error: None,
+            config_error: None,
         }
     }
 }
@@ -60,6 +67,33 @@ pub fn show(
         ui.label(RichText::new("Ajustes").size(20.0).strong());
     });
     ui.add_space(8.0);
+
+    if let Some(err) = &state.config_error {
+        widgets::card(ui, theme, |ui| {
+            ui.label(
+                RichText::new("O config.toml tem um erro")
+                    .strong()
+                    .color(theme.focus),
+            );
+            ui.label(RichText::new(err).size(12.0));
+            ui.label(
+                RichText::new(
+                    "Corrija o arquivo e salve: o app aplica na hora. Até lá, nada aqui é salvo.",
+                )
+                .size(11.0)
+                .color(theme.muted),
+            );
+            ui.horizontal(|ui| {
+                if ui.button("Abrir config.toml").clicked() {
+                    action = Some(Action::OpenConfigFile);
+                }
+                if ui.button("Substituir pelos ajustes atuais").clicked() {
+                    action = Some(Action::OverwriteConfig);
+                }
+            });
+        });
+        ui.add_space(8.0);
+    }
 
     egui::ScrollArea::vertical()
         .auto_shrink(false)
@@ -203,13 +237,30 @@ pub fn show(
             });
 
             ui.add_space(4.0);
-            if let Some(path) = Config::path() {
+            section(ui, theme, "Arquivo de configuração", |ui| {
                 ui.label(
-                    RichText::new(format!("Config: {}", path.display()))
-                        .size(11.0)
-                        .color(theme.muted),
-                );
-            }
+                RichText::new(
+                    "Tudo aqui fica salvo no config.toml, inclusive atalhos e tamanho da janela. \
+                     Edite o arquivo à vontade: o app aplica na hora.",
+                )
+                .size(12.0),
+            );
+                if let Some(path) = Config::path() {
+                    ui.label(
+                        RichText::new(path.display().to_string())
+                            .size(11.0)
+                            .color(theme.muted),
+                    );
+                }
+                ui.horizontal(|ui| {
+                    if ui.button("Abrir config.toml").clicked() {
+                        action = Some(Action::OpenConfigFile);
+                    }
+                    if ui.button("Abrir pasta").clicked() {
+                        action = Some(Action::OpenConfigFolder);
+                    }
+                });
+            });
             ui.horizontal(|ui| {
                 if ui.button("Restaurar padrões").clicked() {
                     action = Some(Action::ResetDefaults);

@@ -4,11 +4,11 @@ use std::net::TcpListener;
 use std::sync::mpsc::{Receiver, Sender, channel};
 use std::time::{Duration, Instant};
 
-use egui::{Key, Modifiers, ViewportCommand};
+use egui::{Modifiers, ViewportCommand};
 
 use crate::character::{CharacterImage, Characters};
 use crate::command::Command;
-use crate::config::{Config, Layout};
+use crate::config::{Config, Keys, Layout, LoadError};
 use crate::theme::{Theme, Themes};
 use crate::timer::{Phase, Timer, TimerEvent, format_remaining};
 use crate::tray::{Tray, TrayState};
@@ -49,6 +49,7 @@ impl DpomoApp {
         config: Config,
         listener: Option<TcpListener>,
         start_hidden: bool,
+        config_error: Option<String>,
     ) -> Self {
         install_fonts(&cc.egui_ctx);
         egui_extras::install_image_loaders(&cc.egui_ctx);
@@ -56,6 +57,7 @@ impl DpomoApp {
         if let Some(listener) = listener {
             instance::listen(listener, cc.egui_ctx.clone(), commands.0.clone());
         }
+        Config::watch(cc.egui_ctx.clone(), commands.0.clone());
         Self {
             commands,
             tray: None,
@@ -64,7 +66,10 @@ impl DpomoApp {
             characters: Characters::load(),
             character_image: CharacterImage::default(),
             timer: Timer::new(&config.timer),
-            settings: settings_view::State::default(),
+            settings: settings_view::State {
+                config_error,
+                ..Default::default()
+            },
             saved: config.clone(),
             config,
             view: View::Timer,
@@ -76,6 +81,10 @@ impl DpomoApp {
     }
 
     fn save(&mut self) {
+        // Never overwrite a file the user is still fixing by hand.
+        if self.settings.config_error.is_some() {
+            return;
+        }
         if self.config != self.saved {
             if let Err(e) = self.config.save() {
                 eprintln!("dpomo: could not save config: {e}");
@@ -132,32 +141,41 @@ impl DpomoApp {
     }
 
     fn handle_shortcuts(&mut self, ctx: &egui::Context, now: Instant) {
-        let pressed = |key| ctx.input_mut(|i| i.consume_key(Modifiers::NONE, key));
+        let k = &self.config.keys;
+        let d = Keys::default();
+        let pressed = |name: &str, default: &str| {
+            ctx.input_mut(|i| i.consume_key(Modifiers::NONE, Keys::key(name, default)))
+        };
         match self.view {
             View::Timer => {
-                let action = if pressed(Key::Space) {
-                    Some(timer_view::Action::Toggle)
-                } else if pressed(Key::R) {
-                    Some(timer_view::Action::Reset)
-                } else if pressed(Key::S) {
-                    Some(timer_view::Action::Skip)
-                } else if pressed(Key::Comma) {
-                    Some(timer_view::Action::OpenSettings)
-                } else if pressed(Key::Num1) {
-                    Some(timer_view::Action::SwitchTo(Phase::Focus))
-                } else if pressed(Key::Num2) {
-                    Some(timer_view::Action::SwitchTo(Phase::ShortBreak))
-                } else if pressed(Key::Num3) {
-                    Some(timer_view::Action::SwitchTo(Phase::LongBreak))
-                } else {
-                    None
-                };
+                use timer_view::Action;
+                let bindings = [
+                    (&k.toggle, &d.toggle, Action::Toggle),
+                    (&k.reset, &d.reset, Action::Reset),
+                    (&k.skip, &d.skip, Action::Skip),
+                    (&k.settings, &d.settings, Action::OpenSettings),
+                    (&k.focus, &d.focus, Action::SwitchTo(Phase::Focus)),
+                    (
+                        &k.short_break,
+                        &d.short_break,
+                        Action::SwitchTo(Phase::ShortBreak),
+                    ),
+                    (
+                        &k.long_break,
+                        &d.long_break,
+                        Action::SwitchTo(Phase::LongBreak),
+                    ),
+                ];
+                let action = bindings
+                    .into_iter()
+                    .find(|(name, default, _)| pressed(name, default))
+                    .map(|(_, _, action)| action);
                 if let Some(a) = action {
                     self.apply_timer_action(ctx, a, now);
                 }
             }
             View::Settings => {
-                if pressed(Key::Escape) {
+                if pressed(&k.back, &d.back) {
                     self.leave_settings();
                 }
             }
@@ -168,6 +186,22 @@ impl DpomoApp {
         use settings_view::Action;
         match action {
             Action::Back => self.leave_settings(),
+            Action::OpenConfigFile | Action::OpenConfigFolder => {
+                let path = Config::path().and_then(|p| match action {
+                    Action::OpenConfigFile => Some(p),
+                    _ => p.parent().map(|d| d.to_path_buf()),
+                });
+                if let Some(path) = path
+                    && let Err(e) = system::open_path(&path)
+                {
+                    self.settings.notice = Some(format!("Não foi possível abrir: {e}"));
+                }
+            }
+            Action::OverwriteConfig => {
+                self.settings.config_error = None;
+                self.saved = Config::default();
+                self.save();
+            }
             Action::ResetDefaults => self.config = Config::default(),
             Action::ReloadThemes => {
                 self.themes = Themes::load();
@@ -232,7 +266,49 @@ impl DpomoApp {
                 Command::Skip => self.apply_timer_action(ctx, timer_view::Action::Skip, now),
                 Command::Reset => self.apply_timer_action(ctx, timer_view::Action::Reset, now),
                 Command::Quit => self.quit(),
+                Command::ReloadConfig => self.reload_config(),
             }
+        }
+    }
+
+    /// Apply hand edits to `config.toml`.
+    fn reload_config(&mut self) {
+        match Config::read() {
+            Ok(config) => {
+                self.settings.config_error = None;
+                if config != self.saved {
+                    let autostart_before = self.saved.behavior.start_with_system;
+                    self.config = config.clone();
+                    self.saved = config;
+                    if self.config.behavior.start_with_system != autostart_before
+                        && let Err(e) =
+                            system::set_autostart(self.config.behavior.start_with_system)
+                    {
+                        self.settings.system_error =
+                            Some(format!("Iniciar com o sistema falhou: {e}"));
+                    }
+                }
+            }
+            // Deleted: write what we have back, so there's always a file to edit.
+            Err(LoadError::Missing) => {
+                self.saved = Config::default();
+                self.save();
+            }
+            Err(LoadError::Invalid(e)) => self.settings.config_error = Some(e),
+        }
+    }
+
+    /// Store the current window size in the config (if enabled).
+    fn remember_window_size(&mut self, ctx: &egui::Context) {
+        if !self.config.window.remember_size || !self.window_visible {
+            return;
+        }
+        // Viewport rects are in ui points (affected by zoom); the config stores
+        // OS logical points, which is what `with_inner_size` expects.
+        let zoom = ctx.zoom_factor();
+        if let Some(rect) = ctx.input(|i| i.viewport().inner_rect) {
+            self.config.window.width = (rect.width() * zoom).round();
+            self.config.window.height = (rect.height() * zoom).round();
         }
     }
 
@@ -376,8 +452,10 @@ impl eframe::App for DpomoApp {
         self.handle_shortcuts(&ctx, now);
 
         if ctx.input(|i| i.viewport().close_requested()) {
+            self.remember_window_size(&ctx);
             if self.tray.is_some() && self.config.behavior.close_to_tray {
                 ctx.send_viewport_cmd(ViewportCommand::CancelClose);
+                self.save();
                 self.set_window_visible(&ctx, false);
                 if self.view == View::Settings {
                     self.leave_settings();
@@ -432,6 +510,28 @@ impl eframe::App for DpomoApp {
                     }
                 }
             });
+
+        if self.view == View::Timer && self.settings.config_error.is_some() {
+            let badge = egui::Area::new(egui::Id::unique("config_error"))
+                .anchor(egui::Align2::LEFT_BOTTOM, egui::vec2(8.0, -6.0))
+                .show(&ctx, |ui| {
+                    ui.add(
+                        egui::Label::new(
+                            egui::RichText::new("Erro no config.toml (ver ajustes)")
+                                .size(11.0)
+                                .color(theme.focus),
+                        )
+                        .sense(egui::Sense::click()),
+                    )
+                });
+            if badge
+                .inner
+                .on_hover_cursor(egui::CursorIcon::PointingHand)
+                .clicked()
+            {
+                self.view = View::Settings;
+            }
+        }
 
         // Keep the ring easing animation going.
         let (_, animating) = self
