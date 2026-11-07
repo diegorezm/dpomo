@@ -30,23 +30,26 @@ fn register_windows_app_id() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 use crate::config::TimerSettings;
+use crate::i18n::{fill, tr};
 use crate::timer::Phase;
 
 /// Fire-and-forget desktop notification for a finished phase. Runs on a
 /// thread because some backends (D-Bus, WinRT) can block for a moment.
 pub fn notify_finished(finished: Phase, next: Phase, next_started: bool, settings: &TimerSettings) {
+    let t = tr();
     let title = match finished {
-        Phase::Focus => "Foco concluído! 🍅",
-        Phase::ShortBreak | Phase::LongBreak => "Pausa terminada",
+        Phase::Focus => t.notify_focus_done,
+        Phase::ShortBreak | Phase::LongBreak => t.notify_break_done,
     };
-    let minutes = settings.duration(next).as_secs() / 60;
-    let what = match next {
-        Phase::Focus => format!("Hora de focar ({minutes} min)"),
-        Phase::ShortBreak => format!("Hora de uma pausa curta ({minutes} min)"),
-        Phase::LongBreak => format!("Hora de uma pausa longa ({minutes} min)"),
+    let minutes = (settings.duration(next).as_secs() / 60).to_string();
+    let template = match next {
+        Phase::Focus => t.notify_next_focus,
+        Phase::ShortBreak => t.notify_next_short,
+        Phase::LongBreak => t.notify_next_long,
     };
+    let what = fill(template, &[("min", &minutes)]);
     let body = if next_started {
-        format!("{what} — já começou.")
+        format!("{what} — {}.", t.notify_started)
     } else {
         format!("{what}.")
     };

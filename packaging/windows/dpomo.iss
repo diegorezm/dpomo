@@ -37,8 +37,9 @@ ShowLanguageDialog=no
 CloseApplications=no
 
 [Languages]
-Name: "brazilianportuguese"; MessagesFile: "compiler:Languages\BrazilianPortuguese.isl"
+; First entry is the fallback; the OS UI language picks the match automatically.
 Name: "english"; MessagesFile: "compiler:Default.isl"
+Name: "brazilianportuguese"; MessagesFile: "compiler:Languages\BrazilianPortuguese.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked

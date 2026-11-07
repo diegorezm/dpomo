@@ -1,1 +1,4 @@
-name = "Capivara"
+name = "Capybara"
+
+[names]
+"pt-BR" = "Capivara"

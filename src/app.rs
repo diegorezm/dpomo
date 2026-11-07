@@ -9,11 +9,16 @@ use egui::{Modifiers, ViewportCommand};
 use crate::character::{CharacterImage, Characters};
 use crate::command::Command;
 use crate::config::{Config, Keys, Layout, LoadError};
+use crate::i18n::{self, Language, fill, tr};
+use crate::state::{self, Session, State};
 use crate::theme::{Theme, Themes};
 use crate::timer::{Phase, Timer, TimerEvent, format_remaining};
 use crate::tray::{Tray, TrayState};
 use crate::ui::{cozy_view, settings_view, timer_view};
-use crate::{instance, system};
+use crate::{instance, sound, system, updates};
+
+/// How often a running session is written to `state.toml` (crash safety).
+const STATE_SAVE_INTERVAL: Duration = Duration::from_secs(30);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum View {
@@ -40,6 +45,11 @@ pub struct DpomoApp {
     commands: (Sender<Command>, Receiver<Command>),
     tray: Option<Tray>,
     window_visible: bool,
+    /// Session progress + statistics (`state.toml`).
+    app_state: State,
+    last_state_save: Instant,
+    applied_language: Option<Language>,
+    update_checker_started: bool,
 }
 
 impl DpomoApp {
@@ -58,14 +68,30 @@ impl DpomoApp {
             instance::listen(listener, cc.egui_ctx.clone(), commands.0.clone());
         }
         Config::watch(cc.egui_ctx.clone(), commands.0.clone());
+
+        // Pick up where the last run left off (same day only), paused.
+        let app_state = State::load();
+        let timer = match app_state.todays_session() {
+            Some(s) => Timer::restore(
+                s.phase,
+                Duration::from_secs(s.elapsed_secs),
+                s.completed_focus,
+                &config.timer,
+            ),
+            None => Timer::new(&config.timer),
+        };
         Self {
+            app_state,
+            last_state_save: Instant::now(),
+            applied_language: None,
+            update_checker_started: false,
             commands,
             tray: None,
             window_visible: !start_hidden,
             themes: Themes::load(),
             characters: Characters::load(),
             character_image: CharacterImage::default(),
-            timer: Timer::new(&config.timer),
+            timer,
             settings: settings_view::State {
                 config_error,
                 ..Default::default()
@@ -91,6 +117,18 @@ impl DpomoApp {
             }
             self.saved = self.config.clone();
         }
+    }
+
+    /// Persist the current session so a restart/reboot doesn't lose it.
+    fn save_state(&mut self, now: Instant) {
+        self.app_state.session = Some(Session {
+            day: state::today(),
+            phase: self.timer.phase(),
+            elapsed_secs: self.timer.elapsed(now).as_secs(),
+            completed_focus: self.timer.completed_focus(),
+        });
+        self.app_state.save();
+        self.last_state_save = now;
     }
 
     /// Run a timer mutation and animate the ring from where it was.
@@ -120,10 +158,23 @@ impl DpomoApp {
             Action::SwitchTo(p) => self.with_ring_anim(ctx, now, |t, c| t.switch_to(p, &c.timer)),
             Action::OpenSettings => self.view = View::Settings,
         }
+        if action != Action::OpenSettings {
+            self.save_state(now);
+        }
     }
 
-    fn on_timer_event(&mut self, ctx: &egui::Context, event: TimerEvent) {
+    fn on_timer_event(&mut self, ctx: &egui::Context, event: TimerEvent, now: Instant) {
         let TimerEvent::Finished { finished, next } = event;
+        if finished == Phase::Focus {
+            let minutes = self.config.timer.focus_minutes.max(1);
+            self.app_state.record_focus(state::today(), minutes);
+        }
+        self.save_state(now);
+        let s = &self.config.sound;
+        if s.enabled {
+            // Rising melody into a break, falling back into focus.
+            sound::play(s.kind, &s.file, s.volume, next != Phase::Focus);
+        }
         if self.config.behavior.system_notification {
             let started = self.timer.is_running();
             system::notify_finished(finished, next, started, &self.config.timer);
@@ -194,8 +245,17 @@ impl DpomoApp {
                 if let Some(path) = path
                     && let Err(e) = system::open_path(&path)
                 {
-                    self.settings.notice = Some(format!("Não foi possível abrir: {e}"));
+                    self.settings.notice = Some(fill(tr().open_failed, &[("e", &e.to_string())]));
                 }
+            }
+            Action::OpenUpdatePage => {
+                if let Err(e) = system::open_path(std::path::Path::new(updates::RELEASES_URL)) {
+                    self.settings.notice = Some(fill(tr().open_failed, &[("e", &e.to_string())]));
+                }
+            }
+            Action::PlaySound => {
+                let s = &self.config.sound;
+                sound::play(s.kind, &s.file, s.volume, true);
             }
             Action::OverwriteConfig => {
                 self.settings.config_error = None;
@@ -206,10 +266,12 @@ impl DpomoApp {
             Action::ReloadThemes => {
                 self.themes = Themes::load();
                 self.characters = Characters::load();
-                self.settings.notice = Some(format!(
-                    "{} temas e {} personagens carregados",
-                    self.themes.iter().count(),
-                    self.characters.iter().count()
+                self.settings.notice = Some(fill(
+                    tr().reloaded,
+                    &[
+                        ("themes", &self.themes.iter().count().to_string()),
+                        ("characters", &self.characters.iter().count().to_string()),
+                    ],
                 ));
             }
             Action::ExportCustom => {
@@ -219,9 +281,9 @@ impl DpomoApp {
                         Ok(path) => {
                             self.themes = Themes::load();
                             self.config.appearance.theme = name;
-                            format!("Tema salvo em {}", path.display())
+                            fill(tr().theme_saved, &[("path", &path.display().to_string())])
                         }
-                        Err(e) => format!("Não foi possível salvar: {e}"),
+                        Err(e) => fill(tr().save_failed, &[("e", &e.to_string())]),
                     });
             }
         }
@@ -242,7 +304,7 @@ impl DpomoApp {
         }
         if let Err(e) = system::set_autostart(wanted) {
             self.config.behavior.start_with_system = !wanted;
-            self.settings.system_error = Some(format!("Iniciar com o sistema falhou: {e}"));
+            self.settings.system_error = Some(fill(tr().autostart_failed, &[("e", &e)]));
         }
     }
 
@@ -267,6 +329,11 @@ impl DpomoApp {
                 Command::Reset => self.apply_timer_action(ctx, timer_view::Action::Reset, now),
                 Command::Quit => self.quit(),
                 Command::ReloadConfig => self.reload_config(),
+                Command::UpdateAvailable(version) => {
+                    if self.config.behavior.check_updates {
+                        self.settings.update = Some(version);
+                    }
+                }
             }
         }
     }
@@ -285,7 +352,7 @@ impl DpomoApp {
                             system::set_autostart(self.config.behavior.start_with_system)
                     {
                         self.settings.system_error =
-                            Some(format!("Iniciar com o sistema falhou: {e}"));
+                            Some(fill(tr().autostart_failed, &[("e", &e)]));
                     }
                 }
             }
@@ -315,6 +382,7 @@ impl DpomoApp {
     fn quit(&mut self) -> ! {
         self.apply_autostart();
         self.save();
+        self.save_state(Instant::now());
         // Drop the tray first so Windows doesn't leave a ghost icon behind.
         self.tray = None;
         std::process::exit(0);
@@ -334,7 +402,7 @@ impl DpomoApp {
                 }
                 Err(e) => {
                     eprintln!("dpomo: tray unavailable: {e}");
-                    self.settings.system_error = Some(format!("Bandeja indisponível: {e}"));
+                    self.settings.system_error = Some(fill(tr().tray_unavailable, &[("e", &e)]));
                     self.config.behavior.tray = false;
                     // Never stay hidden without a way back.
                     if !self.window_visible {
@@ -346,18 +414,19 @@ impl DpomoApp {
         }
 
         let phase = self.timer.phase();
+        let label = tr().phase(phase);
         let tooltip = if self.timer.is_pristine() {
-            format!("dpomo · {}", phase.label())
-        } else {
-            let paused = if self.timer.is_running() {
-                ""
-            } else {
-                " (pausado)"
-            };
+            format!("dpomo · {label}")
+        } else if self.timer.is_running() {
             format!(
-                "dpomo · {} {}{paused}",
+                "dpomo · {} {label}",
+                format_remaining(self.timer.remaining(now))
+            )
+        } else {
+            format!(
+                "dpomo · {} {label} {}",
                 format_remaining(self.timer.remaining(now)),
-                phase.label()
+                tr().paused
             )
         };
         let state = TrayState {
@@ -374,6 +443,16 @@ impl DpomoApp {
 
     /// Push theme / window settings to egui only when they change.
     fn sync_environment(&mut self, ctx: &egui::Context) {
+        let language = self.config.appearance.language;
+        if self.applied_language != Some(language) {
+            i18n::set(language);
+            // Rebuild the tray so its menu picks up the new labels.
+            if self.applied_language.is_some() {
+                self.tray = None;
+            }
+            self.applied_language = Some(language);
+        }
+
         let theme = self.config.theme(&self.themes);
         let scale = self.config.appearance.ui_scale.clamp(0.5, 3.0);
         if self.applied_theme != Some((theme, scale)) {
@@ -399,7 +478,7 @@ impl DpomoApp {
             format!(
                 "{} · {}",
                 format_remaining(self.timer.remaining(now)),
-                self.timer.phase().label()
+                tr().phase(self.timer.phase())
             )
         } else {
             "dpomo".to_owned()
@@ -432,13 +511,66 @@ impl DpomoApp {
     }
 }
 
+impl DpomoApp {
+    /// Small clickable notes at the bottom-left of the main screen.
+    fn badges(&mut self, ctx: &egui::Context, theme: &Theme) {
+        let t = tr();
+        let mut notes = Vec::new();
+        if self.settings.config_error.is_some() {
+            notes.push((t.config_error_badge.to_owned(), theme.focus, false));
+        }
+        if let Some(version) = &self.settings.update {
+            notes.push((
+                fill(t.update_badge, &[("version", version)]),
+                theme.short_break,
+                true,
+            ));
+        }
+        if notes.is_empty() {
+            return;
+        }
+        let clicked = egui::Area::new(egui::Id::unique("badges"))
+            .anchor(egui::Align2::LEFT_BOTTOM, egui::vec2(8.0, -6.0))
+            .show(ctx, |ui| {
+                let mut clicked = None;
+                for (text, color, is_update) in notes {
+                    let label = egui::Label::new(egui::RichText::new(text).size(11.0).color(color))
+                        .sense(egui::Sense::click());
+                    if ui
+                        .add(label)
+                        .on_hover_cursor(egui::CursorIcon::PointingHand)
+                        .clicked()
+                    {
+                        clicked = Some(is_update);
+                    }
+                }
+                clicked
+            })
+            .inner;
+        match clicked {
+            Some(true) => self.apply_settings_action(settings_view::Action::OpenUpdatePage),
+            Some(false) => self.view = View::Settings,
+            None => {}
+        }
+    }
+}
+
 impl eframe::App for DpomoApp {
     fn logic(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         let now = Instant::now();
         self.handle_commands(ctx, now);
         self.timer.sync_settings(&self.config.timer);
         if let Some(event) = self.timer.tick(now, &self.config.timer) {
-            self.on_timer_event(ctx, event);
+            self.on_timer_event(ctx, event, now);
+        }
+        if self.timer.is_running()
+            && now.duration_since(self.last_state_save) >= STATE_SAVE_INTERVAL
+        {
+            self.save_state(now);
+        }
+        if self.config.behavior.check_updates && !self.update_checker_started {
+            updates::spawn_checker(ctx.clone(), self.commands.0.clone());
+            self.update_checker_started = true;
         }
         self.sync_tray(ctx, now);
         self.update_title(ctx, now);
@@ -456,6 +588,7 @@ impl eframe::App for DpomoApp {
             if self.tray.is_some() && self.config.behavior.close_to_tray {
                 ctx.send_viewport_cmd(ViewportCommand::CancelClose);
                 self.save();
+                self.save_state(now);
                 self.set_window_visible(&ctx, false);
                 if self.view == View::Settings {
                     self.leave_settings();
@@ -502,6 +635,7 @@ impl eframe::App for DpomoApp {
                         &mut self.config,
                         &self.themes,
                         &self.characters,
+                        &self.app_state.totals(state::today()),
                         &mut self.settings,
                         &theme,
                     );
@@ -511,26 +645,8 @@ impl eframe::App for DpomoApp {
                 }
             });
 
-        if self.view == View::Timer && self.settings.config_error.is_some() {
-            let badge = egui::Area::new(egui::Id::unique("config_error"))
-                .anchor(egui::Align2::LEFT_BOTTOM, egui::vec2(8.0, -6.0))
-                .show(&ctx, |ui| {
-                    ui.add(
-                        egui::Label::new(
-                            egui::RichText::new("Erro no config.toml (ver ajustes)")
-                                .size(11.0)
-                                .color(theme.focus),
-                        )
-                        .sense(egui::Sense::click()),
-                    )
-                });
-            if badge
-                .inner
-                .on_hover_cursor(egui::CursorIcon::PointingHand)
-                .clicked()
-            {
-                self.view = View::Settings;
-            }
+        if self.view == View::Timer {
+            self.badges(&ctx, &theme);
         }
 
         // Keep the ring easing animation going.

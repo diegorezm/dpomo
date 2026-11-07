@@ -27,7 +27,7 @@ Run all four locally before you commit.
 
 | Crate | Why |
 | ----- | --- |
-| `eframe` 0.37 / `egui` 0.37 | GUI. **glow** backend, `default-features = false` → ~5 MB binary. Don't switch to wgpu. |
+| `eframe` 0.37 / `egui` 0.37 | GUI. **glow** backend, `default-features = false`. Don't switch backends without measuring (see TODO.md). |
 | `serde` + `toml` | Config file. |
 | `egui_extras` (`svg`) | Rasterizes character SVGs (resvg). Only the `svg` feature. |
 | `dirs` | Locates the OS config dir. |
@@ -35,6 +35,10 @@ Run all four locally before you commit.
 | `notify-rust` | Native notifications (WinRT toast / D-Bus / macOS). |
 | `auto-launch` | "Start with the system" (registry Run key / `.desktop` / LaunchAgent). |
 | `windows-registry` | Windows only: registers the toast AppUserModelID. |
+| `rodio` | Phase-end sounds. Only `playback` + `wav`/`mp3`/`vorbis`. Linux builds need `libasound2-dev`. |
+| `chrono` (`clock`, `serde`) | Local dates for statistics / "same day" session restore. |
+| `ureq` + `serde_json` | Daily update check (GitHub API, rustls). |
+| `sys-locale` | OS language for `language = "auto"`. |
 
 egui 0.37 API notes (it changed a lot vs. older tutorials you may remember):
 - `App::ui(&mut self, ui: &mut Ui, frame)` replaces `update(ctx, frame)`. Non-UI work goes in `App::logic(ctx, frame)`.
@@ -61,7 +65,11 @@ examples/svg_preview.rs  renders SVGs to a PNG grid (check art without running t
 src/
 ├── main.rs              window options, loads Config, starts eframe
 ├── app.rs               DpomoApp: owns ALL state, applies Actions/Commands, repaint scheduling, saving
-├── command.rs           Command enum: requests from outside egui (tray, second launch)
+├── command.rs           Command enum: requests from outside egui (tray, second launch, file watcher, updates)
+├── i18n.rs              ALL user-facing strings (Strings struct, EN + PT_BR statics), active language
+├── sound.rs             synthesized chime/bell/soft + custom files, played on a short-lived thread
+├── state.rs             state.toml: current session (resume after restart) + daily statistics
+├── updates.rs           daily "new version?" check against GitHub releases (notify only)
 ├── tray.rs              tray icon + menu, live ring icon (render_ring is also the window icon)
 ├── instance.rs          single instance over 127.0.0.1:47613 (second launch → "show" → exit)
 ├── system.rs            notifications, autostart, Windows AUMID registration
@@ -126,12 +134,12 @@ Add the field to `Theme` (with `#[serde(with = "hex")]`) **and to every file in 
   badge on the main screen and a card in settings, and **`App::save` refuses to write** until the file is fixed
   (or the user clicks "Substituir pelos ajustes atuais"). Never silently overwrite a user's file.
 - Saved files start with a short comment header (`config::HEADER`).
-- README has a full annotated `config.toml` reference under "Configuração": **update it when you add a setting.**
+- Both READMEs have a full annotated `config.toml` reference ("Configuration" / "Configuração"): **update both when you add a setting** (a test fails otherwise).
 
 ### Add a setting
 1. Add the field to the right struct in `config.rs` (`TimerSettings`, `Appearance`, `Behavior`, `Window`, `Keys`) **and** to its `Default` impl. All structs are `#[serde(default)]`, so old config files keep working.
 2. Add a control in `settings_view.rs` inside the matching `section(…)` (optional for power-user knobs).
-3. Document it in the README's `config.toml` reference.
+3. Document it in the `config.toml` reference of `README.md` and `README.pt-BR.md`, add UI strings to `i18n.rs`.
 4. Read it where needed. If it changes egui/window state, apply it in `App::sync_environment` with a change cache.
 
 ### Add a timer action / shortcut
@@ -144,7 +152,36 @@ Add the field to `Theme` (with `#[serde(with = "hex")]`) **and to every file in 
 Add a `View` variant in `app.rs`, a `ui/<name>_view.rs` with `pub fn show(…) -> Option<Action>`, and route it in `App::ui`.
 
 ### React to a phase finishing (sound, notification, stats…)
-Hook into `App::on_timer_event`. Put any heavy work (audio decoding, HTTP) on a thread; never block the UI thread.
+Hook into `App::on_timer_event` (it already records stats, saves state, plays the sound and notifies).
+Put any heavy work (audio decoding, HTTP) on a thread; never block the UI thread.
+
+### Translations (i18n)
+- English is the main language; Portuguese (pt-BR) is the second. **Every** user-facing string is a field of
+  `i18n::Strings` with a value in both `EN` and `PT_BR` — the compiler rejects a missing translation.
+- Use `i18n::tr().field`; placeholders like `{key}` are filled with `i18n::fill(template, &[("key", value)])`.
+- Phase names: `tr().phase(p)` / `tr().phase_tab(p)`. Plurals: add a `_one`/`_many` pair (see `sessions`).
+- The active language is global (`i18n::set`, called by `App::sync_environment` when the config changes).
+  Changing it recreates the tray (menu labels are set at creation).
+- Character names: `character.toml` has `name` (English) + `[names] "pt-BR" = …`; use `Character::display_name()`.
+- To add a language: a `Language` variant (+ serde rename), a `Strings` static, and the matches in `i18n.rs`.
+- Code, comments, AGENTS.md, CHANGELOG and TODO are English. Keep `README.md` (English) and
+  `README.pt-BR.md` in sync — a test checks both config references against the defaults.
+
+### State file (`state.toml`)
+Not configuration — written only by the app, next to `config.toml`. `App::save_state` stores the current
+session (phase, elapsed, completed sessions, date) on every timer action, on phase end, when hiding/quitting
+and every 30 s while running. On startup a session from **today** is restored paused (`Timer::restore`);
+older ones are ignored. `history` keeps per-day focus sessions/minutes for the statistics section.
+
+### Sounds
+Built-ins are synthesized in `sound::synthesize` (no audio assets). `rising = true` when a break starts,
+`false` when focus starts. Each play opens the default output device on a thread and closes it after —
+nothing stays open while idle. Custom files go through `rodio::Decoder` (wav/mp3/ogg).
+
+### Update check
+`updates::spawn_checker` runs once at startup (+5 s) and every 24 h, only if `behavior.check_updates`.
+It sends `Command::UpdateAvailable(version)`; the app shows a badge (main screen) and a button (settings)
+that open the releases page. It must never download or install anything. README "Privacy" documents it.
 
 ### Add a new phase
 Add it to `Phase` + `Phase::ALL`, then fix every `match` the compiler flags (labels, `TimerSettings::duration`, `Theme::accent`, `Timer::next_phase`).
@@ -196,7 +233,7 @@ handler, and handle the variant in `App::handle_commands`.
 | `dpomo-linux-x86_64.tar.gz` | `tar` | binary + `.desktop` + icon |
 | `dpomo-macos.dmg` | `lipo` + `hdiutil` (universal, ad-hoc signed) | `packaging/macos/Info.plist` |
 
-To release: bump `version` in `Cargo.toml`, commit, `git tag vX.Y.Z && git push origin vX.Y.Z`.
+To release: bump `version` in `Cargo.toml`, add a `CHANGELOG.md` entry, commit, `git tag vX.Y.Z && git push origin vX.Y.Z`.
 To test packaging without publishing: run the workflow manually (workflow_dispatch) and download the artifacts.
 
 - File names have **no version** on purpose: README links use `releases/latest/download/<file>`. Don't rename them.
@@ -211,7 +248,8 @@ To test packaging without publishing: run the workflow manually (workflow_dispat
 
 ## Conventions
 
-- UI text is **Portuguese (pt-BR)**; code, comments and docs for agents are English.
+- UI text lives in `src/i18n.rs` only (English + Portuguese); never hard-code a user-facing string elsewhere.
+- Code, comments and docs for agents are English.
 - Rust 2024 edition. Zero clippy warnings. `cargo fmt` default style.
 - Draw icons with the painter (`widgets::paint_icon`), not emoji/icon fonts — they render inconsistently.
 - Illustrations are SVG character packs; UI chrome is painted. Don't add raster images.
@@ -226,6 +264,8 @@ There's no automated UI test. Run the app and look at it in **both layouts** (co
 Tip: set the theme by editing the config file (path is shown at the bottom of the settings screen), e.g. `%APPDATA%\dpomo\config.toml` on Windows.
 
 ## Gotchas
+
+- Unfinished work and ideas live in `TODO.md`; user-visible changes go in `CHANGELOG.md`.
 
 - Only one dpomo runs at a time. When testing, kill the old one first or your new build will just
   "show" the old one and exit immediately. (`Get-Process dpomo | Stop-Process` / `pkill dpomo`)

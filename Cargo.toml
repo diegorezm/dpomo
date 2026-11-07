@@ -1,6 +1,6 @@
 [package]
 name = "dpomo"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2024"
 description = "A beautiful, customizable and lightweight Pomodoro timer built with Rust + egui."
 license = "MIT"
@@ -16,7 +16,7 @@ maintainer = "diegorezm <dmourarezende@gmail.com>"
 section = "utils"
 extended-description = "A beautiful, customizable and lightweight Pomodoro timer with an axolotl companion. Lives in the system tray and sends notifications."
 # Graphics libs are loaded at runtime (dlopen), so cargo-deb can't see them.
-depends = "$auto, libxkbcommon0, libxkbcommon-x11-0, libgl1, libegl1"
+depends = "$auto, libxkbcommon0, libxkbcommon-x11-0, libgl1, libegl1, libasound2"
 assets = [
     ["target/release/dpomo", "usr/bin/", "755"],
     ["packaging/linux/dpomo.desktop", "usr/share/applications/", "644"],
@@ -43,6 +43,15 @@ tray-icon = { version = "0.26.1", default-features = false, features = ["ksni"] 
 notify-rust = "4.18.2"
 # "Start with the system" (registry Run key / .desktop autostart / LaunchAgent).
 auto-launch = "0.6.0"
+# Phase-end sounds. Only playback + common formats for custom files.
+rodio = { version = "0.23.0", default-features = false, features = ["playback", "wav", "mp3", "vorbis"] }
+# Local date for statistics ("today", "this week").
+chrono = { version = "0.4", default-features = false, features = ["clock", "std", "serde"] }
+# Update check against GitHub releases (rustls, no OpenSSL).
+ureq = { version = "3", features = ["json"] }
+# Picks the UI language from the OS when `language = "auto"`.
+sys-locale = "0.3"
+serde_json = "1"
 egui_extras = { version = "0.37.0", default-features = false, features = ["svg"] }
 
 [target.'cfg(windows)'.dependencies]

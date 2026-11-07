@@ -3,7 +3,7 @@
 //! through an `mpsc` channel and call `ctx.request_repaint()` so `App::logic`
 //! wakes up and applies them.
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Command {
     ShowWindow,
     ToggleWindow,
@@ -13,4 +13,6 @@ pub enum Command {
     Quit,
     /// `config.toml` changed on disk.
     ReloadConfig,
+    /// A newer release exists (version without the `v`).
+    UpdateAvailable(String),
 }

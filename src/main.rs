@@ -5,12 +5,16 @@ mod app;
 mod character;
 mod command;
 mod config;
+mod i18n;
 mod instance;
+mod sound;
+mod state;
 mod system;
 mod theme;
 mod timer;
 mod tray;
 mod ui;
+mod updates;
 
 use instance::Instance;
 
@@ -22,7 +26,11 @@ fn main() -> eframe::Result {
         Instance::Unknown => None,
     };
 
+    // Messages produced while loading follow the OS language until the
+    // config says otherwise.
+    i18n::set(i18n::Language::Auto);
     let (config, config_error) = config::Config::load();
+    i18n::set(config.appearance.language);
     system::init();
     // `--hidden` is what the autostart entry passes.
     let start_hidden = config.behavior.tray

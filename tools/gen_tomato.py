@@ -125,7 +125,7 @@ def main(out_dir):
         with open(os.path.join(out_dir, f"{name}.svg"), "w", encoding="utf8", newline="\n") as f:
             f.write(text)
     with open(os.path.join(out_dir, "character.toml"), "w", encoding="utf8", newline="\n") as f:
-        f.write('name = "Tomate"\n')
+        f.write('name = "Tomato"\n\n[names]\n"pt-BR" = "Tomate"\n')
     print("ok", list(poses))
 
 

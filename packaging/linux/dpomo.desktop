@@ -2,7 +2,8 @@
 Type=Application
 Name=dpomo
 GenericName=Pomodoro Timer
-Comment=Timer Pomodoro bonito e customizável
+Comment=A beautiful, customizable Pomodoro timer
+Comment[pt_BR]=Timer Pomodoro bonito e customizável
 Exec=dpomo
 Icon=dpomo
 Terminal=false

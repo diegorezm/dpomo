@@ -87,7 +87,9 @@ impl Themes {
         for (stem, text) in builtin::BUILTIN {
             match parse(text, stem) {
                 Ok((name, theme)) => themes.insert(name, theme),
-                Err(e) => themes.errors.push(format!("{stem}.toml (embutido): {e}")),
+                Err(e) => themes
+                    .errors
+                    .push(format!("{stem}.toml ({}): {e}", crate::i18n::tr().builtin)),
             }
         }
         if let Some(dir) = Self::dir() {
@@ -263,7 +265,12 @@ mod hex {
         let n = u32::from_str_radix(digits, 16)
             .ok()
             .filter(|_| digits.len() == 6)
-            .ok_or_else(|| D::Error::custom(format!("cor inválida {s:?}, use \"#rrggbb\"")))?;
+            .ok_or_else(|| {
+                D::Error::custom(crate::i18n::fill(
+                    crate::i18n::tr().invalid_color,
+                    &[("value", &format!("{s:?}"))],
+                ))
+            })?;
         Ok(super::rgb(n))
     }
 }

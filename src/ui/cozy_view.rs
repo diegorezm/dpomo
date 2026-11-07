@@ -12,6 +12,7 @@ use super::timer_view::{Action, RingAnim};
 use super::widgets::{self, Icon};
 use crate::character::{Character, CharacterImage, Pose};
 use crate::config::Config;
+use crate::i18n::{fill, tr};
 use crate::theme::{Theme, mix};
 use crate::timer::{Phase, Timer, format_remaining};
 
@@ -52,7 +53,10 @@ pub fn show(ui: &mut Ui, input: Inputs<'_>) -> Option<Action> {
 
     // --- Pills + settings -------------------------------------------------
     let top = Rect::from_min_size(inner.min, vec2(inner.width(), 30.0));
-    let pills: Vec<_> = Phase::ALL.iter().map(|p| (*p, p.short_label())).collect();
+    let pills: Vec<_> = Phase::ALL
+        .iter()
+        .map(|p| (*p, tr().phase_tab(*p)))
+        .collect();
     let font = display_font(14.0);
     let widths: Vec<f32> = pills
         .iter()
@@ -104,7 +108,7 @@ pub fn show(ui: &mut Ui, input: Inputs<'_>) -> Option<Action> {
         vec2(28.0, 28.0),
     );
     if widgets::icon_button(ui, gear, Icon::Settings, theme.muted, Color32::TRANSPARENT)
-        .on_hover_text("Ajustes (,)")
+        .on_hover_text(fill(tr().hint_settings, &[("key", &config.keys.settings)]))
         .clicked()
     {
         action = Some(Action::OpenSettings);
@@ -215,7 +219,7 @@ pub fn show(ui: &mut Ui, input: Inputs<'_>) -> Option<Action> {
     let main = Rect::from_center_size(pos2(cx, cy), vec2(46.0, 46.0));
     let skip = Rect::from_center_size(pos2(cx + 50.0, cy), vec2(36.0, 36.0));
     if widgets::icon_button(ui, reset, Icon::Reset, fg, none)
-        .on_hover_text("Reiniciar (R)")
+        .on_hover_text(fill(tr().hint_reset, &[("key", &config.keys.reset)]))
         .clicked()
     {
         action = Some(Action::Reset);
@@ -226,13 +230,13 @@ pub fn show(ui: &mut Ui, input: Inputs<'_>) -> Option<Action> {
         Icon::Play
     };
     if widgets::icon_button(ui, main, icon, fg, none)
-        .on_hover_text("Iniciar / pausar (Espaço)")
+        .on_hover_text(fill(tr().hint_toggle, &[("key", &config.keys.toggle)]))
         .clicked()
     {
         action = Some(Action::Toggle);
     }
     if widgets::icon_button(ui, skip, Icon::Skip, fg, none)
-        .on_hover_text("Pular (S)")
+        .on_hover_text(fill(tr().hint_skip, &[("key", &config.keys.skip)]))
         .clicked()
     {
         action = Some(Action::Skip);

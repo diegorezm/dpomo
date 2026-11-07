@@ -8,6 +8,7 @@ use tray_icon::menu::{Menu, MenuEvent, MenuItem, PredefinedMenuItem};
 use tray_icon::{Icon, MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent};
 
 use crate::command::Command;
+use crate::i18n::tr;
 
 const ICON_SIZE: u32 = 32;
 /// The tray ring is redrawn only when progress crosses one of these steps.
@@ -33,17 +34,19 @@ pub struct Tray {
 
 impl Tray {
     pub fn new(ctx: &egui::Context, tx: Sender<Command>) -> Result<Self, String> {
-        let show_item = MenuItem::with_id("show", "Mostrar", true, None);
-        let toggle_item = MenuItem::with_id("toggle", "Iniciar", true, None);
+        // Labels are set by `update`; recreate the tray to change language.
+        let t = tr();
+        let show_item = MenuItem::with_id("show", t.tray_show, true, None);
+        let toggle_item = MenuItem::with_id("toggle", t.tray_start, true, None);
         let menu = Menu::new();
         menu.append_items(&[
             &show_item,
             &PredefinedMenuItem::separator(),
             &toggle_item,
-            &MenuItem::with_id("skip", "Pular", true, None),
-            &MenuItem::with_id("reset", "Reiniciar", true, None),
+            &MenuItem::with_id("skip", t.tray_skip, true, None),
+            &MenuItem::with_id("reset", t.tray_reset, true, None),
             &PredefinedMenuItem::separator(),
-            &MenuItem::with_id("quit", "Sair", true, None),
+            &MenuItem::with_id("quit", t.tray_quit, true, None),
         ])
         .map_err(|e| e.to_string())?;
 
@@ -109,14 +112,17 @@ impl Tray {
             let _ = self.icon.set_tooltip(Some(&state.tooltip));
         }
         if old.is_none_or(|o| o.running != state.running) {
-            self.toggle_item
-                .set_text(if state.running { "Pausar" } else { "Iniciar" });
+            self.toggle_item.set_text(if state.running {
+                tr().tray_pause
+            } else {
+                tr().tray_start
+            });
         }
         if old.is_none_or(|o| o.window_visible != state.window_visible) {
             self.show_item.set_text(if state.window_visible {
-                "Esconder"
+                tr().tray_hide
             } else {
-                "Mostrar"
+                tr().tray_show
             });
         }
         self.last = Some((state, step));

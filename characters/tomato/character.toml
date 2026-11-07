@@ -1,1 +1,4 @@
-name = "Tomate"
+name = "Tomato"
+
+[names]
+"pt-BR" = "Tomate"

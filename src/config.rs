@@ -14,13 +14,15 @@ use egui::Key;
 use serde::{Deserialize, Serialize};
 
 use crate::command::Command;
+use crate::i18n::{self, Language};
+use crate::sound::SoundKind;
 use crate::theme::{self, Theme, Themes};
 use crate::timer::Phase;
 
 const HEADER: &str = "\
 # dpomo config. Edit freely: changes apply while the app is running.
 # Every key is optional; anything missing uses its default.
-# Docs: https://github.com/diegorezm/dpomo#configura%C3%A7%C3%A3o
+# Docs: https://github.com/diegorezm/dpomo#configuration
 
 ";
 
@@ -30,6 +32,7 @@ pub struct Config {
     pub timer: TimerSettings,
     pub appearance: Appearance,
     pub behavior: Behavior,
+    pub sound: Sound,
     pub window: Window,
     pub keys: Keys,
     /// Used when `appearance.theme = "custom"`.
@@ -74,6 +77,8 @@ impl TimerSettings {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Appearance {
+    /// "auto" (follow the OS), "en" or "pt-BR".
+    pub language: Language,
     pub layout: Layout,
     /// Character pack id (folder name in `characters/`). Cozy layout only.
     pub character: String,
@@ -90,6 +95,7 @@ pub struct Appearance {
 impl Default for Appearance {
     fn default() -> Self {
         Self {
+            language: Language::Auto,
             layout: Layout::Cozy,
             character: crate::character::DEFAULT_ID.to_owned(),
             theme: theme::DEFAULT_NAME.to_owned(),
@@ -133,6 +139,8 @@ pub struct Behavior {
     pub start_with_system: bool,
     /// Start hidden in the tray when launched manually too.
     pub start_hidden: bool,
+    /// Look for a newer release on GitHub (once a day). Never auto-installs.
+    pub check_updates: bool,
 }
 
 impl Default for Behavior {
@@ -147,6 +155,30 @@ impl Default for Behavior {
             system_notification: true,
             start_with_system: false,
             start_hidden: false,
+            check_updates: true,
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct Sound {
+    pub enabled: bool,
+    /// "chime", "bell", "soft" or "file" (uses `file`).
+    pub kind: SoundKind,
+    /// Path to a .wav/.mp3/.ogg, when `kind = "file"`.
+    pub file: String,
+    /// 0.0 to 1.0.
+    pub volume: f32,
+}
+
+impl Default for Sound {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            kind: SoundKind::Chime,
+            file: String::new(),
+            volume: 0.6,
         }
     }
 }
@@ -236,7 +268,10 @@ impl Config {
                 .span()
                 .map(|s| text[..s.start.min(text.len())].lines().count().max(1));
             LoadError::Invalid(match line {
-                Some(n) => format!("linha {n}: {}", e.message()),
+                Some(n) => i18n::fill(
+                    i18n::tr().config_line,
+                    &[("n", &n.to_string()), ("msg", e.message())],
+                ),
                 None => e.message().to_owned(),
             })
         })
@@ -329,21 +364,49 @@ mod tests {
         let LoadError::Invalid(msg) = err else {
             panic!("expected Invalid")
         };
-        assert!(msg.starts_with("linha 2:"), "{msg}");
+        assert!(msg.starts_with("line 2:"), "{msg}");
     }
 
-    /// The README documents every setting with its default; keep them in sync.
+    /// Both READMEs document every setting with its default; keep them in sync.
+    /// Compares raw TOML tables, so a missing key fails too.
     #[test]
     fn readme_reference_matches_defaults() {
-        // Normalize CRLF (Windows checkouts) so the search works everywhere.
-        let readme = include_str!("../README.md").replace("\r\n", "\n");
-        let start = readme
-            .find("```toml\n[timer]")
-            .expect("config reference in README")
-            + 8;
-        let end = start + readme[start..].find("```").unwrap();
-        let documented: Config = toml::from_str(&readme[start..end]).unwrap();
-        assert_eq!(documented, Config::default());
+        let defaults = toml::Table::try_from(Config::default()).unwrap();
+        for (name, readme) in [
+            ("README.md", include_str!("../README.md")),
+            ("README.pt-BR.md", include_str!("../README.pt-BR.md")),
+        ] {
+            // Normalize CRLF (Windows checkouts) so the search works everywhere.
+            let readme = readme.replace("\r\n", "\n");
+            let start = readme
+                .find("```toml\n[timer]")
+                .unwrap_or_else(|| panic!("config reference in {name}"))
+                + 8;
+            let end = start + readme[start..].find("```").unwrap();
+            let block = &readme[start..end];
+            // Same values (compared as Config, so f32 rounding doesn't matter)…
+            let documented: Config = toml::from_str(block).unwrap();
+            assert_eq!(documented, Config::default(), "{name}: wrong default value");
+            // …and every key is documented.
+            let table: toml::Table = toml::from_str(block).unwrap();
+            assert_eq!(
+                keys(&table),
+                keys(&defaults),
+                "{name}: missing or extra keys"
+            );
+        }
+    }
+
+    fn keys(table: &toml::Table) -> Vec<String> {
+        let mut out = Vec::new();
+        for (section, value) in table {
+            match value.as_table() {
+                Some(inner) => out.extend(inner.keys().map(|k| format!("{section}.{k}"))),
+                None => out.push(section.clone()),
+            }
+        }
+        out.sort();
+        out
     }
 
     #[test]

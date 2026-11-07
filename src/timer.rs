@@ -3,9 +3,12 @@
 
 use std::time::{Duration, Instant};
 
+use serde::{Deserialize, Serialize};
+
 use crate::config::TimerSettings;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum Phase {
     Focus,
     ShortBreak,
@@ -14,22 +17,6 @@ pub enum Phase {
 
 impl Phase {
     pub const ALL: [Phase; 3] = [Phase::Focus, Phase::ShortBreak, Phase::LongBreak];
-
-    pub fn label(self) -> &'static str {
-        match self {
-            Phase::Focus => "Foco",
-            Phase::ShortBreak => "Pausa curta",
-            Phase::LongBreak => "Pausa longa",
-        }
-    }
-
-    pub fn short_label(self) -> &'static str {
-        match self {
-            Phase::Focus => "Foco",
-            Phase::ShortBreak => "Pausa",
-            Phase::LongBreak => "Longa",
-        }
-    }
 }
 
 /// Emitted by [`Timer::tick`] when a phase runs out.
@@ -57,6 +44,23 @@ impl Timer {
             banked: Duration::ZERO,
             started_at: None,
             completed_focus: 0,
+        }
+    }
+
+    /// Continue a saved session: same phase and progress, paused.
+    pub fn restore(
+        phase: Phase,
+        elapsed: Duration,
+        completed_focus: u32,
+        settings: &TimerSettings,
+    ) -> Self {
+        let duration = settings.duration(phase);
+        Self {
+            phase,
+            duration,
+            banked: elapsed.min(duration),
+            started_at: None,
+            completed_focus,
         }
     }
 
@@ -283,6 +287,16 @@ mod tests {
         s.focus_minutes = 10;
         t.sync_settings(&s);
         assert_eq!(t.remaining(now), 5 * MIN);
+    }
+
+    #[test]
+    fn restore_is_paused_with_progress() {
+        let s = settings();
+        let now = Instant::now();
+        let t = Timer::restore(Phase::LongBreak, Duration::from_secs(30), 2, &s);
+        assert!(!t.is_running());
+        assert_eq!(t.remaining(now), 2 * MIN - Duration::from_secs(30));
+        assert_eq!(t.completed_focus(), 2);
     }
 
     #[test]

@@ -5,12 +5,14 @@
 //!
 //! A pack folder holds `idle.svg` (required), `focus.svg`, `short_break.svg`,
 //! `long_break.svg` (each falls back to `idle.svg`) and an optional
-//! `character.toml` with `name = "Display name"`.
+//! `character.toml` with `name = "Display name"` and optional translations
+//! in a `[names]` table (`"pt-BR" = "Nome"`).
 //!
 //! Recoloring: these exact colors in the SVG are replaced when loading:
 //! - `#e05a4f` → the current phase color (accent)
 //! - `#7a6464` → the theme's `muted` color (loose marks: zzz, steam…)
 
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
@@ -61,7 +63,10 @@ impl Pose {
 #[derive(Clone, Debug)]
 pub struct Character {
     pub id: String,
+    /// Default display name (`name` in character.toml, else the folder name).
     pub name: String,
+    /// Translated names from the `[names]` table, keyed by language code.
+    names: HashMap<String, String>,
     /// SVG source per pose, indexed like `Pose::ALL`.
     poses: [Arc<str>; 4],
 }
@@ -74,26 +79,39 @@ impl Character {
     ) -> Result<Self, String> {
         let mut svgs: [Option<Arc<str>>; 4] = Default::default();
         let mut name = None;
+        let mut names = HashMap::new();
         for (file, bytes) in files {
-            let text = String::from_utf8(bytes).map_err(|_| format!("{file}: não é UTF-8"))?;
+            let text = String::from_utf8(bytes)
+                .map_err(|_| crate::i18n::fill(crate::i18n::tr().not_utf8, &[("file", file)]))?;
             if file == "character.toml" {
                 #[derive(Deserialize)]
                 struct Meta {
                     name: Option<String>,
+                    #[serde(default)]
+                    names: HashMap<String, String>,
                 }
                 let meta: Meta =
                     toml::from_str(&text).map_err(|e| format!("{file}: {}", e.message()))?;
                 name = meta.name;
+                names = meta.names;
             } else if let Some(i) = Pose::ALL.iter().position(|p| p.file_name() == file) {
                 svgs[i] = Some(text.into());
             }
         }
-        let idle = svgs[0].clone().ok_or("falta idle.svg")?;
+        let idle = svgs[0].clone().ok_or(crate::i18n::tr().missing_idle)?;
         Ok(Self {
             id: id.to_owned(),
             name: name.unwrap_or_else(|| id.to_owned()),
+            names,
             poses: svgs.map(|s| s.unwrap_or_else(|| idle.clone())),
         })
+    }
+
+    /// Name in the active UI language, falling back to `name`.
+    pub fn display_name(&self) -> &str {
+        self.names
+            .get(crate::i18n::current().code())
+            .unwrap_or(&self.name)
     }
 
     /// The pose's SVG with theme colors applied.
@@ -126,7 +144,9 @@ impl Characters {
             let files = files.iter().map(|(n, b)| (*n, b.to_vec()));
             match Character::from_files(id, files) {
                 Ok(c) => chars.insert(c),
-                Err(e) => chars.errors.push(format!("{id} (embutido): {e}")),
+                Err(e) => chars
+                    .errors
+                    .push(format!("{id} ({}): {e}", crate::i18n::tr().builtin)),
             }
         }
         if let Some(dir) = Self::dir() {
@@ -232,8 +252,10 @@ mod tests {
     fn builtin_characters_have_every_pose_and_render() {
         let chars = Characters::load();
         assert!(chars.errors.is_empty(), "{:?}", chars.errors);
+        let axolotl = chars.get(DEFAULT_ID).expect("default character");
+        assert_eq!(axolotl.name, "Axolotl");
         assert_eq!(
-            chars.get(DEFAULT_ID).map(|c| c.name.as_str()),
+            axolotl.names.get("pt-BR").map(String::as_str),
             Some("Axolote")
         );
         for (id, files) in builtin::BUILTIN {

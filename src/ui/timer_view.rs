@@ -7,6 +7,7 @@ use egui::{Align, Align2, FontId, Layout, Rect, Ui, UiBuilder, pos2, vec2};
 
 use super::widgets::{self, Icon};
 use crate::config::Config;
+use crate::i18n::{fill, tr};
 use crate::theme::{Theme, mix};
 use crate::timer::{Phase, Timer, format_remaining};
 
@@ -66,7 +67,7 @@ pub fn show(
                 let selected = phase == timer.phase();
                 if widgets::pill(
                     ui,
-                    phase.short_label(),
+                    tr().phase_tab(phase),
                     selected,
                     theme.accent(phase),
                     theme,
@@ -87,7 +88,7 @@ pub fn show(
         theme.muted,
         egui::Color32::TRANSPARENT,
     )
-    .on_hover_text("Ajustes")
+    .on_hover_text(fill(tr().hint_settings, &[("key", &config.keys.settings)]))
     .clicked()
     {
         action = Some(Action::OpenSettings);
@@ -121,7 +122,7 @@ pub fn show(
     // Phase label (letter-spaced).
     let mut job = LayoutJob::default();
     job.append(
-        &timer.phase().label().to_uppercase(),
+        &tr().phase(timer.phase()).to_uppercase(),
         0.0,
         TextFormat {
             font_id: FontId::proportional((radius * 0.085).max(10.0)),
@@ -179,7 +180,7 @@ pub fn show(
     let right = Rect::from_center_size(pos2(cx + 76.0, cy), vec2(44.0, 44.0));
 
     if widgets::icon_button(ui, left, Icon::Reset, theme.muted, side_bg)
-        .on_hover_text("Reiniciar (R)")
+        .on_hover_text(fill(tr().hint_reset, &[("key", &config.keys.reset)]))
         .clicked()
     {
         action = Some(Action::Reset);
@@ -190,13 +191,13 @@ pub fn show(
         Icon::Play
     };
     if widgets::icon_button(ui, main, main_icon, theme.background, accent)
-        .on_hover_text("Iniciar / pausar (Espaço)")
+        .on_hover_text(fill(tr().hint_toggle, &[("key", &config.keys.toggle)]))
         .clicked()
     {
         action = Some(Action::Toggle);
     }
     if widgets::icon_button(ui, right, Icon::Skip, theme.muted, side_bg)
-        .on_hover_text("Pular (S)")
+        .on_hover_text(fill(tr().hint_skip, &[("key", &config.keys.skip)]))
         .clicked()
     {
         action = Some(Action::Skip);
