@@ -59,6 +59,9 @@ impl TimerSettings {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Appearance {
+    pub layout: Layout,
+    /// Character pack id (folder name in `characters/`). Cozy layout only.
+    pub character: String,
     /// A theme name (see `themes/*.toml`), or `"custom"`.
     pub theme: String,
     pub ring_thickness: f32,
@@ -72,6 +75,8 @@ pub struct Appearance {
 impl Default for Appearance {
     fn default() -> Self {
         Self {
+            layout: Layout::Cozy,
+            character: crate::character::DEFAULT_ID.to_owned(),
             theme: theme::DEFAULT_NAME.to_owned(),
             ring_thickness: 10.0,
             ui_scale: 1.0,
@@ -80,6 +85,17 @@ impl Default for Appearance {
             show_session_dots: true,
         }
     }
+}
+
+/// Main screen style.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum Layout {
+    /// Card with a character, big chunky timer, phase-colored backdrop.
+    #[default]
+    Cozy,
+    /// Minimal progress ring.
+    Classic,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

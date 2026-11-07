@@ -7,7 +7,8 @@ use egui::{
 };
 
 use super::widgets::{self, Icon};
-use crate::config::Config;
+use crate::character::Characters;
+use crate::config::{self, Config};
 use crate::theme::{self, Theme, Themes};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -42,6 +43,7 @@ pub fn show(
     ui: &mut Ui,
     config: &mut Config,
     themes: &Themes,
+    characters: &Characters,
     state: &mut State,
     theme: &Theme,
 ) -> Option<Action> {
@@ -74,6 +76,43 @@ pub fn show(
                 ui.checkbox(&mut t.auto_start_focus, "Iniciar foco automaticamente");
             });
 
+            section(ui, theme, "Aparência", |ui| {
+                let a = &mut config.appearance;
+                row(ui, "Estilo", |ui| {
+                    // Right-to-left layout: last option first.
+                    ui.selectable_value(&mut a.layout, config::Layout::Classic, "Clássico");
+                    ui.selectable_value(&mut a.layout, config::Layout::Cozy, "Aconchegante");
+                });
+                match a.layout {
+                    config::Layout::Cozy => {
+                        ui.label("Personagem");
+                        ui.horizontal_wrapped(|ui| {
+                            for c in characters.iter() {
+                                ui.selectable_value(&mut a.character, c.id.clone(), &c.name);
+                            }
+                        });
+                    }
+                    config::Layout::Classic => {
+                        row(ui, "Espessura do anel", |ui| {
+                            ui.add(
+                                Slider::new(&mut a.ring_thickness, 2.0..=28.0).show_value(false),
+                            );
+                        });
+                        ui.checkbox(&mut a.glow, "Brilho no anel");
+                    }
+                }
+                row(ui, "Escala da interface", |ui| {
+                    ui.add(
+                        Slider::new(&mut a.ui_scale, 0.75..=1.75)
+                            .step_by(0.05)
+                            .fixed_decimals(2),
+                    );
+                });
+                ui.checkbox(&mut a.show_session_dots, "Mostrar sessões");
+                ui.checkbox(&mut a.smooth_animation, "Animação suave")
+                    .on_hover_text("Desligado: redesenha 1x por segundo (gasta menos CPU)");
+            });
+
             section(ui, theme, "Tema", |ui| {
                 theme_picker(ui, config, themes);
                 if config.appearance.theme == theme::CUSTOM {
@@ -95,8 +134,8 @@ pub fn show(
                 ui.add_space(4.0);
                 ui.horizontal(|ui| {
                     if ui
-                        .button("Recarregar temas")
-                        .on_hover_text("Lê de novo os arquivos .toml da pasta de temas")
+                        .button("Recarregar temas e personagens")
+                        .on_hover_text("Lê de novo os arquivos das pastas de temas e personagens")
                         .clicked()
                     {
                         action = Some(Action::ReloadThemes);
@@ -109,7 +148,14 @@ pub fn show(
                             .color(theme.muted),
                     );
                 }
-                for err in &themes.errors {
+                if let Some(dir) = Characters::dir() {
+                    ui.label(
+                        RichText::new(format!("Seus personagens: {}", dir.display()))
+                            .size(11.0)
+                            .color(theme.muted),
+                    );
+                }
+                for err in themes.errors.iter().chain(&characters.errors) {
                     ui.label(
                         RichText::new(format!("Erro em {err}"))
                             .size(11.0)
@@ -119,24 +165,6 @@ pub fn show(
                 if let Some(notice) = &state.notice {
                     ui.label(RichText::new(notice).size(11.0).color(theme.short_break));
                 }
-            });
-
-            section(ui, theme, "Aparência", |ui| {
-                let a = &mut config.appearance;
-                row(ui, "Espessura do anel", |ui| {
-                    ui.add(Slider::new(&mut a.ring_thickness, 2.0..=28.0).show_value(false));
-                });
-                row(ui, "Escala da interface", |ui| {
-                    ui.add(
-                        Slider::new(&mut a.ui_scale, 0.75..=1.75)
-                            .step_by(0.05)
-                            .fixed_decimals(2),
-                    );
-                });
-                ui.checkbox(&mut a.glow, "Brilho no anel");
-                ui.checkbox(&mut a.show_session_dots, "Mostrar sessões");
-                ui.checkbox(&mut a.smooth_animation, "Animação suave")
-                    .on_hover_text("Desligado: redesenha 1x por segundo (gasta menos CPU)");
             });
 
             section(ui, theme, "Comportamento", |ui| {

@@ -1,6 +1,7 @@
 # 🍅 dpomo
 
-Um timer Pomodoro **bonito**, **leve** e **do seu jeito**. Feito em Rust com [egui](https://github.com/emilk/egui).
+Um timer Pomodoro **bonito**, **leve** e **do seu jeito**, com um axolote que trabalha e descansa junto com você. 🦎💗
+Feito em Rust com [egui](https://github.com/emilk/egui).
 
 ![dpomo](assets/screenshot.png)
 
@@ -32,6 +33,7 @@ O dpomo mora na **bandeja do sistema** (os ícones pequenos perto do relógio):
 | `Espaço` | Iniciar / pausar  |
 | `R`      | Reiniciar a fase  |
 | `S`      | Pular para a próxima fase |
+| `1` `2` `3` | Ir para foco / pausa curta / pausa longa |
 | `,`      | Abrir ajustes     |
 | `Esc`    | Voltar dos ajustes |
 
@@ -39,9 +41,10 @@ O dpomo mora na **bandeja do sistema** (os ícones pequenos perto do relógio):
 
 Clique no ícone de ajustes (canto superior direito). Você pode mudar:
 
+- 🦎 **Estilo**: *Aconchegante* (com o axolote) ou *Clássico* (um anel de progresso minimalista)
 - ⏱️ **Tempos** de foco e pausas, e quantas sessões até a pausa longa
 - 🎨 **Tema**: 8 prontos (Rosé Pine, Catppuccin, Tokyo Night, Nord, Gruvbox, Mono, Latte, Paper) ou **o seu** (veja abaixo)
-- 💍 **Anel**: espessura e brilho
+- 💍 **Anel** (estilo clássico): espessura e brilho
 - 🔍 **Tamanho** da interface
 - 📌 **Sempre no topo**, iniciar fases automaticamente e mais
 - 🌙 **Segundo plano**: bandeja, notificações, iniciar com o sistema
@@ -87,6 +90,24 @@ Depois, nos ajustes, clique em **Recarregar temas**. Pronto!
 
 Prefere escolher as cores clicando? Selecione **Personalizado**, ajuste as cores e clique em
 **Salvar como arquivo**. Quer compartilhar? É só mandar o arquivo para alguém. 😉
+
+### Criar seu próprio personagem 🦎
+
+O axolote acena quando está parado, trabalha no notebook durante o foco, toma um chá na pausa curta
+e dorme na pausa longa. Quer outro bichinho? Crie uma pasta em `characters`, ao lado do `config.toml`
+(ex.: `%APPDATA%\dpomo\characters\gato\`), com estes arquivos SVG:
+
+| Arquivo | Quando aparece |
+| ------- | -------------- |
+| `idle.svg` | parado (**obrigatório**) |
+| `focus.svg` | focando |
+| `short_break.svg` | pausa curta |
+| `long_break.svg` | pausa longa |
+
+Faltou algum? Ele usa o `idle.svg` no lugar. Para dar um nome, crie `character.toml` com `name = "Gato"`.
+
+Dica: no SVG, a cor `#e05a4f` vira a cor da fase (vermelho no foco, verde na pausa…) e `#7a6464`
+vira a cor de texto secundário do tema. Assim seu personagem combina com qualquer tema.
 
 ## Instalar
 

@@ -6,12 +6,13 @@ use std::time::{Duration, Instant};
 
 use egui::{Key, Modifiers, ViewportCommand};
 
+use crate::character::{CharacterImage, Characters};
 use crate::command::Command;
-use crate::config::Config;
+use crate::config::{Config, Layout};
 use crate::theme::{Theme, Themes};
-use crate::timer::{Timer, TimerEvent, format_remaining};
+use crate::timer::{Phase, Timer, TimerEvent, format_remaining};
 use crate::tray::{Tray, TrayState};
-use crate::ui::{settings_view, timer_view};
+use crate::ui::{cozy_view, settings_view, timer_view};
 use crate::{instance, system};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -25,6 +26,8 @@ pub struct DpomoApp {
     /// Last state written to disk, to avoid pointless writes.
     saved: Config,
     themes: Themes,
+    characters: Characters,
+    character_image: CharacterImage,
     timer: Timer,
     view: View,
     settings: settings_view::State,
@@ -47,6 +50,8 @@ impl DpomoApp {
         listener: Option<TcpListener>,
         start_hidden: bool,
     ) -> Self {
+        install_fonts(&cc.egui_ctx);
+        egui_extras::install_image_loaders(&cc.egui_ctx);
         let commands = channel();
         if let Some(listener) = listener {
             instance::listen(listener, cc.egui_ctx.clone(), commands.0.clone());
@@ -56,6 +61,8 @@ impl DpomoApp {
             tray: None,
             window_visible: !start_hidden,
             themes: Themes::load(),
+            characters: Characters::load(),
+            character_image: CharacterImage::default(),
             timer: Timer::new(&config.timer),
             settings: settings_view::State::default(),
             saved: config.clone(),
@@ -136,6 +143,12 @@ impl DpomoApp {
                     Some(timer_view::Action::Skip)
                 } else if pressed(Key::Comma) {
                     Some(timer_view::Action::OpenSettings)
+                } else if pressed(Key::Num1) {
+                    Some(timer_view::Action::SwitchTo(Phase::Focus))
+                } else if pressed(Key::Num2) {
+                    Some(timer_view::Action::SwitchTo(Phase::ShortBreak))
+                } else if pressed(Key::Num3) {
+                    Some(timer_view::Action::SwitchTo(Phase::LongBreak))
                 } else {
                     None
                 };
@@ -158,8 +171,12 @@ impl DpomoApp {
             Action::ResetDefaults => self.config = Config::default(),
             Action::ReloadThemes => {
                 self.themes = Themes::load();
-                self.settings.notice =
-                    Some(format!("{} temas carregados", self.themes.iter().count()));
+                self.characters = Characters::load();
+                self.settings.notice = Some(format!(
+                    "{} temas e {} personagens carregados",
+                    self.themes.iter().count(),
+                    self.characters.iter().count()
+                ));
             }
             Action::ExportCustom => {
                 let name = self.settings.export_name.trim().to_owned();
@@ -371,14 +388,37 @@ impl eframe::App for DpomoApp {
         }
 
         let theme = self.config.theme(&self.themes);
-        let frame = egui::Frame::new().fill(theme.background).inner_margin(16);
+        let cozy = self.config.appearance.layout == Layout::Cozy && self.view == View::Timer;
+        let fill = if cozy {
+            cozy_view::backdrop(&theme, self.timer.phase())
+        } else {
+            theme.background
+        };
+        let frame = egui::Frame::new()
+            .fill(fill)
+            .inner_margin(if cozy { 14 } else { 16 });
         egui::CentralPanel::default()
             .frame(frame)
             .show(ui, |ui| match self.view {
                 View::Timer => {
-                    if let Some(a) =
-                        timer_view::show(ui, &self.timer, &self.config, &theme, &self.ring, now)
-                    {
+                    let action = match self.config.appearance.layout {
+                        Layout::Cozy => cozy_view::show(
+                            ui,
+                            cozy_view::Inputs {
+                                timer: &self.timer,
+                                config: &self.config,
+                                theme: &theme,
+                                anim: &self.ring,
+                                character: self.characters.get(&self.config.appearance.character),
+                                image: &mut self.character_image,
+                                now,
+                            },
+                        ),
+                        Layout::Classic => {
+                            timer_view::show(ui, &self.timer, &self.config, &theme, &self.ring, now)
+                        }
+                    };
+                    if let Some(a) = action {
                         self.apply_timer_action(&ctx, a, now);
                     }
                 }
@@ -387,6 +427,7 @@ impl eframe::App for DpomoApp {
                         ui,
                         &mut self.config,
                         &self.themes,
+                        &self.characters,
                         &mut self.settings,
                         &theme,
                     );
@@ -406,9 +447,34 @@ impl eframe::App for DpomoApp {
     }
 
     fn clear_color(&self, _visuals: &egui::Visuals) -> [f32; 4] {
-        self.config
-            .theme(&self.themes)
-            .background
-            .to_normalized_gamma_f32()
+        let theme = self.config.theme(&self.themes);
+        let color = match self.config.appearance.layout {
+            Layout::Cozy => cozy_view::backdrop(&theme, self.timer.phase()),
+            Layout::Classic => theme.background,
+        };
+        color.to_normalized_gamma_f32()
     }
+}
+
+/// Adds the chunky display font (Lilita One, OFL) as the `display` family,
+/// falling back to the default fonts for missing glyphs.
+fn install_fonts(ctx: &egui::Context) {
+    let mut fonts = egui::FontDefinitions::default();
+    fonts.font_data.insert(
+        "lilita".to_owned(),
+        std::sync::Arc::new(egui::FontData::from_static(include_bytes!(
+            "../assets/fonts/LilitaOne-Regular.ttf"
+        ))),
+    );
+    let mut family = vec!["lilita".to_owned()];
+    family.extend(
+        fonts.families[&egui::FontFamily::Proportional]
+            .iter()
+            .cloned(),
+    );
+    fonts.families.insert(
+        egui::FontFamily::Name(cozy_view::DISPLAY_FONT.into()),
+        family,
+    );
+    ctx.set_fonts(fonts);
 }

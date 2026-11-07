@@ -29,6 +29,7 @@ Run all four locally before you commit.
 | ----- | --- |
 | `eframe` 0.37 / `egui` 0.37 | GUI. **glow** backend, `default-features = false` → ~5 MB binary. Don't switch to wgpu. |
 | `serde` + `toml` | Config file. |
+| `egui_extras` (`svg`) | Rasterizes character SVGs (resvg). Only the `svg` feature. |
 | `dirs` | Locates the OS config dir. |
 | `tray-icon` | Tray icon + menu. `default-features = false, features = ["ksni"]`: Linux uses D-Bus (KSNI), **no GTK**. |
 | `notify-rust` | Native notifications (WinRT toast / D-Bus / macOS). |
@@ -46,8 +47,12 @@ egui 0.37 API notes (it changed a lot vs. older tutorials you may remember):
 ## Architecture
 
 ```
-build.rs                 embeds themes/*.toml into the binary (generates BUILTIN list)
+build.rs                 embeds themes/*.toml and characters/<id>/* into the binary
 themes/*.toml            built-in themes, one file each
+characters/<id>/         built-in character packs (idle/focus/short_break/long_break .svg + character.toml)
+assets/fonts/            Lilita One (display font for the cozy layout) + its OFL license
+tools/gen_axolotl.py     generates characters/axolotl/*.svg — edit this, not the SVGs
+examples/svg_preview.rs  renders SVGs to a PNG grid (check art without running the app)
 src/
 ├── main.rs              window options, loads Config, starts eframe
 ├── app.rs               DpomoApp: owns ALL state, applies Actions/Commands, repaint scheduling, saving
@@ -58,10 +63,12 @@ src/
 ├── timer.rs             pure state machine (Phase, Timer, TimerEvent). No egui. Unit-tested.
 ├── config.rs            Config structs (serde, TOML), load/save, defaults. Unit-tested.
 ├── theme.rs             Theme struct, Themes registry (built-in + user files), apply-to-egui, hex serde
+├── character.rs         Character packs registry, Pose, recoloring, CharacterImage (texture cache)
 └── ui/
     ├── mod.rs
     ├── widgets.rs       hand-painted ring, icons, icon_button, pill, card
-    ├── timer_view.rs    main screen → returns Option<timer_view::Action>
+    ├── cozy_view.rs     main screen, "cozy" layout (default): card + character + chunky timer
+    ├── timer_view.rs    main screen, "classic" layout (ring); also owns Action + RingAnim shared by both
     └── settings_view.rs settings screen, edits &mut Config → returns Option<settings_view::Action>
 ```
 
@@ -124,6 +131,34 @@ Hook into `App::on_timer_event`. Put any heavy work (audio decoding, HTTP) on a 
 ### Add a new phase
 Add it to `Phase` + `Phase::ALL`, then fix every `match` the compiler flags (labels, `TimerSettings::duration`, `Theme::accent`, `Timer::next_phase`).
 
+### Layouts
+`config.appearance.layout` picks `cozy_view` (default) or `timer_view` (classic). Both return the same
+`timer_view::Action`, so actions/shortcuts work in both. In cozy mode the window background is
+`cozy_view::backdrop(theme, phase)` (phase color mixed with the theme background) — keep `App::ui`'s frame
+fill and `App::clear_color` in sync with it. The display font family is `cozy_view::DISPLAY_FONT`
+(`cozy_view::display_font(size)`), installed in `app::install_fonts`.
+
+### Characters
+- Pose per state: `Pose::for_timer` → focus running = `Focus`, focus paused/not started = `Idle`, breaks = their pose.
+- SVG art uses a 200×160 viewBox. The cozy view keeps that 1.25 ratio and snaps the size to 16 px steps so
+  window resizes don't re-rasterize constantly.
+- Recolor sentinels (exact lowercase hex, replaced in `Character::svg`): `#e05a4f` → phase accent,
+  `#7a6464` → theme `muted`. The outline color `#3b2a2a` is **not** replaced on purpose (dark outlines look
+  right on both light and dark cards).
+- `CharacterImage` builds a new `bytes://` URI only when character/pose/colors change and calls
+  `ctx.forget_image` on the old one. Don't build `Image::from_bytes` with fresh bytes every frame.
+- resvg is built **without** the `text` feature: `<text>` in SVGs renders nothing. Draw letters as paths
+  (see the `z()` helper in `tools/gen_axolotl.py`).
+- `cargo test` rasterizes every built-in pose, so broken SVGs fail CI.
+
+### Add a character
+Create `characters/<id>/` with at least `idle.svg` (+ optional poses and `character.toml` with `name`).
+`build.rs` embeds it automatically. Preview: `cargo run --example svg_preview -- out.png f6ecdf 2 characters/<id>/*.svg`.
+
+### Tweak the axolotl
+Edit `tools/gen_axolotl.py`, run `python tools/gen_axolotl.py characters/axolotl`, preview with the example
+on a light (`f6ecdf`) and a dark (`191724`) background.
+
 ### Add a tray menu item
 Add a `Command` variant, a `MenuItem::with_id("<id>", …)` in `Tray::new`, map the id in the `MenuEvent`
 handler, and handle the variant in `App::handle_commands`.
@@ -133,6 +168,7 @@ handler, and handle the variant in `App::handle_commands`.
 - UI text is **Portuguese (pt-BR)**; code, comments and docs for agents are English.
 - Rust 2024 edition. Zero clippy warnings. `cargo fmt` default style.
 - Draw icons with the painter (`widgets::paint_icon`), not emoji/icon fonts — they render inconsistently.
+- Illustrations are SVG character packs; UI chrome is painted. Don't add raster images.
 - Colors come from `Theme`, never hard-coded in views (except `Color32::TRANSPARENT`).
 - Sizes in the timer view are relative to the ring radius so the UI scales with the window.
 - Add a unit test when you touch `timer.rs` or `config.rs` logic.
@@ -140,7 +176,7 @@ handler, and handle the variant in `App::handle_commands`.
 
 ## Verifying visual changes
 
-There's no automated UI test. Run the app and look at it, in a dark theme (default `Rosé Pine`) **and** a light one (`Latte`), at the minimum window size (280×380) and with `ui_scale` at 0.75 and 1.75.
+There's no automated UI test. Run the app and look at it in **both layouts** (cozy and classic), in a dark theme (default `Rosé Pine`) **and** a light one (`Latte`), at the minimum window size (280×380) and with `ui_scale` at 0.75 and 1.75.
 Tip: set the theme by editing the config file (path is shown at the bottom of the settings screen), e.g. `%APPDATA%\dpomo\config.toml` on Windows.
 
 ## Gotchas
