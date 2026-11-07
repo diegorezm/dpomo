@@ -15,7 +15,8 @@ name = "dpomo"
 maintainer = "diegorezm <dmourarezende@gmail.com>"
 section = "utils"
 extended-description = "A beautiful, customizable and lightweight Pomodoro timer with an axolotl companion. Lives in the system tray and sends notifications."
-depends = "$auto"
+# Graphics libs are loaded at runtime (dlopen), so cargo-deb can't see them.
+depends = "$auto, libxkbcommon0, libxkbcommon-x11-0, libgl1, libegl1"
 assets = [
     ["target/release/dpomo", "usr/bin/", "755"],
     ["packaging/linux/dpomo.desktop", "usr/share/applications/", "644"],
