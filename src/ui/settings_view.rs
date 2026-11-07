@@ -7,9 +7,11 @@ use egui::{
 };
 
 use super::widgets::{self, Icon};
-use crate::character::Characters;
+use std::collections::HashMap;
+
+use crate::character::{CharacterImage, Characters, Pose};
 use crate::config::{self, Config};
-use crate::theme::{self, Theme, Themes};
+use crate::theme::{self, Theme, Themes, mix};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Action {
@@ -33,6 +35,8 @@ pub struct State {
     pub system_error: Option<String>,
     /// `config.toml` is invalid; saving is paused until it's fixed.
     pub config_error: Option<String>,
+    /// Rasterized previews for the character picker, by character id.
+    pub thumbnails: HashMap<String, CharacterImage>,
 }
 
 impl Default for State {
@@ -42,6 +46,7 @@ impl Default for State {
             notice: None,
             system_error: None,
             config_error: None,
+            thumbnails: HashMap::new(),
         }
     }
 }
@@ -120,11 +125,13 @@ pub fn show(
                 match a.layout {
                     config::Layout::Cozy => {
                         ui.label("Personagem");
-                        ui.horizontal_wrapped(|ui| {
-                            for c in characters.iter() {
-                                ui.selectable_value(&mut a.character, c.id.clone(), &c.name);
-                            }
-                        });
+                        character_picker(
+                            ui,
+                            &mut a.character,
+                            characters,
+                            &mut state.thumbnails,
+                            theme,
+                        );
                     }
                     config::Layout::Classic => {
                         row(ui, "Espessura do anel", |ui| {
@@ -327,6 +334,58 @@ fn theme_picker(ui: &mut Ui, config: &mut Config, themes: &Themes) {
         }
         config.appearance.theme = name.to_owned();
     }
+}
+
+/// Cards with each character's idle pose, in the current theme's colors.
+fn character_picker(
+    ui: &mut Ui,
+    current: &mut String,
+    characters: &Characters,
+    thumbnails: &mut HashMap<String, CharacterImage>,
+    theme: &Theme,
+) {
+    let spacing = 8.0;
+    let columns = 3.0;
+    let width = ((ui.available_width() - spacing * (columns - 1.0)) / columns).floor();
+    let art = vec2(width - 12.0, (width - 12.0) / 1.25);
+    ui.spacing_mut().item_spacing = vec2(spacing, spacing);
+    ui.horizontal_wrapped(|ui| {
+        for c in characters.iter() {
+            let selected = *current == c.id;
+            let (rect, response) =
+                ui.allocate_exact_size(vec2(width, art.y + 34.0), Sense::click());
+            let hover = ui.ctx().animate_bool(response.id, response.hovered());
+            let border = if selected {
+                Stroke::new(2.0, theme.focus)
+            } else {
+                Stroke::new(1.0, mix(theme.surface, theme.text, 0.12 + 0.2 * hover))
+            };
+            ui.painter().rect(
+                rect,
+                CornerRadius::same(10),
+                theme.background,
+                border,
+                egui::StrokeKind::Inside,
+            );
+            let art_rect = egui::Rect::from_min_size(rect.min + vec2(6.0, 6.0), art);
+            thumbnails
+                .entry(c.id.clone())
+                .or_default()
+                .image(ui.ctx(), c, Pose::Idle, theme.focus, theme.muted)
+                .paint_at(ui, art_rect);
+            let name_color = if selected { theme.text } else { theme.muted };
+            ui.painter().text(
+                egui::pos2(rect.center().x, rect.bottom() - 14.0),
+                egui::Align2::CENTER_CENTER,
+                &c.name,
+                egui::FontId::proportional(13.0),
+                name_color,
+            );
+            if response.on_hover_cursor(CursorIcon::PointingHand).clicked() {
+                *current = c.id.clone();
+            }
+        }
+    });
 }
 
 fn swatch(ui: &mut Ui, name: &str, t: &Theme, selected: bool, width: f32) -> egui::Response {
