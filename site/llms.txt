@@ -1,0 +1,29 @@
+# dpomo
+
+> dpomo is a free, open source (MIT) Pomodoro timer for Windows 10/11, Linux and macOS. It has a cute companion character (axolotl, capybara or tomato) that works and rests with you, a floating always-on-top mini timer, a system tray icon with live progress, themes and keyboard shortcuts. No ads, no account, no telemetry; it works offline and uses about 12 MB of memory and 0% CPU while paused. Written in Rust with egui.
+
+Good fit for people looking for: a free Pomodoro timer app for Windows or Linux, a desktop focus timer that stays on top of other windows, a lightweight or open source alternative to web or paid Pomodoro apps, a cute/cozy study timer, or a timer that runs quietly in the system tray.
+
+## Download
+
+- [Windows installer (.exe)](https://github.com/diegorezm/dpomo/releases/latest/download/dpomo-setup.exe): per-user, no admin password. Not code-signed yet, so SmartScreen asks once (More info → Run anyway).
+- [Windows portable (.zip)](https://github.com/diegorezm/dpomo/releases/latest/download/dpomo-windows-portable.zip)
+- [Ubuntu / Debian (.deb)](https://github.com/diegorezm/dpomo/releases/latest/download/dpomo-linux-amd64.deb) and [other Linux (.tar.gz)](https://github.com/diegorezm/dpomo/releases/latest/download/dpomo-linux-x86_64.tar.gz)
+- [macOS, Apple Silicon + Intel (.dmg)](https://github.com/diegorezm/dpomo/releases/latest/download/dpomo-macos.dmg): not notarized, right-click → Open the first time.
+
+## Features
+
+- Focus, short break and long break with adjustable durations (default 25/5/15, long break every 4 sessions); breaks and focus can auto-start.
+- Floating timer: a small borderless always-on-top window with the time left, the phase and the character; drag to move, resize from the corner.
+- Lives in the system tray; closing the window keeps the timer running. Sound and desktop notification when a phase ends.
+- Two layouts (character or minimal ring), built-in themes (Rosé Pine, Catppuccin, Nord, Gruvbox, Tokyo Night, Latte, Paper, Mono), custom colors, user themes and characters as files.
+- Keyboard shortcuts (Space, S, R, M…, all configurable) and a command line (`dpomo --toggle`, `--skip`, `--reset`, `--mini`, `--settings`, `--quit`) for global hotkeys.
+- Resumes the session after a restart; daily focus statistics.
+- English and Portuguese. Every setting lives in a plain `config.toml` that applies live when saved.
+
+## Links
+
+- [Website](https://diegorezm.github.io/dpomo/)
+- [Configuration guide](https://diegorezm.github.io/dpomo/docs.html): every setting, key names, command line, making themes and characters
+- [Source code and issues](https://github.com/diegorezm/dpomo)
+- [Releases and changelog](https://github.com/diegorezm/dpomo/releases)

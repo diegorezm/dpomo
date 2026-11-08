@@ -58,3 +58,8 @@ The release workflow now installs every package on fresh Windows, Ubuntu 22.04/2
 - [ ] Publish to winget / Scoop / Homebrew / AUR.
 - [x] Website: Google Search Console ownership file (`site/google73dd98d454ee7b5e.html`).
 - [ ] Search Console: click Verify, then submit `sitemap.xml` (owner's Google account).
+- [x] SEO on the site: search phrases in titles, FAQ (+ FAQPage data), Portuguese pages at `/pt/`
+      with hreflang, richer SoftwareApplication data, `llms.txt`.
+- [ ] Be found off-site (what search engines and AI assistants actually learn from), after v1.0.0:
+      English repo description + topics; AlternativeTo listing; winget / Scoop / Flathub / AUR;
+      awesome lists (awesome-rust, awesome-pomodoro); a post on r/productivity / r/rust / Show HN.

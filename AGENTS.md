@@ -63,7 +63,7 @@ tools/gen_capybara.py    generates characters/capybara/*.svg
 tools/gen_icon.py        generates assets/icon.{svg,png,ico,icns} from the axolotl head
 packaging/               installer sources (Inno Setup .iss, Linux .desktop, macOS Info.plist)
 packaging/smoke/         smoke tests run by release.yml on the real packages (one script per OS)
-site/                    website (https://diegorezm.github.io/dpomo/), deployed by .github/workflows/pages.yml
+site/                    website (https://diegorezm.github.io/dpomo/), built by site/build.py, deployed by pages.yml
 .github/workflows/       ci.yml (fmt/clippy/test), release.yml (installers on v* tags)
 examples/svg_preview.rs  renders SVGs to a PNG grid (check art without running the app)
 src/
@@ -309,21 +309,30 @@ The release job only publishes if every smoke test passes.
 
 ## Website
 
-`site/index.html` (home) and `site/docs.html` (configuration guide) share `site/style.css`; page-specific
-CSS/JS is inline (no build tools, no CDN). `site/build.sh` copies them plus the app's own art
-(character SVGs, icon, screenshot, Lilita One) into `_site/`;
-`pages.yml` deploys it on pushes that touch `site/`, `characters/` or `assets/`. English is the HTML
-text (what Google indexes); Portuguese lives in the `PT` object in the script, keyed by `data-i18n`
-(text) / `data-i18n-html` (markup). New characters show up only if added to the `.friends` buttons.
-Keep the privacy text in sync with the README. Preview: `bash site/build.sh && python -m http.server -d _site`.
+`site/index.html` (home) and `site/docs.html` (configuration guide) share `site/style.css` and
+`site/lang.js`; page-specific CSS/JS is inline (no CDN). `site/build.py` (standard library only, run by
+`build.sh` / `pages.yml` on pushes that touch `site/`, `characters/` or `assets/`) writes `_site/`:
+- The sources are the **English** pages (what Google sees at `/`). The **Portuguese** pages are built at
+  `/pt/`: elements with `data-i18n="key"` (text), `data-i18n-html` (markup) or `data-i18n-content` (meta
+  `content`) take `site/pt.json[key]`; relative URLs get `../`. The build fails on a missing or unused key.
+  Each language has its own URL (hreflang + sitemap) because Google doesn't index JS-swapped text.
+- The `#lang` link switches language; `lang.js` sends a first-time Portuguese browser to `pt/`.
+- FAQPage structured data is generated from the visible `<details class="faq">` items (keep the answers
+  true: Google penalizes markup that doesn't match the page). `sitemap.xml` is generated too.
+- `llms.txt` is a plain summary for AI assistants/crawlers: keep it factual and in sync with features.
+New characters show up only if added to the `.friends` buttons. Keep the privacy text in sync with the
+README. Preview: `python site/build.py && python -m http.server -d _site`.
+
+SEO: titles/descriptions carry the search phrases ("free Pomodoro timer for Windows, Linux and macOS",
+"timer Pomodoro grátis…"); the hero has them in the `.eyebrow` line. Don't stuff keywords elsewhere.
 
 **`docs.html` is partly generated** by `src/docs.rs` (a test): everything between `<!-- gen:NAME -->`
 and `<!-- /gen:NAME -->` comes from the code (`Config::default()`, built-in themes/characters, poses,
 egui key names, `instance::FLAGS`); descriptions are the EN/PT tables in `docs.rs`. Edit the hand-written
 parts freely, never the generated ones. `cargo test` fails when the page is stale or a setting/flag/theme
 color has no description; `DPOMO_BLESS=1 cargo test docs` rewrites it. The page holds both languages:
-`class="en"` / `class="pt"` elements, and `html.lang-pt` shows the Portuguese (don't name it `pt`:
-the `<html>` itself would get hidden).
+`class="en"` / `class="pt"` elements; `build.py` adds `html.lang-pt` to the `/pt/` copy, which shows the
+Portuguese (don't name the class `pt`: the `<html>` itself would get hidden).
 The project has **no budget**: free hosting only, no custom domain.
 
 ## Conventions

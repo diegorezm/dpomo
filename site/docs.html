@@ -3,24 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>dpomo — configuration guide</title>
-<meta name="description" content="Every dpomo setting with its default value, how to edit config.toml by hand, and how to make your own themes and characters.">
+<title data-i18n="docs_title">dpomo — configuration guide</title>
+<meta name="description" data-i18n-content="docs_desc" content="Every dpomo setting with its default value, how to edit config.toml by hand, and how to make your own themes and characters.">
 <link rel="canonical" href="https://diegorezm.github.io/dpomo/docs.html">
+<link rel="alternate" hreflang="en" href="https://diegorezm.github.io/dpomo/docs.html">
+<link rel="alternate" hreflang="pt-BR" href="https://diegorezm.github.io/dpomo/pt/docs.html">
+<link rel="alternate" hreflang="x-default" href="https://diegorezm.github.io/dpomo/docs.html">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <meta name="theme-color" content="#f6ecdf" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#191724" media="(prefers-color-scheme: dark)">
 <link rel="stylesheet" href="style.css">
-<script>
-// Language before first paint, so the page doesn't flash English first.
-(() => {
-  let lang = "";
-  try { lang = localStorage.getItem("dpomo-lang") || ""; } catch {}
-  if (!lang) lang = (navigator.language || "").toLowerCase().startsWith("pt") ? "pt" : "en";
-  if (lang === "pt") { document.documentElement.classList.add("lang-pt"); document.documentElement.lang = "pt-BR"; }
-})();
-</script>
 <style>
-/* Both languages are in the page; html.lang-pt shows the Portuguese. */
+/* Both languages are in the page; html.lang-pt (set by site/build.py for pt/) shows the Portuguese. */
 .pt { display: none; }
 html.lang-pt .en { display: none; }
 html.lang-pt .pt { display: revert; }
@@ -85,7 +79,7 @@ tr:first-child td, tr:first-child th { border-top: 0; }
     <nav>
       <a class="chip hide-sm" href="./#download"><span class="en">Download</span><span class="pt">Baixar</span></a>
       <a class="chip hide-sm" href="https://github.com/diegorezm/dpomo">GitHub</a>
-      <button class="chip" id="lang" type="button" aria-label="Português / English"><span class="en">PT</span><span class="pt">EN</span></button>
+      <a class="chip" id="lang" href="pt/docs.html" hreflang="pt-BR" lang="pt-BR" data-i18n="lang_switch">Português</a>
     </nav>
   </header>
 
@@ -421,12 +415,6 @@ long_break = &quot;#c4a7e7&quot;</code></pre>
   </div>
 </footer>
 
-<script>
-document.getElementById("lang").addEventListener("click", () => {
-  const pt = document.documentElement.classList.toggle("lang-pt");
-  document.documentElement.lang = pt ? "pt-BR" : "en";
-  try { localStorage.setItem("dpomo-lang", pt ? "pt" : "en"); } catch {}
-});
-</script>
+<script src="lang.js"></script>
 </body>
 </html>

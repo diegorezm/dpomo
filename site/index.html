@@ -3,16 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>dpomo — a cozy Pomodoro timer</title>
-<meta name="description" content="dpomo is a free, open source Pomodoro timer for Windows, Linux and macOS with a little companion who works and rests with you. Lightweight, customizable, lives in the system tray.">
+<title data-i18n="meta_title">dpomo — Free Pomodoro Timer for Windows, Linux &amp; macOS</title>
+<meta name="description" data-i18n-content="meta_desc" content="Free, open source Pomodoro timer app for Windows 10/11, Linux and macOS. A cute companion, a floating always-on-top timer, system tray, themes and shortcuts. No ads, no account, about 12 MB of RAM.">
 <link rel="canonical" href="https://diegorezm.github.io/dpomo/">
+<link rel="alternate" hreflang="en" href="https://diegorezm.github.io/dpomo/">
+<link rel="alternate" hreflang="pt-BR" href="https://diegorezm.github.io/dpomo/pt/">
+<link rel="alternate" hreflang="x-default" href="https://diegorezm.github.io/dpomo/">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.png">
 <meta name="theme-color" content="#f6ecdf" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#191724" media="(prefers-color-scheme: dark)">
 <meta property="og:type" content="website">
-<meta property="og:title" content="dpomo — a cozy Pomodoro timer">
-<meta property="og:description" content="Free, open source Pomodoro timer with a little companion. Windows, Linux and macOS.">
+<meta property="og:site_name" content="dpomo">
+<meta property="og:locale" content="en_US">
+<meta property="og:title" data-i18n-content="meta_title" content="dpomo — Free Pomodoro Timer for Windows, Linux &amp; macOS">
+<meta property="og:description" data-i18n-content="og_desc" content="A free, open source Pomodoro timer with a little companion who works and rests with you. Windows, Linux and macOS.">
 <meta property="og:url" content="https://diegorezm.github.io/dpomo/">
 <meta property="og:image" content="https://diegorezm.github.io/dpomo/screenshot.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -23,13 +28,31 @@
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   "name": "dpomo",
+  "description": "Free, open source Pomodoro timer for Windows, Linux and macOS with a cute companion, a floating always-on-top timer, system tray, themes and keyboard shortcuts. No ads, no account, works offline.",
   "applicationCategory": "ProductivityApplication",
-  "operatingSystem": "Windows, Linux, macOS",
+  "applicationSubCategory": "Pomodoro timer",
+  "operatingSystem": "Windows 10, Windows 11, Linux, macOS",
+  "isAccessibleForFree": true,
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
   "license": "https://opensource.org/licenses/MIT",
   "url": "https://diegorezm.github.io/dpomo/",
   "downloadUrl": "https://github.com/diegorezm/dpomo/releases/latest",
-  "image": "https://diegorezm.github.io/dpomo/screenshot.png"
+  "softwareHelp": "https://diegorezm.github.io/dpomo/docs.html",
+  "image": "https://diegorezm.github.io/dpomo/icon.png",
+  "screenshot": "https://diegorezm.github.io/dpomo/screenshot.png",
+  "featureList": [
+    "Pomodoro timer with focus, short break and long break",
+    "Floating always-on-top mini timer",
+    "Runs in the system tray with live progress",
+    "Animated companion characters (axolotl, capybara, tomato) or your own SVG",
+    "Themes, custom colors and layouts",
+    "Keyboard shortcuts and command line for global hotkeys",
+    "Sound and desktop notifications",
+    "Daily focus statistics and session resume",
+    "Uses about 12 MB of memory and 0% CPU while paused"
+  ],
+  "author": { "@type": "Person", "name": "diegorezm", "url": "https://github.com/diegorezm" },
+  "codeRepository": "https://github.com/diegorezm/dpomo"
 }
 </script>
 <style>
@@ -48,6 +71,8 @@
 .btn small { font: 13px system-ui, sans-serif; opacity: .85; }
 .link { color: var(--muted); font-size: 15px; }
 .meta { margin-top: 18px; color: var(--muted); font-size: 14px; }
+
+.eyebrow { margin: 0 0 10px; color: var(--accent); font-weight: 600; font-size: 15px; letter-spacing: .02em; }
 
 /* demo card, mirrors the app's cozy layout */
 .demo {
@@ -114,6 +139,12 @@
 @container (max-height: 60px) { .float-phase { display: none; } .float-time { font-size: min(66cqh, 24cqw); } }
 .hint-line { color: var(--muted); font-size: 15px; margin: 0; }
 
+/* FAQ */
+.faqs { display: grid; gap: 10px; max-width: 46em; }
+.faq { background: var(--surface); border-radius: 16px; padding: 14px 20px; }
+.faq summary { cursor: pointer; font-weight: 600; }
+.faq p { margin: 8px 0 2px; color: var(--muted); font-size: 16px; }
+
 /* sections */
 section { padding: 56px 0; }
 section h2 { font-size: clamp(30px, 4vw, 40px); line-height: 1.15; margin: 0 0 8px; }
@@ -152,13 +183,14 @@ section > .wrap > p.sub { color: var(--muted); margin: 0 0 28px; max-width: 40em
       <a class="chip hide-sm" href="#download" data-i18n="nav_download">Download</a>
       <a class="chip" href="docs.html" data-i18n="nav_docs">Docs</a>
       <a class="chip hide-sm" href="https://github.com/diegorezm/dpomo">GitHub</a>
-      <button class="chip" id="lang" type="button" aria-label="Português / English">PT</button>
+      <a class="chip" id="lang" href="pt/" hreflang="pt-BR" lang="pt-BR" data-i18n="lang_switch">Português</a>
     </nav>
   </header>
 
   <main>
     <div class="hero">
       <div>
+        <p class="eyebrow" data-i18n="eyebrow">Free Pomodoro timer for Windows, Linux and macOS</p>
         <h1 class="display" data-i18n="h1">A cozy Pomodoro timer with a little friend</h1>
         <p class="lead" data-i18n="lead">Focus for 25 minutes, rest for 5. dpomo keeps time from your system tray, and its companion works and rests with you.</p>
         <div class="cta">
@@ -271,6 +303,50 @@ section > .wrap > p.sub { color: var(--muted); margin: 0 0 28px; max-width: 40em
   </div>
 </section>
 
+<section id="faq">
+  <div class="wrap">
+    <h2 class="display" data-i18n="faq_h">Questions</h2>
+    <div class="faqs">
+      <details class="faq">
+        <summary data-i18n="faq1_q">Is dpomo really free?</summary>
+        <p data-i18n-html="faq1_a">Yes. It's free and open source (MIT license): no ads, no account, no paid version, no trial.</p>
+      </details>
+      <details class="faq">
+        <summary data-i18n="faq2_q">Does it work on Windows 10 and Windows 11?</summary>
+        <p data-i18n-html="faq2_a">Yes. Use the installer (no admin password needed) or the portable .zip. There are also versions for Linux (.deb and .tar.gz) and macOS (Apple Silicon and Intel).</p>
+      </details>
+      <details class="faq">
+        <summary data-i18n="faq3_q">Can I keep the timer visible while I work?</summary>
+        <p data-i18n-html="faq3_a">Yes. Turn on the floating timer: a small window that stays on top of other apps, in any corner and at any size. dpomo can also hide in the system tray, where its icon shows the progress.</p>
+      </details>
+      <details class="faq">
+        <summary data-i18n="faq4_q">Can I change the 25 and 5 minute times?</summary>
+        <p data-i18n-html="faq4_a">Yes. Focus, short break, long break and the number of sessions before the long break are all adjustable (50/10, for example). Breaks and focus can also start by themselves.</p>
+      </details>
+      <details class="faq">
+        <summary data-i18n="faq5_q">Does it work offline?</summary>
+        <p data-i18n-html="faq5_a">Yes. dpomo doesn't need the internet. The only connection is an optional once-a-day check for new versions, which you can turn off.</p>
+      </details>
+      <details class="faq">
+        <summary data-i18n="faq6_q">Will it slow down my computer?</summary>
+        <p data-i18n-html="faq6_a">No. It uses 0% CPU while paused and about 12 MB of memory with the window open (7 MB in the tray).</p>
+      </details>
+      <details class="faq">
+        <summary data-i18n="faq7_q">Can I control it with keyboard shortcuts?</summary>
+        <p data-i18n-html="faq7_a">Yes. <code>Space</code> starts and pauses, <code>S</code> skips, <code>R</code> restarts and <code>M</code> shows the floating timer; every key can be changed. For shortcuts that work in any app, bind <code>dpomo --toggle</code> to a key in your system (<a href="docs.html#cli">how</a>).</p>
+      </details>
+      <details class="faq">
+        <summary data-i18n="faq8_q">Why does Windows show a warning when I install it?</summary>
+        <p data-i18n-html="faq8_a">The installer isn't digitally signed yet: certificates cost money and dpomo is a free hobby project. Click More info → Run anyway. The source code is public and every release is built from it by GitHub Actions.</p>
+      </details>
+      <details class="faq">
+        <summary data-i18n="faq9_q">What is the Pomodoro technique?</summary>
+        <p data-i18n-html="faq9_a">A way to work in short, focused bursts: 25 minutes of focus, a 5-minute break, and a longer break after 4 sessions. It makes it easier to start, to stay focused and to rest before you get tired.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
 <section id="privacy">
   <div class="wrap">
     <div class="policy">
@@ -287,65 +363,13 @@ section > .wrap > p.sub { color: var(--muted); margin: 0 0 28px; max-width: 40em
   </div>
 </footer>
 
+<script src="lang.js"></script>
 <script>
 (() => {
-  // ---- translations (English is in the HTML; this is the Portuguese) ----
-  const PT = {
-    nav_download: "Baixar",
-    h1: "Um Pomodoro aconchegante com um amiguinho",
-    lead: "Foque por 25 minutos, descanse 5. O dpomo marca o tempo na bandeja do sistema, e o seu companheiro trabalha e descansa junto com você.",
-    download: "Baixar",
-    other_systems: "Outros sistemas",
-    meta: "Grátis e de código aberto (MIT) · Windows, Linux, macOS · Sem conta, sem anúncios",
-    focus: "Foco", break: "Pausa", long: "Longa",
-    features_h: "Pequeno, bonito, do seu jeito",
-    features_sub: "Tudo que um Pomodoro precisa, nada que ele não precisa.",
-    f1_h: "Um companheiro", f1: "Um axolote, uma capivara ou um tomate que acena, trabalha, relaxa e cochila com você. Ou desenhe o seu em SVG.",
-    f2_h: "Fica na bandeja", f2: "Feche a janela e o timer continua. Um som e uma notificação avisam quando é a hora.",
-    f3_h: "Do seu jeito", f3: "Temas, layouts, sons, atalhos e tempos. Tudo num único <code>config.toml</code> que você edita com o app aberto (<a href=\"docs.html\">guia</a>).",
-    f4_h: "Levinho", f4: "0% de CPU pausado, uns 12 MB de memória aberto e 7 MB na bandeja.",
-    f5_h: "Continua de onde parou", f5: "Reiniciou o computador no meio da sessão? Ele retoma. E conta seu tempo de foco por dia.",
-    f6_h: "Privado", f6: "Sem conta, sem telemetria, sem anúncios. Seus dados ficam no seu computador.",
-    f7_h: "Timer flutuante", f7: "Uma janelinha sempre por cima com o tempo que falta. No canto que quiser, do tamanho que quiser.",
-    f8_h: "Ajustes fáceis de ler", f8: "Uma janela de ajustes espaçosa, com cada opção explicada em palavras simples. As mudanças aparecem na hora.",
-    f9_h: "Atalhos em todo lugar", f9: "Teclas dentro do app, e <code>dpomo --toggle</code> e companhia para criar atalhos globais.",
-    mini_h: "Sempre à vista",
-    mini_sub: "Ligue o timer flutuante e uma janelinha fica num canto da tela, por cima de tudo: tempo que falta, fase e o seu companheiro. Ele continua com o dpomo escondido na bandeja.",
-    mini_how: "Experimente: arraste, puxe o canto para mudar o tamanho. No app: a tecla <code>M</code>, o menu da bandeja ou <code>dpomo --mini</code>.",
-    dl_h: "Baixar", dl_sub: "Grátis para sempre. Escolha seu sistema.",
-    dl_win: "Instalador (.exe)",
-    win_note: "Clique em Avançar até o fim; não pede senha de administrador. Se aparecer \"O Windows protegeu o computador\", clique em Mais informações → Executar assim mesmo (o instalador ainda não é assinado).",
-    win_portable: "Versão portátil (.zip)",
-    dl_deb: "Ubuntu / Debian (.deb)",
-    linux_note: "Dois cliques no arquivo, ou <code>sudo apt install ./dpomo-linux-amd64.deb</code>. No GNOME, a extensão AppIndicator mostra o ícone na bandeja.",
-    linux_tar: "Outras distros (.tar.gz)",
-    dl_mac: "Apple Silicon + Intel (.dmg)",
-    mac_note: "Arraste o dpomo para Aplicativos. Na primeira vez, clique com o botão direito → Abrir → Abrir (ele não é notarizado pela Apple).",
-    privacy_h: "Privacidade",
-    privacy_1: "O dpomo não tem conta, telemetria nem anúncios. Seus ajustes, estatísticas e sessão ficam no seu computador.",
-    privacy_2: "A única conexão de rede é a verificação de atualização: uma vez por dia o dpomo pergunta à API pública do GitHub (<code>api.github.com</code>) qual é o número da versão mais nova. Nada sobre você é enviado; o GitHub vê uma requisição web comum (veja a <a href=\"https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement\">declaração de privacidade do GitHub</a>). Ele nunca baixa nem instala nada sozinho. Para desligar: nos ajustes, com <code>check_updates = false</code> ou no instalador do Windows.",
-    footer: "Feito com Rust e <a href=\"https://github.com/emilk/egui\">egui</a> · <a href=\"docs.html\">Guia de configuração</a> · <a href=\"https://github.com/diegorezm/dpomo\">Código-fonte</a> · Licença MIT",
-  };
+  // The Portuguese page (pt/) is built from this one by site/build.py.
+  const PT = document.documentElement.lang === "pt-BR";
+  const ROOT = document.documentElement.dataset.root || "";
   const OS_NAMES = { windows: "Windows", mac: "macOS", linux: "Linux (.deb)" };
-  const EN = {};
-  document.querySelectorAll("[data-i18n]").forEach(el => EN[el.dataset.i18n] = el.textContent);
-  document.querySelectorAll("[data-i18n-html]").forEach(el => EN[el.dataset.i18nHtml] = el.innerHTML);
-
-  let lang = "en";
-  try { lang = localStorage.getItem("dpomo-lang") || ""; } catch {}
-  if (!lang) lang = (navigator.language || "").toLowerCase().startsWith("pt") ? "pt" : "en";
-
-  function applyLang() {
-    const t = lang === "pt" ? PT : EN;
-    document.documentElement.lang = lang === "pt" ? "pt-BR" : "en";
-    document.querySelectorAll("[data-i18n]").forEach(el => { const v = t[el.dataset.i18n]; if (v) el.textContent = v; });
-    document.querySelectorAll("[data-i18n-html]").forEach(el => { const v = t[el.dataset.i18nHtml]; if (v) el.innerHTML = v; });
-    document.getElementById("lang").textContent = lang === "pt" ? "EN" : "PT";
-  }
-  document.getElementById("lang").addEventListener("click", () => {
-    lang = lang === "pt" ? "en" : "pt";
-    try { localStorage.setItem("dpomo-lang", lang); } catch {}
-    applyLang();
   });
   applyLang();
 
@@ -378,7 +402,7 @@ section > .wrap > p.sub { color: var(--muted); margin: 0 0 28px; max-width: 40em
   function render() {
     const running = timer !== null;
     const p = phase === "focus" && !running ? "idle" : POSE[phase];
-    const src = `characters/${character}/${p}.svg`;
+    const src = `${ROOT}characters/${character}/${p}.svg`;
     const clock = `${String(Math.floor(left / 60)).padStart(2, "0")}:${String(left % 60).padStart(2, "0")}`;
     const done = `${(1 - left / (MINUTES[phase] * 60)) * 100}%`;
     pose.src = src;
@@ -386,7 +410,7 @@ section > .wrap > p.sub { color: var(--muted); margin: 0 0 28px; max-width: 40em
     bar.style.width = done;
     document.getElementById("float-pose").src = src;
     document.getElementById("float-time").textContent = clock;
-    document.getElementById("float-phase").textContent = PHASE_NAME[lang === "pt" ? "pt" : "en"][phase];
+    document.getElementById("float-phase").textContent = PHASE_NAME[PT ? "pt" : "en"][phase];
     document.getElementById("float-progress").style.width = done;
     desk.dataset.phase = phase;
     playIcon.setAttribute("d", running ? "M6 4h4v16H6zM14 4h4v16h-4z" : "M7 4v16l13-8z");
@@ -410,7 +434,6 @@ section > .wrap > p.sub { color: var(--muted); margin: 0 0 28px; max-width: 40em
     }
     render();
   });
-  document.getElementById("lang").addEventListener("click", render);
   render();
 
   // ---- floating timer: drag to move, drag the corner to resize (like the app) ----
