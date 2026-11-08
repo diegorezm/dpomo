@@ -10,16 +10,16 @@ The release workflow now installs every package on fresh Windows, Ubuntu 22.04/2
 
 - [x] **Linux, automated** (smoke test on Ubuntu 22.04 + 24.04): the `.deb` installs with apt (its
       dependencies resolve), the window renders, a phase ends, the notification shows, statistics are
-      saved, `dpomo --quit` exits.
+      saved, `pomolotl --quit` exits.
 - [x] **macOS, automated** (smoke test on arm64 + Intel): the `.dmg` mounts, the signed app launches,
       menu bar icon shows, a phase ends, statistics are saved. Found and fixed a "Choose Application"
       dialog on the first notification.
 - [x] **Windows, automated**: silent install, a full phase, quit, uninstall leaves nothing behind.
-      Found and fixed: dpomo closed at startup on machines without OpenGL (now falls back to Direct3D 12).
+      Found and fixed: Pomolotl closed at startup on machines without OpenGL (now falls back to Direct3D 12).
 - [ ] **Linux on a real desktop** (GNOME + KDE, X11 + Wayland):
   - [ ] tray icon appears (GNOME needs the AppIndicator extension); left click shows/hides, menu works
   - [ ] sound plays (CI has no sound card)
-  - [ ] "Start when I log in" creates/removes `~/.config/autostart/dpomo.desktop`
+  - [ ] "Start when I log in" creates/removes `~/.config/autostart/pomolotl.desktop`
   - [ ] window decorations / HiDPI look right on Wayland
 - [ ] **macOS on a real Mac**: first launch after downloading (Gatekeeper: right-click → Open), menu bar
       icon, notification permission prompt, sound.
@@ -31,7 +31,7 @@ The release workflow now installs every package on fresh Windows, Ubuntu 22.04/2
       workflow and installer are ready. The "Code signing policy" section was removed from the
       README and site until then (it read as if releases were already signed): put it back when
       applying (text in AGENTS.md).
-- macOS notarization: **not planned** (the Apple Developer Program costs US$ 99/year and dpomo is a
+- macOS notarization: **not planned** (the Apple Developer Program costs US$ 99/year and Pomolotl is a
   free hobby project with no budget). The workflow supports it if that ever changes (AGENTS.md).
 
 ## Code
@@ -40,7 +40,7 @@ The release workflow now installs every package on fresh Windows, Ubuntu 22.04/2
       after startup / when hiding: ~110 MB → ~12 MB open, ~7 MB in the tray.
 - [x] Binary size: update check uses the OS's `curl` instead of ureq/rustls (−1.6 MB). The Windows
       build is ~12.7 MB because of the Direct3D fallback (worth it).
-- [x] Command line: `dpomo --toggle/--skip/--reset/--show/--quit` (also usable as global shortcuts).
+- [x] Command line: `pomolotl --toggle/--skip/--reset/--show/--quit` (also usable as global shortcuts).
 - [x] Windows 11 title bar uses the theme's colors.
 - [x] Settings in their own bigger window (sidebar, larger text, explanations under options), then
       redesigned after T3 Code's: search across all options, rows with switches/dropdowns.
@@ -49,13 +49,13 @@ The release workflow now installs every package on fresh Windows, Ubuntu 22.04/2
 - [x] Statistics: weekly bar chart of focus time (settings → Statistics).
 - [x] Optional ticking sound during focus (`sound.ticking`).
 - [x] Per-phase sounds (`sound.focus_kind` / `focus_file`).
-- [ ] Built-in global shortcut while the window is hidden (today: bind `dpomo --toggle` in the OS).
+- [ ] Built-in global shortcut while the window is hidden (today: bind `pomolotl --toggle` in the OS).
 - [x] Watch the themes/characters folders like `config.toml` (the Reload button stays).
 - [x] Linux ARM64 builds (`.deb` + `.tar.gz` on native ARM runners, smoke-tested on Ubuntu 24.04 ARM).
 
 ## Project
 
-- [x] Website on GitHub Pages: https://diegorezm.github.io/dpomo/ (free, no custom domain).
+- [x] Website on GitHub Pages: https://diegorezm.github.io/pomolotl/ (free, no custom domain).
 - [ ] Publish to winget / Scoop / Homebrew / AUR.
 - [x] Website: Google Search Console ownership file (`site/google73dd98d454ee7b5e.html`).
 - [ ] Search Console: click Verify, then submit `sitemap.xml` (owner's Google account).

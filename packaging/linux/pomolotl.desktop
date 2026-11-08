@@ -1,12 +1,12 @@
 [Desktop Entry]
 Type=Application
-Name=dpomo
+Name=Pomolotl
 GenericName=Pomodoro Timer
 Comment=A beautiful, customizable Pomodoro timer
 Comment[pt_BR]=Timer Pomodoro bonito e customizável
-Exec=dpomo
-Icon=dpomo
+Exec=pomolotl
+Icon=pomolotl
 Terminal=false
 Categories=Utility;Office;
 Keywords=pomodoro;timer;focus;foco;
-StartupWMClass=dpomo
+StartupWMClass=pomolotl

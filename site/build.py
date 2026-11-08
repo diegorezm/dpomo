@@ -18,7 +18,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
 OUT = ROOT / "_site"
-URL = "https://diegorezm.github.io/dpomo/"
+URL = "https://diegorezm.github.io/pomolotl/"
 PAGES = ["index.html", "docs.html"]
 PT = json.loads((SITE / "pt.json").read_text(encoding="utf-8"))
 OWN_PAGES = {"", "./", "index.html", "docs.html"}

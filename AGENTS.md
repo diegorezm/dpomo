@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Guide for AI agents (and humans who like detail) working on **dpomo**, a Pomodoro timer in Rust + egui.
+Guide for AI agents (and humans who like detail) working on **Pomolotl**, a Pomodoro timer in Rust + egui.
 Read this whole file before changing code. It is short on purpose.
 
 ## Product priorities (in order)
@@ -38,7 +38,7 @@ Run all four locally before you commit.
 | `rodio` | Phase-end sounds. Only `playback` + `wav`/`mp3`/`vorbis`. Linux builds need `libasound2-dev`. |
 | `chrono` (`clock`, `serde`) | Local dates for statistics / "same day" session restore. |
 | `serde_json` | Parses the daily update check answer. The request itself runs the OS's `curl` (no HTTP/TLS crate: −1.6 MB). |
-| `wgpu` (Windows only, `dx12`) | Fallback renderer when OpenGL can't start (VMs, RDP, CI runners, Windows on ARM). `main.rs` tries glow first, then reruns `run_native` with wgpu. `DPOMO_RENDERER=wgpu` forces it. ~+3.8 MB on Windows only. |
+| `wgpu` (Windows only, `dx12`) | Fallback renderer when OpenGL can't start (VMs, RDP, CI runners, Windows on ARM). `main.rs` tries glow first, then reruns `run_native` with wgpu. `POMOLOTL_RENDERER=wgpu` forces it. ~+3.8 MB on Windows only. |
 | `windows-sys` | Windows only: trims the working set (`system::trim_memory`). Already in the tree via winit. |
 | `sys-locale` | OS language for `language = "auto"`. |
 
@@ -63,13 +63,13 @@ tools/gen_capybara.py    generates characters/capybara/*.svg
 tools/gen_icon.py        generates assets/icon.{svg,png,ico,icns} from the axolotl head
 packaging/               installer sources (Inno Setup .iss, Linux .desktop, macOS Info.plist)
 packaging/smoke/         smoke tests run by release.yml on the real packages (one script per OS)
-site/                    website (https://diegorezm.github.io/dpomo/), built by site/build.py, deployed by pages.yml
+site/                    website (https://diegorezm.github.io/pomolotl/), built by site/build.py, deployed by pages.yml
 .github/workflows/       ci.yml (fmt/clippy/test), release.yml (installers on v* tags)
 examples/svg_preview.rs  renders SVGs to a PNG grid (check art without running the app)
 src/
 ├── main.rs              window options, loads Config, starts eframe
 ├── docs.rs              (tests only) generates site/docs.html, the configuration guide
-├── app.rs               DpomoApp: owns ALL state, applies Actions/Commands, repaint scheduling, saving
+├── app.rs               PomolotlApp: owns ALL state, applies Actions/Commands, repaint scheduling, saving
 ├── command.rs           Command enum: requests from outside egui (tray, second launch, file watcher, updates)
 ├── i18n.rs              ALL user-facing strings (Strings struct, EN + PT_BR statics), active language
 ├── sound.rs             synthesized chime/bell/soft + custom files, played on a short-lived thread
@@ -131,7 +131,7 @@ tray / 2nd launch ─► mpsc Command + ctx.request_repaint() ─► App::handle
 ### Add a built-in theme
 Drop a file in `themes/` (copy an existing one). Fields: `name`, `background`, `surface`, `text`, `muted`, `focus`, `short_break`, `long_break`, all `"#rrggbb"`. No code changes: `build.rs` embeds every `themes/*.toml` and `cargo test` checks they parse and have unique names. The picker sorts dark themes first, then light, alphabetically. Check contrast for `text`/`muted` on `background` and look at it in the app.
 
-Users add themes the same way in `<config dir>/dpomo/themes/`; a user theme with the same `name` as a built-in replaces it. Bad files don't crash: they're skipped and listed in the settings screen (`Themes::errors`).
+Users add themes the same way in `<config dir>/pomolotl/themes/`; a user theme with the same `name` as a built-in replaces it. Bad files don't crash: they're skipped and listed in the settings screen (`Themes::errors`).
 
 ### Add a theme color
 Add the field to `Theme` (with `#[serde(with = "hex")]`) **and to every file in `themes/`** (tests fail otherwise), then use it in views. Consider `#[serde(default = …)]` so users' existing theme files keep working.
@@ -152,7 +152,7 @@ Add the field to `Theme` (with `#[serde(with = "hex")]`) **and to every file in 
 2. Add a row in the matching `<page>_page` fn of `settings_view.rs` (`f.toggle` / `f.choice` / `f.slider` / `f.row`,
    with a one-line hint when it isn't obvious). Search finds it automatically. Optional for power-user knobs.
 3. Document it in the `config.toml` reference of `README.md` and `README.pt-BR.md`, add UI strings to `i18n.rs`,
-   and describe it (EN + PT) in `SETTINGS` in `src/docs.rs`, then `DPOMO_BLESS=1 cargo test docs` (tests fail otherwise).
+   and describe it (EN + PT) in `SETTINGS` in `src/docs.rs`, then `POMOLOTL_BLESS=1 cargo test docs` (tests fail otherwise).
 4. Read it where needed. If it changes egui/window state, apply it in `App::sync_environment` with a change cache.
 
 ### Add a timer action / shortcut
@@ -252,8 +252,8 @@ Built-ins: `axolotl` (default), `tomato`, `capybara`. Edit `tools/gen_<name>.py`
 `#3b2a2a` outlines at 3.5 px, ground shadow at y≈142, faces readable (don't cover them with props).
 
 ### Command-line requests
-`dpomo --toggle|--skip|--reset|--show|--quit` (`instance::FLAGS`). If dpomo is running, the request goes
-over the single-instance socket as `dpomo:<verb>\n` and the new process exits; if not, dpomo starts and
+`pomolotl --toggle|--skip|--reset|--show|--quit` (`instance::FLAGS`). If Pomolotl is running, the request goes
+over the single-instance socket as `pomolotl:<verb>\n` and the new process exits; if not, Pomolotl starts and
 applies it (`--quit` just exits). Each verb maps to a `Command` in `instance::command_for`. Users bind
 these to global shortcuts; the smoke tests use them to drive the app.
 
@@ -267,25 +267,25 @@ handler, and handle the variant in `App::handle_commands`.
 
 | File | Built with | Source |
 | ---- | ---------- | ------ |
-| `dpomo-setup.exe` | Inno Setup (`iscc`) | `packaging/windows/dpomo.iss` |
-| `dpomo-windows-portable.zip` | `Compress-Archive` | release `.exe` |
-| `dpomo-linux-amd64.deb` / `-arm64.deb` | `cargo deb` (native ARM runner for arm64) | `[package.metadata.deb]` in `Cargo.toml`, `packaging/linux/dpomo.desktop` |
-| `dpomo-linux-x86_64.tar.gz` / `-aarch64.tar.gz` | `tar` | binary + `.desktop` + icon |
-| `dpomo-macos.dmg` | `lipo` + `hdiutil` (universal, ad-hoc signed) | `packaging/macos/Info.plist` |
+| `pomolotl-setup.exe` | Inno Setup (`iscc`) | `packaging/windows/pomolotl.iss` |
+| `pomolotl-windows-portable.zip` | `Compress-Archive` | release `.exe` |
+| `pomolotl-linux-amd64.deb` / `-arm64.deb` | `cargo deb` (native ARM runner for arm64) | `[package.metadata.deb]` in `Cargo.toml`, `packaging/linux/pomolotl.desktop` |
+| `pomolotl-linux-x86_64.tar.gz` / `-aarch64.tar.gz` | `tar` | binary + `.desktop` + icon |
+| `pomolotl-macos.dmg` | `lipo` + `hdiutil` (universal, ad-hoc signed) | `packaging/macos/Info.plist` |
 
 To release: bump `version` in `Cargo.toml`, add a `CHANGELOG.md` entry, commit, `git tag vX.Y.Z && git push origin vX.Y.Z`.
 To test packaging without publishing: run the workflow manually (workflow_dispatch) and download the artifacts.
 
 **Smoke tests** (`smoke-*` jobs, scripts in `packaging/smoke/`): each package is installed on fresh runners
 (Windows installer; `.deb` with apt on Ubuntu 22.04 + 24.04 (+ 24.04 ARM) under Xvfb + D-Bus + dunst; `.dmg` on macOS
-arm64 + Intel), dpomo runs a real 1-minute focus driven by `dpomo --toggle`, quits with `--quit`, and the
+arm64 + Intel), Pomolotl runs a real 1-minute focus driven by `pomolotl --toggle`, quits with `--quit`, and the
 script checks `state.toml` recorded the session (Windows also uninstalls and checks the registry cleanup).
 Screenshots and logs are uploaded as `smoke-*` artifacts — **look at them** after packaging changes.
 The release job only publishes if every smoke test passes.
 
 - File names have **no version** on purpose: README links use `releases/latest/download/<file>`. Don't rename them.
 - Never change `AppId` in the `.iss` file (breaks upgrades/uninstall).
-- The installer is per-user (`PrivilegesRequired=lowest`), kills a running dpomo before installing, and on
+- The installer is per-user (`PrivilegesRequired=lowest`), kills a running Pomolotl before installing, and on
   uninstall removes the autostart `Run` value and the toast AUMID key (both created by the app at runtime).
 - Icons: `assets/icon.svg` is the source (generated by `tools/gen_icon.py` from the axolotl head).
   `icon.png/.ico/.icns` are generated from it — rerun `python tools/gen_icon.py` (needs Pillow) after changes.
@@ -293,8 +293,8 @@ The release job only publishes if every smoke test passes.
   `icon.svg` at startup (`main.rs::window_icon`).
 - **Code signing** is wired in `release.yml` but stays off until configured:
   - Windows (free, SignPath Foundation): after the project is accepted at https://signpath.org/apply, create
-    in SignPath a project `dpomo`, a signing policy `release-signing`, artifact configurations `exe`
-    (zip root containing `dpomo.exe`) and `installer` (zip root containing `dpomo-setup.exe`), link the
+    in SignPath a project `pomolotl`, a signing policy `release-signing`, artifact configurations `exe`
+    (zip root containing `pomolotl.exe`) and `installer` (zip root containing `pomolotl-setup.exe`), link the
     GitHub connector, then add the repo variable `SIGNPATH_ORGANIZATION_ID` and secret `SIGNPATH_API_TOKEN`.
     Every release then waits for a manual approval in SignPath. Update the SmartScreen notes.
   - The "Code signing policy" section was removed from the README and site until signing is real (the
@@ -302,7 +302,7 @@ The release job only publishes if every smoke test passes.
     when applying add it back to both READMEs and `site/index.html` (EN + PT), after "Privacy":
     > Windows releases are built from this repository by GitHub Actions (release.yml) and signed.
     > Free code signing provided by SignPath.io, certificate by SignPath Foundation.
-    > Committers and reviewers: @diegorezm · Approvers: @diegorezm · See Privacy for what dpomo sends.
+    > Committers and reviewers: @diegorezm · Approvers: @diegorezm · See Privacy for what Pomolotl sends.
   - SignPath rules we must keep: that "Code signing policy" section (attribution line, roles, privacy),
     update check disclosed + optional at install time (the installer's *Check for new versions* task),
     uninstaller, MFA on GitHub and SignPath, product name/version in file metadata.
@@ -334,7 +334,7 @@ SEO: titles/descriptions carry the search phrases ("free Pomodoro timer for Wind
 and `<!-- /gen:NAME -->` comes from the code (`Config::default()`, built-in themes/characters, poses,
 egui key names, `instance::FLAGS`); descriptions are the EN/PT tables in `docs.rs`. Edit the hand-written
 parts freely, never the generated ones. `cargo test` fails when the page is stale or a setting/flag/theme
-color has no description; `DPOMO_BLESS=1 cargo test docs` rewrites it. The page holds both languages:
+color has no description; `POMOLOTL_BLESS=1 cargo test docs` rewrites it. The page holds both languages:
 `class="en"` / `class="pt"` elements; `build.py` adds `html.lang-pt` to the `/pt/` copy, which shows the
 Portuguese (don't name the class `pt`: the `<html>` itself would get hidden).
 The project has **no budget**: free hosting only, no custom domain.
@@ -354,15 +354,15 @@ The project has **no budget**: free hosting only, no custom domain.
 ## Verifying visual changes
 
 There's no automated UI test. Run the app and look at it in **both layouts** (cozy and classic), in a dark theme (default `Rosé Pine`) **and** a light one (`Latte`), at the minimum window size (280×380) and with `ui_scale` at 0.75 and 1.75.
-Tip: set the theme by editing the config file (path is shown at the bottom of the settings screen), e.g. `%APPDATA%\dpomo\config.toml` on Windows.
+Tip: set the theme by editing the config file (path is shown at the bottom of the settings screen), e.g. `%APPDATA%\pomolotl\config.toml` on Windows.
 
 ## Gotchas
 
 - Unfinished work and ideas live in `TODO.md` (check items off, don't delete them); user-visible
   changes go in `CHANGELOG.md`.
 
-- Only one dpomo runs at a time. When testing, kill the old one first or your new build will just
-  "show" the old one and exit immediately. (`Get-Process dpomo | Stop-Process` / `pkill dpomo`)
+- Only one Pomolotl runs at a time. When testing, kill the old one first or your new build will just
+  "show" the old one and exit immediately. (`Get-Process pomolotl | Stop-Process` / `pkill pomolotl`)
 - Tests that touch the OS (autostart) are `#[ignore]`: `cargo test -- --ignored`.
 - Windows toasts need the AUMID registered in `system::init` (HKCU, no admin). Without it they show as "Windows PowerShell".
 

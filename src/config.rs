@@ -20,9 +20,9 @@ use crate::theme::{self, Theme, Themes};
 use crate::timer::Phase;
 
 const HEADER: &str = "\
-# dpomo config. Edit freely: changes apply while the app is running.
+# pomolotl config. Edit freely: changes apply while the app is running.
 # Every key is optional; anything missing uses its default.
-# Every option explained: https://diegorezm.github.io/dpomo/docs.html
+# Every option explained: https://diegorezm.github.io/pomolotl/docs.html
 
 ";
 
@@ -351,7 +351,7 @@ pub enum LoadError {
 
 impl Config {
     pub fn path() -> Option<PathBuf> {
-        dirs::config_dir().map(|d| d.join("dpomo").join("config.toml"))
+        dirs::config_dir().map(|d| d.join("pomolotl").join("config.toml"))
     }
 
     pub fn read() -> Result<Self, LoadError> {
@@ -383,7 +383,7 @@ impl Config {
             Err(LoadError::Missing) => {
                 let config = Self::default();
                 if let Err(e) = config.save() {
-                    eprintln!("dpomo: could not write default config: {e}");
+                    eprintln!("pomolotl: could not write default config: {e}");
                 }
                 (config, None)
             }

@@ -26,14 +26,14 @@ const TRIM_MEMORY_DELAY: Duration = Duration::from_secs(2);
 const MINI_SAVE_DELAY: Duration = Duration::from_secs(1);
 
 fn settings_viewport() -> ViewportId {
-    ViewportId::from_hash_of("dpomo_settings")
+    ViewportId::from_hash_of("pomolotl_settings")
 }
 
 fn mini_viewport() -> ViewportId {
-    ViewportId::from_hash_of("dpomo_mini")
+    ViewportId::from_hash_of("pomolotl_mini")
 }
 
-pub struct DpomoApp {
+pub struct PomolotlApp {
     config: Config,
     /// Last state written to disk, to avoid pointless writes.
     saved: Config,
@@ -75,7 +75,7 @@ pub struct DpomoApp {
     ticker: sound::Ticker,
 }
 
-impl DpomoApp {
+impl PomolotlApp {
     /// `listener` is the single-instance socket, if we own it.
     pub fn new(
         cc: &eframe::CreationContext<'_>,
@@ -148,7 +148,7 @@ impl DpomoApp {
         }
         if self.config != self.saved {
             if let Err(e) = self.config.save() {
-                eprintln!("dpomo: could not save config: {e}");
+                eprintln!("pomolotl: could not save config: {e}");
             }
             self.saved = self.config.clone();
         }
@@ -468,7 +468,7 @@ impl DpomoApp {
                     self.settings.system_error = None;
                 }
                 Err(e) => {
-                    eprintln!("dpomo: tray unavailable: {e}");
+                    eprintln!("pomolotl: tray unavailable: {e}");
                     self.settings.system_error = Some(fill(tr().tray_unavailable, &[("e", &e)]));
                     self.config.behavior.tray = false;
                     // Never stay hidden without a way back.
@@ -483,15 +483,15 @@ impl DpomoApp {
         let phase = self.timer.phase();
         let label = tr().phase(phase);
         let tooltip = if self.timer.is_pristine() {
-            format!("dpomo · {label}")
+            format!("Pomolotl · {label}")
         } else if self.timer.is_running() {
             format!(
-                "dpomo · {} {label}",
+                "Pomolotl · {} {label}",
                 format_remaining(self.timer.remaining(now))
             )
         } else {
             format!(
-                "dpomo · {} {label} {}",
+                "Pomolotl · {} {label} {}",
                 format_remaining(self.timer.remaining(now)),
                 tr().paused
             )
@@ -556,7 +556,7 @@ impl DpomoApp {
                 tr().phase(self.timer.phase())
             )
         } else {
-            "dpomo".to_owned()
+            "Pomolotl".to_owned()
         };
         if title != self.title {
             ctx.send_viewport_cmd(ViewportCommand::Title(title.clone()));
@@ -600,7 +600,7 @@ impl DpomoApp {
     }
 }
 
-impl DpomoApp {
+impl PomolotlApp {
     /// Small clickable notes at the bottom-left of the main screen.
     fn badges(&mut self, ctx: &egui::Context, theme: &Theme) {
         let t = tr();
@@ -649,8 +649,8 @@ impl DpomoApp {
     /// The settings window (its own OS window, drawn in this pass).
     fn settings_window(&mut self, ctx: &egui::Context, theme: &Theme) {
         let builder = ViewportBuilder::default()
-            .with_title(format!("dpomo · {}", tr().settings))
-            .with_app_id("dpomo")
+            .with_title(format!("Pomolotl · {}", tr().settings))
+            .with_app_id("pomolotl")
             .with_icon(self.icon.clone())
             .with_inner_size([900.0, 680.0])
             .with_min_inner_size([680.0, 460.0]);
@@ -706,8 +706,8 @@ impl DpomoApp {
             }
         };
         let builder = ViewportBuilder::default()
-            .with_title("dpomo")
-            .with_app_id("dpomo")
+            .with_title("Pomolotl")
+            .with_app_id("pomolotl")
             .with_icon(self.icon.clone())
             .with_decorations(false)
             .with_resizable(true)
@@ -795,7 +795,7 @@ fn mini_corner(ctx: &egui::Context, size: Vec2) -> Pos2 {
     pos2((monitor.x - size.x - 24.0).max(0.0), 24.0)
 }
 
-impl eframe::App for DpomoApp {
+impl eframe::App for PomolotlApp {
     fn logic(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         let now = Instant::now();
         self.handle_commands(ctx, now);

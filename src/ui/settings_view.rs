@@ -303,7 +303,7 @@ fn sidebar(ui: &mut Ui, state: &mut State, theme: &Theme) {
     }
     ui.with_layout(Layout::bottom_up(Align::Min), |ui| {
         ui.label(
-            RichText::new(concat!("dpomo v", env!("CARGO_PKG_VERSION")))
+            RichText::new(concat!("Pomolotl v", env!("CARGO_PKG_VERSION")))
                 .size(12.5)
                 .color(theme.muted),
         );

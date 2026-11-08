@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 160" width="200" height="160">
-  <!-- dpomo character. #e05a4f becomes the phase color and #7a6464 the theme's muted text color. -->
+  <!-- pomolotl character. #e05a4f becomes the phase color and #7a6464 the theme's muted text color. -->
   <ellipse cx="100" cy="146" rx="66" ry="6" fill="#3b2a2a" opacity="0.12"/>
   <g fill="none" stroke="#7a6464" stroke-width="2.4" stroke-linecap="round" opacity="0.7"><path d="M36,82 q-4,-5 0,-10 q4,-5 0,-10"/><path d="M44,84 q-4,-5 0,-10 q4,-5 0,-10"/></g>
   <g fill="none" stroke="#7a6464" stroke-width="2.4" stroke-linecap="round" opacity="0.7"><path d="M152,82 q-4,-5 0,-10 q4,-5 0,-10"/><path d="M160,84 q-4,-5 0,-10 q4,-5 0,-10"/></g>

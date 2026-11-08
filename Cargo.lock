@@ -882,30 +882,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d8b14ccef22fc6f5a8f4d7d768562a182c04ce9a3b3157b91390b52ddfdf1a76"
 
 [[package]]
-name = "dpomo"
-version = "1.0.0"
-dependencies = [
- "auto-launch",
- "chrono",
- "dirs 7.0.0",
- "eframe",
- "egui",
- "egui_extras",
- "notify-rust",
- "png 0.17.16",
- "rodio",
- "serde",
- "serde_json",
- "sys-locale",
- "toml",
- "tray-icon",
- "wgpu",
- "windows-registry",
- "windows-sys 0.61.2",
- "winresource",
-]
-
-[[package]]
 name = "ecolor"
 version = "0.37.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2900,6 +2876,30 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "50596ddc09eb5ad5f75cacd40209568e66df71baf86e1499a0e99c4cff12a5a6"
 dependencies = [
  "arrayvec",
+]
+
+[[package]]
+name = "pomolotl"
+version = "1.0.0"
+dependencies = [
+ "auto-launch",
+ "chrono",
+ "dirs 7.0.0",
+ "eframe",
+ "egui",
+ "egui_extras",
+ "notify-rust",
+ "png 0.17.16",
+ "rodio",
+ "serde",
+ "serde_json",
+ "sys-locale",
+ "toml",
+ "tray-icon",
+ "wgpu",
+ "windows-registry",
+ "windows-sys 0.61.2",
+ "winresource",
 ]
 
 [[package]]

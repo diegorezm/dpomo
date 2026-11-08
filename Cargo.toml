@@ -1,17 +1,17 @@
 [package]
-name = "dpomo"
+name = "pomolotl"
 version = "1.0.0"
 edition = "2024"
 description = "A beautiful, customizable and lightweight Pomodoro timer built with Rust + egui."
 license = "MIT"
-repository = "https://github.com/diegorezm/dpomo"
+repository = "https://github.com/diegorezm/pomolotl"
 readme = "README.md"
 keywords = ["pomodoro", "timer", "egui", "productivity"]
 categories = ["gui"]
 
 # Linux .deb package (cargo deb). See .github/workflows/release.yml.
 [package.metadata.deb]
-name = "dpomo"
+name = "pomolotl"
 maintainer = "diegorezm <dmourarezende@gmail.com>"
 section = "utils"
 extended-description = "A beautiful, customizable and lightweight Pomodoro timer with an axolotl companion. Lives in the system tray and sends notifications."
@@ -20,10 +20,10 @@ depends = "$auto, libxkbcommon0, libxkbcommon-x11-0, libgl1, libegl1, libasound2
 # curl is only used for the daily update check.
 recommends = "curl"
 assets = [
-    ["target/release/dpomo", "usr/bin/", "755"],
-    ["packaging/linux/dpomo.desktop", "usr/share/applications/", "644"],
-    ["assets/icon.png", "usr/share/icons/hicolor/512x512/apps/dpomo.png", "644"],
-    ["README.md", "usr/share/doc/dpomo/README.md", "644"],
+    ["target/release/pomolotl", "usr/bin/", "755"],
+    ["packaging/linux/pomolotl.desktop", "usr/share/applications/", "644"],
+    ["assets/icon.png", "usr/share/icons/hicolor/512x512/apps/pomolotl.png", "644"],
+    ["README.md", "usr/share/doc/pomolotl/README.md", "644"],
 ]
 
 [dependencies]
@@ -60,7 +60,7 @@ egui_extras = { version = "0.37.0", default-features = false, features = ["svg"]
 # Direct3D 12 only, with its software rasterizer. Not used on a normal PC.
 eframe = { version = "0.37.0", default-features = false, features = ["wgpu_no_default_features"] }
 wgpu = { version = "30", default-features = false, features = ["dx12", "wgsl", "std"] }
-# Registers an AppUserModelID so toasts say "dpomo" (already in the tree via auto-launch).
+# Registers an AppUserModelID so toasts say "pomolotl" (already in the tree via auto-launch).
 windows-registry = "0.6.1"
 # Trims the working set while hidden; colors the title bar (already in the tree via winit).
 windows-sys = { version = "0.61", features = ["Win32_Graphics_Dwm", "Win32_System_ProcessStatus", "Win32_System_Threading", "Win32_UI_WindowsAndMessaging"] }

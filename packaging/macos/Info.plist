@@ -3,11 +3,11 @@
 <!-- VERSION is replaced by .github/workflows/release.yml -->
 <plist version="1.0">
 <dict>
-  <key>CFBundleName</key><string>dpomo</string>
-  <key>CFBundleDisplayName</key><string>dpomo</string>
-  <key>CFBundleIdentifier</key><string>io.github.diegorezm.dpomo</string>
-  <key>CFBundleExecutable</key><string>dpomo</string>
-  <key>CFBundleIconFile</key><string>dpomo.icns</string>
+  <key>CFBundleName</key><string>Pomolotl</string>
+  <key>CFBundleDisplayName</key><string>Pomolotl</string>
+  <key>CFBundleIdentifier</key><string>io.github.diegorezm.pomolotl</string>
+  <key>CFBundleExecutable</key><string>pomolotl</string>
+  <key>CFBundleIconFile</key><string>pomolotl.icns</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleShortVersionString</key><string>VERSION</string>
   <key>CFBundleVersion</key><string>VERSION</string>

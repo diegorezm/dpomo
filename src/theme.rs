@@ -1,7 +1,7 @@
 //! Color themes, loaded from TOML files.
 //!
 //! Built-ins live in `themes/*.toml` (embedded at compile time by `build.rs`);
-//! users add their own to `<config dir>/dpomo/themes/`.
+//! users add their own to `<config dir>/pomolotl/themes/`.
 
 use std::path::{Path, PathBuf};
 
@@ -68,7 +68,7 @@ fn parse(text: &str, stem: &str) -> Result<(String, Theme), toml::de::Error> {
     Ok((file.name.unwrap_or_else(|| stem.to_owned()), file.theme))
 }
 
-/// Every available theme: built-ins plus `<config>/dpomo/themes/*.toml`.
+/// Every available theme: built-ins plus `<config>/pomolotl/themes/*.toml`.
 /// A user theme with the same name as a built-in replaces it.
 #[derive(Clone, Debug, Default)]
 pub struct Themes {
@@ -329,7 +329,7 @@ mod tests {
 
     #[test]
     fn user_dir_overrides_and_reports_errors() {
-        let dir = std::env::temp_dir().join(format!("dpomo-test-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("pomolotl-test-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         let nord = builtin::BUILTIN
             .iter()

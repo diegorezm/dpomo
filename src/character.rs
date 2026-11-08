@@ -1,7 +1,7 @@
 //! Character packs: one SVG per pose, recolored with the theme at runtime.
 //!
 //! Built-ins live in `characters/<id>/` (embedded by `build.rs`); users add
-//! their own folders to `<config dir>/dpomo/characters/<id>/`.
+//! their own folders to `<config dir>/pomolotl/characters/<id>/`.
 //!
 //! A pack folder holds `idle.svg` (required), `focus.svg`, `short_break.svg`,
 //! `long_break.svg` (each falls back to `idle.svg`) and an optional

@@ -1,11 +1,11 @@
-# 🍅 dpomo
+# 🍅 Pomolotl
 
 A **beautiful**, **lightweight** and **customizable** Pomodoro timer, with a little friend who works
 and rests with you. 🦎💗 Built with Rust and [egui](https://github.com/emilk/egui).
 
-**English** · [Português](README.pt-BR.md) · 🌐 [Website](https://diegorezm.github.io/dpomo/)
+**English** · [Português](README.pt-BR.md) · 🌐 [Website](https://diegorezm.github.io/pomolotl/)
 
-![dpomo](assets/screenshot.png)
+![Pomolotl](assets/screenshot.png)
 
 ## What's Pomodoro?
 
@@ -16,22 +16,22 @@ Focus for **25 minutes**, rest for **5**. Every **4 sessions**, take a long **15
 
 | System | Download | How to install |
 | ------ | -------- | -------------- |
-| **Windows** | [dpomo-setup.exe](https://github.com/diegorezm/dpomo/releases/latest/download/dpomo-setup.exe) | Open it and click *Next* until the end. No admin password needed. |
-| **Linux** (Ubuntu/Debian) · *beta* | [dpomo-linux-amd64.deb](https://github.com/diegorezm/dpomo/releases/latest/download/dpomo-linux-amd64.deb) | Double-click it, or `sudo apt install ./dpomo-linux-amd64.deb` |
-| **macOS** · *beta* | [dpomo-macos.dmg](https://github.com/diegorezm/dpomo/releases/latest/download/dpomo-macos.dmg) | Drag dpomo into *Applications*. |
+| **Windows** | [pomolotl-setup.exe](https://github.com/diegorezm/pomolotl/releases/latest/download/pomolotl-setup.exe) | Open it and click *Next* until the end. No admin password needed. |
+| **Linux** (Ubuntu/Debian) · *beta* | [pomolotl-linux-amd64.deb](https://github.com/diegorezm/pomolotl/releases/latest/download/pomolotl-linux-amd64.deb) | Double-click it, or `sudo apt install ./pomolotl-linux-amd64.deb` |
+| **macOS** · *beta* | [pomolotl-macos.dmg](https://github.com/diegorezm/pomolotl/releases/latest/download/pomolotl-macos.dmg) | Drag Pomolotl into *Applications*. |
 
 More options (a portable Windows version, a `.tar.gz` for other Linux distros, ARM64 Linux builds) are on the
-[releases page](https://github.com/diegorezm/dpomo/releases/latest).
+[releases page](https://github.com/diegorezm/pomolotl/releases/latest).
 
 > **Windows:** if you see "Windows protected your PC", click *More info* → *Run anyway*.
 > That happens because the installer isn't digitally signed yet.
 >
-> **macOS:** the first time, **right-click** dpomo → *Open* → *Open*. The app isn't notarized by Apple,
+> **macOS:** the first time, **right-click** Pomolotl → *Open* → *Open*. The app isn't notarized by Apple,
 > so macOS asks once.
 >
 > **Linux:** to see the tray icon on GNOME, install the *AppIndicator* extension (KDE works out of the box).
 
-To uninstall on Windows: *Settings → Apps → dpomo → Uninstall*.
+To uninstall on Windows: *Settings → Apps → Pomolotl → Uninstall*.
 
 ## How to use
 
@@ -44,12 +44,12 @@ naps on long ones.
 
 ### It runs in the background
 
-dpomo lives in the **system tray** (the small icons next to the clock):
+Pomolotl lives in the **system tray** (the small icons next to the clock):
 
 - Closing the window **doesn't quit**: the timer keeps going in the tray.
 - The tray icon shows a live **progress ring**; hover it to see the time left.
 - **Click** the icon to show/hide the window; **right-click** for the menu (start/pause, skip, restart, **quit**).
-- Opened dpomo twice by accident? No problem, it just shows the window that's already running.
+- Opened Pomolotl twice by accident? No problem, it just shows the window that's already running.
 - Closed the app or restarted your computer mid-session? It **picks up where you left off** (paused).
 - Want it to start with your computer? Turn on **Start when I log in** in the settings.
 
@@ -58,7 +58,7 @@ dpomo lives in the **system tray** (the small icons next to the clock):
 Want the time always in sight? Turn on the **floating timer** (the small square button at the top of
 the window, the `M` key, or the tray menu): a little window that stays on top of everything with the time
 left, the phase and your companion. Drag it anywhere, drag its corner to make it bigger or smaller,
-double-click it to open dpomo. It keeps working while the main window is hidden in the tray.
+double-click it to open Pomolotl. It keeps working while the main window is hidden in the tray.
 
 ### Shortcuts
 
@@ -76,20 +76,20 @@ Every shortcut can be changed in `config.toml` (the `[keys]` section, see [Confi
 
 ### Command line
 
-Running `dpomo` again with one of these talks to the dpomo that's already running (or starts it):
+Running `pomolotl` again with one of these talks to the Pomolotl that's already running (or starts it):
 
 | Command | What it does |
 | ------- | ------------ |
-| `dpomo --toggle` | Start / pause |
-| `dpomo --skip` | Skip to the next phase |
-| `dpomo --reset` | Restart the phase |
-| `dpomo --show` | Show the window |
-| `dpomo --mini` | Show / hide the floating timer |
-| `dpomo --settings` | Open the settings |
-| `dpomo --quit` | Quit |
+| `pomolotl --toggle` | Start / pause |
+| `pomolotl --skip` | Skip to the next phase |
+| `pomolotl --reset` | Restart the phase |
+| `pomolotl --show` | Show the window |
+| `pomolotl --mini` | Show / hide the floating timer |
+| `pomolotl --settings` | Open the settings |
+| `pomolotl --quit` | Quit |
 
-Handy for a **global shortcut**: bind `dpomo --toggle` to a key in your desktop's keyboard settings
-(on Windows: a shortcut to `dpomo.exe --toggle` with a *Shortcut key* in its properties).
+Handy for a **global shortcut**: bind `pomolotl --toggle` to a key in your desktop's keyboard settings
+(on Windows: a shortcut to `pomolotl.exe --toggle` with a *Shortcut key* in its properties).
 
 ## Make it yours
 
@@ -107,13 +107,13 @@ Click the settings icon (top-right corner). You can change:
 ## Configuration
 
 **All** settings live in a plain text file, `config.toml`. The settings screen just edits that file for you.
-It's created the first time dpomo opens:
+It's created the first time Pomolotl opens:
 
 | System | Location |
 | ------ | -------- |
-| Windows | `%APPDATA%\dpomo\config.toml` |
-| Linux | `~/.config/dpomo/config.toml` |
-| macOS | `~/Library/Application Support/dpomo/config.toml` |
+| Windows | `%APPDATA%\pomolotl\config.toml` |
+| Linux | `~/.config/pomolotl/config.toml` |
+| macOS | `~/Library/Application Support/pomolotl/config.toml` |
 
 (The settings screen has **Open config.toml** and **Open folder** buttons.)
 
@@ -121,7 +121,7 @@ It's created the first time dpomo opens:
 - Delete anything you don't care about: missing keys use their default.
 - Made a typo? The app tells you which line is wrong and **never overwrites your file** until you fix it.
 
-Everything you can configure, with the defaults (the [configuration guide](https://diegorezm.github.io/dpomo/docs.html)
+Everything you can configure, with the defaults (the [configuration guide](https://diegorezm.github.io/pomolotl/docs.html)
 explains each option, plus key names and how to make themes and characters):
 
 ```toml
@@ -204,7 +204,7 @@ Your progress and statistics are kept separately in `state.toml` (same folder), 
 ### Make your own theme 🎨
 
 Themes are `.toml` files. Put yours in a `themes` folder next to `config.toml`
-(e.g. `%APPDATA%\dpomo\themes\dracula.toml`):
+(e.g. `%APPDATA%\pomolotl\themes\dracula.toml`):
 
 ```toml
 name = "Dracula"
@@ -224,7 +224,7 @@ Want to share it? Just send the file to someone. 😉
 
 ### Make your own character 🦎
 
-Create a folder in `characters`, next to `config.toml` (e.g. `%APPDATA%\dpomo\characters\cat\`), with these SVGs:
+Create a folder in `characters`, next to `config.toml` (e.g. `%APPDATA%\pomolotl\characters\cat\`), with these SVGs:
 
 | File | When it shows |
 | ---- | ------------- |
@@ -258,15 +258,15 @@ Measured on Windows 11 (release build, 16-core CPU):
 Memory (Task Manager's "Memory" column): **~12 MB** open and paused, **~45 MB** while the smooth
 animation runs, **~7 MB** hidden in the tray. The Windows executable is ~13 MB.
 
-No OpenGL on your machine (virtual machine, remote desktop, Windows on ARM)? dpomo switches to
+No OpenGL on your machine (virtual machine, remote desktop, Windows on ARM)? Pomolotl switches to
 Direct3D 12 by itself; it uses more memory that way, but it works.
 
 ## Privacy
 
-dpomo has no accounts, no telemetry and no ads. Your settings, statistics and session stay on your
+Pomolotl has no accounts, no telemetry and no ads. Your settings, statistics and session stay on your
 computer, in the config folder.
 
-The only network request is the **update check**: once a day dpomo asks GitHub's public API
+The only network request is the **update check**: once a day Pomolotl asks GitHub's public API
 (`api.github.com`) for the number of the latest release. Nothing about you is sent, only a normal web
 request (GitHub sees your IP address, see [GitHub's privacy statement](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement)).
 It never downloads or installs anything by itself. Turn it off in the settings, with
@@ -277,7 +277,7 @@ It never downloads or installs anything by itself. Turn it off in the settings, 
 You need [Rust](https://rustup.rs):
 
 ```sh
-cargo install --git https://github.com/diegorezm/dpomo
+cargo install --git https://github.com/diegorezm/pomolotl
 ```
 
 > **Linux:** first install `libxkbcommon-dev`, `libgl1-mesa-dev`, `libwayland-dev` and `libasound2-dev`.

@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title data-i18n="docs_title">dpomo — configuration guide</title>
-<meta name="description" data-i18n-content="docs_desc" content="Every dpomo setting with its default value, how to edit config.toml by hand, and how to make your own themes and characters.">
-<link rel="canonical" href="https://diegorezm.github.io/dpomo/docs.html">
-<link rel="alternate" hreflang="en" href="https://diegorezm.github.io/dpomo/docs.html">
-<link rel="alternate" hreflang="pt-BR" href="https://diegorezm.github.io/dpomo/pt/docs.html">
-<link rel="alternate" hreflang="x-default" href="https://diegorezm.github.io/dpomo/docs.html">
+<title data-i18n="docs_title">Pomolotl — configuration guide</title>
+<meta name="description" data-i18n-content="docs_desc" content="Every Pomolotl setting with its default value, how to edit config.toml by hand, and how to make your own themes and characters.">
+<link rel="canonical" href="https://diegorezm.github.io/pomolotl/docs.html">
+<link rel="alternate" hreflang="en" href="https://diegorezm.github.io/pomolotl/docs.html">
+<link rel="alternate" hreflang="pt-BR" href="https://diegorezm.github.io/pomolotl/pt/docs.html">
+<link rel="alternate" hreflang="x-default" href="https://diegorezm.github.io/pomolotl/docs.html">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <meta name="theme-color" content="#f6ecdf" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#191724" media="(prefers-color-scheme: dark)">
@@ -75,10 +75,10 @@ tr:first-child td, tr:first-child th { border-top: 0; }
 <body>
 <div class="wrap">
   <header class="top">
-    <a class="brand display" href="./"><img src="icon.svg" alt="" width="36" height="36">dpomo</a>
+    <a class="brand display" href="./"><img src="icon.svg" alt="" width="36" height="36">Pomolotl</a>
     <nav>
       <a class="chip hide-sm" href="./#download"><span class="en">Download</span><span class="pt">Baixar</span></a>
-      <a class="chip hide-sm" href="https://github.com/diegorezm/dpomo">GitHub</a>
+      <a class="chip hide-sm" href="https://github.com/diegorezm/pomolotl">GitHub</a>
       <a class="chip" id="lang" href="pt/docs.html" hreflang="pt-BR" lang="pt-BR" data-i18n="lang_switch">Português</a>
     </nav>
   </header>
@@ -103,35 +103,35 @@ tr:first-child td, tr:first-child th { border-top: 0; }
 
     <main>
       <h1 class="display"><span class="en">Configuration guide</span><span class="pt">Guia de configuração</span></h1>
-      <p class="lead en">Everything in dpomo can be changed in the settings window, or by hand in a plain text file. This page lists every option and shows how to make your own themes and characters.</p>
-      <p class="lead pt">Tudo no dpomo pode ser mudado na janela de ajustes, ou à mão num arquivo de texto. Esta página lista todas as opções e mostra como criar seus próprios temas e personagens.</p>
-      <p class="note en">Generated from dpomo's <a href="https://github.com/diegorezm/dpomo/blob/main/src/docs.rs">source code</a>, so the defaults and lists are always the real ones.</p>
-      <p class="note pt">Gerada a partir do <a href="https://github.com/diegorezm/dpomo/blob/main/src/docs.rs">código-fonte</a> do dpomo, então os padrões e as listas são sempre os de verdade.</p>
+      <p class="lead en">Everything in Pomolotl can be changed in the settings window, or by hand in a plain text file. This page lists every option and shows how to make your own themes and characters.</p>
+      <p class="lead pt">Tudo no Pomolotl pode ser mudado na janela de ajustes, ou à mão num arquivo de texto. Esta página lista todas as opções e mostra como criar seus próprios temas e personagens.</p>
+      <p class="note en">Generated from Pomolotl's <a href="https://github.com/diegorezm/pomolotl/blob/main/src/docs.rs">source code</a>, so the defaults and lists are always the real ones.</p>
+      <p class="note pt">Gerada a partir do <a href="https://github.com/diegorezm/pomolotl/blob/main/src/docs.rs">código-fonte</a> do Pomolotl, então os padrões e as listas são sempre os de verdade.</p>
 
       <section id="file">
         <h2 class="display"><span class="en">The config file</span><span class="pt">O arquivo de configuração</span></h2>
-        <p class="en">All settings live in <code>config.toml</code>. dpomo creates it the first time it opens:</p>
-        <p class="pt">Todos os ajustes ficam no <code>config.toml</code>. O dpomo cria ele na primeira vez que abre:</p>
+        <p class="en">All settings live in <code>config.toml</code>. Pomolotl creates it the first time it opens:</p>
+        <p class="pt">Todos os ajustes ficam no <code>config.toml</code>. O Pomolotl cria ele na primeira vez que abre:</p>
         <div class="card">
           <table>
-            <tr><th>Windows</th><td><code>%APPDATA%\dpomo\config.toml</code></td></tr>
-            <tr><th>Linux</th><td><code>~/.config/dpomo/config.toml</code></td></tr>
-            <tr><th>macOS</th><td><code>~/Library/Application Support/dpomo/config.toml</code></td></tr>
+            <tr><th>Windows</th><td><code>%APPDATA%\pomolotl\config.toml</code></td></tr>
+            <tr><th>Linux</th><td><code>~/.config/pomolotl/config.toml</code></td></tr>
+            <tr><th>macOS</th><td><code>~/Library/Application Support/pomolotl/config.toml</code></td></tr>
           </table>
         </div>
         <ul class="en">
           <li>Shortcut: in the settings window, <b>Configuration file → Open config.toml</b> (or <b>Open folder</b>).</li>
-          <li><b>Save the file and dpomo applies it right away</b>, no restart needed.</li>
+          <li><b>Save the file and Pomolotl applies it right away</b>, no restart needed.</li>
           <li>Every key is optional. Delete what you don't care about: missing keys use their default.</li>
-          <li>Made a typo? dpomo shows the line and what's wrong, keeps running with your last good settings, and <b>never overwrites your file</b> until you fix it (or click <b>Replace it with the current settings</b>).</li>
-          <li>Your current session and statistics are in <code>state.toml</code>, in the same folder. dpomo writes that one; you don't need to touch it.</li>
+          <li>Made a typo? Pomolotl shows the line and what's wrong, keeps running with your last good settings, and <b>never overwrites your file</b> until you fix it (or click <b>Replace it with the current settings</b>).</li>
+          <li>Your current session and statistics are in <code>state.toml</code>, in the same folder. Pomolotl writes that one; you don't need to touch it.</li>
         </ul>
         <ul class="pt">
           <li>Atalho: na janela de ajustes, <b>Arquivo de configuração → Abrir config.toml</b> (ou <b>Abrir pasta</b>).</li>
-          <li><b>Salve o arquivo e o dpomo aplica na hora</b>, sem reiniciar.</li>
+          <li><b>Salve o arquivo e o Pomolotl aplica na hora</b>, sem reiniciar.</li>
           <li>Todas as chaves são opcionais. Apague o que não te interessa: o que faltar usa o padrão.</li>
-          <li>Errou alguma coisa? O dpomo mostra a linha e o que está errado, continua com os últimos ajustes válidos e <b>nunca sobrescreve seu arquivo</b> até você corrigir (ou clicar em <b>Substituir pelos ajustes atuais</b>).</li>
-          <li>Sua sessão atual e as estatísticas ficam no <code>state.toml</code>, na mesma pasta. Quem escreve nele é o dpomo; você não precisa mexer.</li>
+          <li>Errou alguma coisa? O Pomolotl mostra a linha e o que está errado, continua com os últimos ajustes válidos e <b>nunca sobrescreve seu arquivo</b> até você corrigir (ou clicar em <b>Substituir pelos ajustes atuais</b>).</li>
+          <li>Sua sessão atual e as estatísticas ficam no <code>state.toml</code>, na mesma pasta. Quem escreve nele é o Pomolotl; você não precisa mexer.</li>
         </ul>
         <p class="en">A small example: longer sessions, a light theme and the capybara.</p>
         <p class="pt">Um exemplo pequeno: sessões mais longas, um tema claro e a capivara.</p>
@@ -183,11 +183,11 @@ character = "capybara"</code></pre>
 <div id="behavior.notify_on_finish"><dt><code>notify_on_finish = true</code></dt><dd><span class="en">Flash the taskbar / dock icon when a phase ends.</span><span class="pt" lang="pt-BR">Piscar o ícone na barra de tarefas / dock quando uma fase termina.</span></dd></div>
 <div id="behavior.focus_on_finish"><dt><code>focus_on_finish = false</code></dt><dd><span class="en">Bring the main window to the front when a phase ends.</span><span class="pt" lang="pt-BR">Trazer a janela principal para a frente quando uma fase termina.</span></dd></div>
 <div id="behavior.time_in_title"><dt><code>time_in_title = true</code></dt><dd><span class="en">Show the time left in the window title (and so in the taskbar).</span><span class="pt" lang="pt-BR">Mostrar o tempo restante no título da janela (e na barra de tarefas).</span></dd></div>
-<div id="behavior.tray"><dt><code>tray = true</code></dt><dd><span class="en">Tray icon with live progress and a menu. If the system has no tray, dpomo turns this off by itself.</span><span class="pt" lang="pt-BR">Ícone na bandeja com o progresso e um menu. Se o sistema não tiver bandeja, o dpomo desliga isso sozinho.</span></dd></div>
+<div id="behavior.tray"><dt><code>tray = true</code></dt><dd><span class="en">Tray icon with live progress and a menu. If the system has no tray, Pomolotl turns this off by itself.</span><span class="pt" lang="pt-BR">Ícone na bandeja com o progresso e um menu. Se o sistema não tiver bandeja, o Pomolotl desliga isso sozinho.</span></dd></div>
 <div id="behavior.close_to_tray"><dt><code>close_to_tray = true</code></dt><dd><span class="en">Closing the window hides it in the tray and the timer keeps going. <code>false</code>: closing quits.</span><span class="pt" lang="pt-BR">Fechar a janela esconde na bandeja e o timer continua. <code>false</code>: fechar encerra o app.</span></dd></div>
 <div id="behavior.system_notification"><dt><code>system_notification = true</code></dt><dd><span class="en">Show a system notification when a phase ends.</span><span class="pt" lang="pt-BR">Mostrar uma notificação do sistema quando uma fase termina.</span></dd></div>
-<div id="behavior.start_with_system"><dt><code>start_with_system = false</code></dt><dd><span class="en">Start dpomo, hidden in the tray, when you log in.</span><span class="pt" lang="pt-BR">Abrir o dpomo, escondido na bandeja, quando você entra no computador.</span></dd></div>
-<div id="behavior.start_hidden"><dt><code>start_hidden = false</code></dt><dd><span class="en">Also start hidden in the tray when you open dpomo yourself.</span><span class="pt" lang="pt-BR">Abrir escondido na bandeja também quando você abre o dpomo.</span></dd></div>
+<div id="behavior.start_with_system"><dt><code>start_with_system = false</code></dt><dd><span class="en">Start Pomolotl, hidden in the tray, when you log in.</span><span class="pt" lang="pt-BR">Abrir o Pomolotl, escondido na bandeja, quando você entra no computador.</span></dd></div>
+<div id="behavior.start_hidden"><dt><code>start_hidden = false</code></dt><dd><span class="en">Also start hidden in the tray when you open Pomolotl yourself.</span><span class="pt" lang="pt-BR">Abrir escondido na bandeja também quando você abre o Pomolotl.</span></dd></div>
 <div id="behavior.check_updates"><dt><code>check_updates = true</code></dt><dd><span class="en">Once a day, ask GitHub whether there's a newer version and show a badge if so. It never downloads anything.</span><span class="pt" lang="pt-BR">Uma vez por dia, perguntar ao GitHub se há versão nova e mostrar um aviso. Nunca baixa nada.</span></dd></div>
 </dl>
 </div>
@@ -214,9 +214,9 @@ character = "capybara"</code></pre>
 </div>
 <div class="ref" id="sec-mini">
 <h3><code>[mini]</code> <span class="en">Floating timer</span><span class="pt" lang="pt-BR">Timer flutuante</span></h3>
-<p><span class="en">A small borderless window that stays on top of everything. Drag it to move it, drag its bottom-right corner to resize it, double-click it to open dpomo.</span><span class="pt" lang="pt-BR">Uma janelinha sem borda que fica por cima de tudo. Arraste para mover, puxe o canto inferior direito para mudar o tamanho, clique duas vezes para abrir o dpomo.</span></p>
+<p><span class="en">A small borderless window that stays on top of everything. Drag it to move it, drag its bottom-right corner to resize it, double-click it to open Pomolotl.</span><span class="pt" lang="pt-BR">Uma janelinha sem borda que fica por cima de tudo. Arraste para mover, puxe o canto inferior direito para mudar o tamanho, clique duas vezes para abrir o Pomolotl.</span></p>
 <dl>
-<div id="mini.enabled"><dt><code>enabled = false</code></dt><dd><span class="en">Show the floating timer. Also: the button at the top of the main window, the <code>M</code> key, the tray menu or <code>dpomo --mini</code>.</span><span class="pt" lang="pt-BR">Mostrar o timer flutuante. Também: o botão no topo da janela principal, a tecla <code>M</code>, o menu da bandeja ou <code>dpomo --mini</code>.</span></dd></div>
+<div id="mini.enabled"><dt><code>enabled = false</code></dt><dd><span class="en">Show the floating timer. Also: the button at the top of the main window, the <code>M</code> key, the tray menu or <code>pomolotl --mini</code>.</span><span class="pt" lang="pt-BR">Mostrar o timer flutuante. Também: o botão no topo da janela principal, a tecla <code>M</code>, o menu da bandeja ou <code>pomolotl --mini</code>.</span></dd></div>
 <div id="mini.width"><dt><code>width = 260.0</code></dt><dd><span class="en">Width in points (at least 120). Dragging its corner changes it.</span><span class="pt" lang="pt-BR">Largura em pontos (no mínimo 120). Puxar o canto muda isso.</span></dd></div>
 <div id="mini.height"><dt><code>height = 96.0</code></dt><dd><span class="en">Height (at least 44). Wide shows the character too; small shows just the time.</span><span class="pt" lang="pt-BR">Altura (no mínimo 44). Larga mostra o personagem também; pequena mostra só o tempo.</span></dd></div>
 <div id="mini.x"><dt><code>x <span class="unset"><span class="en">(not set)</span><span class="pt" lang="pt-BR">(vazio)</span></span></code></dt><dd><span class="en">Screen position, added when you move it. Delete <code>x</code> and <code>y</code> to put it back in the top-right corner.</span><span class="pt" lang="pt-BR">Posição na tela, adicionada quando você move. Apague <code>x</code> e <code>y</code> para voltar ao canto superior direito.</span></dd></div>
@@ -226,7 +226,7 @@ character = "capybara"</code></pre>
 </div>
 <div class="ref" id="sec-keys">
 <h3><code>[keys]</code> <span class="en">Shortcuts</span><span class="pt" lang="pt-BR">Atalhos</span></h3>
-<p><span class="en">Keys that work while a dpomo window is focused. Values are <a href="#key-names">key names</a>; an unknown name falls back to the default. For shortcuts that work anywhere, see <a href="#cli">Command line</a>.</span><span class="pt" lang="pt-BR">Teclas que funcionam com uma janela do dpomo em foco. Os valores são <a href="#key-names">nomes de teclas</a>; um nome desconhecido volta ao padrão. Para atalhos que funcionam em qualquer lugar, veja <a href="#cli">Linha de comando</a>.</span></p>
+<p><span class="en">Keys that work while a Pomolotl window is focused. Values are <a href="#key-names">key names</a>; an unknown name falls back to the default. For shortcuts that work anywhere, see <a href="#cli">Command line</a>.</span><span class="pt" lang="pt-BR">Teclas que funcionam com uma janela do Pomolotl em foco. Os valores são <a href="#key-names">nomes de teclas</a>; um nome desconhecido volta ao padrão. Para atalhos que funcionam em qualquer lugar, veja <a href="#cli">Linha de comando</a>.</span></p>
 <dl>
 <div id="keys.toggle"><dt><code>toggle = &quot;Space&quot;</code></dt><dd><span class="en">Start / pause.</span><span class="pt" lang="pt-BR">Iniciar / pausar.</span></dd></div>
 <div id="keys.reset"><dt><code>reset = &quot;R&quot;</code></dt><dd><span class="en">Restart the current phase.</span><span class="pt" lang="pt-BR">Reiniciar a fase atual.</span></dd></div>
@@ -269,30 +269,30 @@ character = "capybara"</code></pre>
 
       <section id="cli">
         <h2 class="display"><span class="en">Command line</span><span class="pt">Linha de comando</span></h2>
-        <p class="en">If dpomo is already running, these send it the request and exit right away; if not, dpomo opens and does it. Bind them to a global shortcut to control dpomo from any app.</p>
-        <p class="pt">Se o dpomo já estiver aberto, estes mandam o pedido para ele e saem na hora; se não, o dpomo abre e faz. Associe a um atalho global para controlar o dpomo de qualquer app.</p>
+        <p class="en">If Pomolotl is already running, these send it the request and exit right away; if not, Pomolotl opens and does it. Bind them to a global shortcut to control Pomolotl from any app.</p>
+        <p class="pt">Se o Pomolotl já estiver aberto, estes mandam o pedido para ele e saem na hora; se não, o Pomolotl abre e faz. Associe a um atalho global para controlar o Pomolotl de qualquer app.</p>
         <div class="card">
 <!-- gen:cli -->
 <dl>
-<div><dt><code>dpomo --show</code></dt><dd><span class="en">Show the main window (same as opening dpomo again).</span><span class="pt" lang="pt-BR">Mostrar a janela principal (igual a abrir o dpomo de novo).</span></dd></div>
-<div><dt><code>dpomo --toggle</code></dt><dd><span class="en">Start / pause.</span><span class="pt" lang="pt-BR">Iniciar / pausar.</span></dd></div>
-<div><dt><code>dpomo --skip</code></dt><dd><span class="en">Skip to the next phase.</span><span class="pt" lang="pt-BR">Pular para a próxima fase.</span></dd></div>
-<div><dt><code>dpomo --reset</code></dt><dd><span class="en">Restart the current phase.</span><span class="pt" lang="pt-BR">Reiniciar a fase atual.</span></dd></div>
-<div><dt><code>dpomo --mini</code></dt><dd><span class="en">Show / hide the floating timer.</span><span class="pt" lang="pt-BR">Mostrar / esconder o timer flutuante.</span></dd></div>
-<div><dt><code>dpomo --settings</code></dt><dd><span class="en">Open the settings window.</span><span class="pt" lang="pt-BR">Abrir a janela de ajustes.</span></dd></div>
-<div><dt><code>dpomo --quit</code></dt><dd><span class="en">Quit dpomo.</span><span class="pt" lang="pt-BR">Fechar o dpomo.</span></dd></div>
+<div><dt><code>pomolotl --show</code></dt><dd><span class="en">Show the main window (same as opening Pomolotl again).</span><span class="pt" lang="pt-BR">Mostrar a janela principal (igual a abrir o Pomolotl de novo).</span></dd></div>
+<div><dt><code>pomolotl --toggle</code></dt><dd><span class="en">Start / pause.</span><span class="pt" lang="pt-BR">Iniciar / pausar.</span></dd></div>
+<div><dt><code>pomolotl --skip</code></dt><dd><span class="en">Skip to the next phase.</span><span class="pt" lang="pt-BR">Pular para a próxima fase.</span></dd></div>
+<div><dt><code>pomolotl --reset</code></dt><dd><span class="en">Restart the current phase.</span><span class="pt" lang="pt-BR">Reiniciar a fase atual.</span></dd></div>
+<div><dt><code>pomolotl --mini</code></dt><dd><span class="en">Show / hide the floating timer.</span><span class="pt" lang="pt-BR">Mostrar / esconder o timer flutuante.</span></dd></div>
+<div><dt><code>pomolotl --settings</code></dt><dd><span class="en">Open the settings window.</span><span class="pt" lang="pt-BR">Abrir a janela de ajustes.</span></dd></div>
+<div><dt><code>pomolotl --quit</code></dt><dd><span class="en">Quit Pomolotl.</span><span class="pt" lang="pt-BR">Fechar o Pomolotl.</span></dd></div>
 </dl>
 <!-- /gen:cli -->
         </div>
         <ul class="en">
-          <li><b>Windows:</b> make a shortcut to <code>%LOCALAPPDATA%\Programs\dpomo\dpomo.exe</code> on the desktop, add <code>--toggle</code> to the end of its <i>Target</i>, and set a <i>Shortcut key</i> in its properties.</li>
-          <li><b>Linux (GNOME):</b> Settings → Keyboard → Custom Shortcuts, command <code>dpomo --toggle</code>.</li>
-          <li><b>macOS:</b> in the Shortcuts app, a <i>Run Shell Script</i> action with <code>/Applications/dpomo.app/Contents/MacOS/dpomo --toggle</code>.</li>
+          <li><b>Windows:</b> make a shortcut to <code>%LOCALAPPDATA%\Programs\pomolotl\pomolotl.exe</code> on the desktop, add <code>--toggle</code> to the end of its <i>Target</i>, and set a <i>Shortcut key</i> in its properties.</li>
+          <li><b>Linux (GNOME):</b> Settings → Keyboard → Custom Shortcuts, command <code>pomolotl --toggle</code>.</li>
+          <li><b>macOS:</b> in the Shortcuts app, a <i>Run Shell Script</i> action with <code>/Applications/Pomolotl.app/Contents/MacOS/pomolotl --toggle</code>.</li>
         </ul>
         <ul class="pt">
-          <li><b>Windows:</b> crie um atalho para <code>%LOCALAPPDATA%\Programs\dpomo\dpomo.exe</code> na área de trabalho, adicione <code>--toggle</code> no fim do <i>Destino</i> e defina uma <i>Tecla de atalho</i> nas propriedades.</li>
-          <li><b>Linux (GNOME):</b> Configurações → Teclado → Atalhos personalizados, comando <code>dpomo --toggle</code>.</li>
-          <li><b>macOS:</b> no app Atalhos, uma ação <i>Executar Script de Shell</i> com <code>/Applications/dpomo.app/Contents/MacOS/dpomo --toggle</code>.</li>
+          <li><b>Windows:</b> crie um atalho para <code>%LOCALAPPDATA%\Programs\pomolotl\pomolotl.exe</code> na área de trabalho, adicione <code>--toggle</code> no fim do <i>Destino</i> e defina uma <i>Tecla de atalho</i> nas propriedades.</li>
+          <li><b>Linux (GNOME):</b> Configurações → Teclado → Atalhos personalizados, comando <code>pomolotl --toggle</code>.</li>
+          <li><b>macOS:</b> no app Atalhos, uma ação <i>Executar Script de Shell</i> com <code>/Applications/Pomolotl.app/Contents/MacOS/pomolotl --toggle</code>.</li>
         </ul>
       </section>
 
@@ -335,8 +335,8 @@ long_break = &quot;#c4a7e7&quot;</code></pre>
 <!-- /gen:theme-fields -->
         </div>
         <h3 class="display"><span class="en">Built-in themes</span><span class="pt">Temas embutidos</span></h3>
-        <p class="en">Want to tweak one? Copy its file from the <a href="https://github.com/diegorezm/dpomo/tree/main/themes">themes folder on GitHub</a> into yours and keep the same <code>name</code>: yours replaces it.</p>
-        <p class="pt">Quer ajustar um? Copie o arquivo dele da <a href="https://github.com/diegorezm/dpomo/tree/main/themes">pasta themes no GitHub</a> para a sua e mantenha o mesmo <code>name</code>: o seu substitui o original.</p>
+        <p class="en">Want to tweak one? Copy its file from the <a href="https://github.com/diegorezm/pomolotl/tree/main/themes">themes folder on GitHub</a> into yours and keep the same <code>name</code>: yours replaces it.</p>
+        <p class="pt">Quer ajustar um? Copie o arquivo dele da <a href="https://github.com/diegorezm/pomolotl/tree/main/themes">pasta themes no GitHub</a> para a sua e mantenha o mesmo <code>name</code>: o seu substitui o original.</p>
 <!-- gen:themes -->
 <div class="themes">
 <div class="theme" style="background:#1e1e2e;color:#cdd6f4"><b>Catppuccin</b><small style="color:#a6adc8"><span class="en">dark</span><span class="pt" lang="pt-BR">escuro</span></small><i style="background:#f38ba8"></i><i style="background:#a6e3a1"></i><i style="background:#89b4fa"></i></div>
@@ -392,12 +392,12 @@ long_break = &quot;#c4a7e7&quot;</code></pre>
         <ul class="en">
           <li>Use a 200×160 <code>viewBox</code>, like the built-ins: the app keeps that shape.</li>
           <li><code>&lt;text&gt;</code> isn't drawn: convert letters to paths in your editor.</li>
-          <li>The built-in characters are on <a href="https://github.com/diegorezm/dpomo/tree/main/characters">GitHub</a> if you want to start from one.</li>
+          <li>The built-in characters are on <a href="https://github.com/diegorezm/pomolotl/tree/main/characters">GitHub</a> if you want to start from one.</li>
         </ul>
         <ul class="pt">
           <li>Use um <code>viewBox</code> de 200×160, como os embutidos: o app mantém esse formato.</li>
           <li><code>&lt;text&gt;</code> não é desenhado: converta as letras em caminhos no seu editor.</li>
-          <li>Os personagens embutidos estão no <a href="https://github.com/diegorezm/dpomo/tree/main/characters">GitHub</a> se quiser partir de um.</li>
+          <li>Os personagens embutidos estão no <a href="https://github.com/diegorezm/pomolotl/tree/main/characters">GitHub</a> se quiser partir de um.</li>
         </ul>
         <h3 class="display"><span class="en">Built-in characters</span><span class="pt">Personagens embutidos</span></h3>
 <!-- gen:characters -->
@@ -414,8 +414,8 @@ long_break = &quot;#c4a7e7&quot;</code></pre>
 
 <footer>
   <div class="wrap">
-    <span class="en">Made with Rust and <a href="https://github.com/emilk/egui">egui</a> · <a href="https://github.com/diegorezm/dpomo">Source code</a> · MIT license</span>
-    <span class="pt">Feito com Rust e <a href="https://github.com/emilk/egui">egui</a> · <a href="https://github.com/diegorezm/dpomo">Código-fonte</a> · Licença MIT</span>
+    <span class="en">Made with Rust and <a href="https://github.com/emilk/egui">egui</a> · <a href="https://github.com/diegorezm/pomolotl">Source code</a> · MIT license</span>
+    <span class="pt">Feito com Rust e <a href="https://github.com/emilk/egui">egui</a> · <a href="https://github.com/diegorezm/pomolotl">Código-fonte</a> · Licença MIT</span>
   </div>
 </footer>
 

@@ -56,7 +56,7 @@ impl Tray {
         let icon = TrayIconBuilder::new()
             .with_menu(Box::new(menu))
             .with_menu_on_left_click(false)
-            .with_tooltip("dpomo")
+            .with_tooltip("Pomolotl")
             .with_icon(ring_icon(1.0, Color32::from_rgb(0xeb, 0x6f, 0x92), false))
             .build()
             .map_err(|e| e.to_string())?;

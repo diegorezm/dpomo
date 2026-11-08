@@ -1,22 +1,22 @@
 //! OS integrations that aren't the tray: notifications and autostart.
 
 /// Windows toast identity. Registered in `init` so notifications show
-/// "dpomo" and our icon instead of "Windows PowerShell".
+/// "Pomolotl" and our icon instead of "Windows PowerShell".
 #[cfg(windows)]
-const APP_ID: &str = "dpomo.timer";
+const APP_ID: &str = "pomolotl.timer";
 
 /// One-time OS setup at startup. Failures are non-fatal.
 pub fn init() {
     #[cfg(windows)]
     if let Err(e) = register_windows_app_id() {
-        eprintln!("dpomo: could not register app id: {e}");
+        eprintln!("pomolotl: could not register app id: {e}");
     }
     // Without this, the first notification makes macOS look up an app named
     // "use_default" and pops a "Choose Application" dialog. Must match
     // CFBundleIdentifier in packaging/macos/Info.plist.
     #[cfg(target_os = "macos")]
-    if let Err(e) = notify_rust::set_application("io.github.diegorezm.dpomo") {
-        eprintln!("dpomo: could not set notification app: {e}");
+    if let Err(e) = notify_rust::set_application("io.github.diegorezm.pomolotl") {
+        eprintln!("pomolotl: could not set notification app: {e}");
     }
 }
 
@@ -36,7 +36,7 @@ pub fn trim_memory() {
 }
 
 /// Windows 11 paints title bars in the system's colors (dark mode, or the
-/// accent color if "show accent color on title bars" is on). Paint every dpomo
+/// accent color if "show accent color on title bars" is on). Paint every pomolotl
 /// window's bar with the theme instead, so it blends in, and round the
 /// borderless floating timer's corners. Older Windows ignores all of this.
 #[allow(unused_variables)]
@@ -76,7 +76,7 @@ pub fn style_windows(background: egui::Color32, text: egui::Color32) {
         // COLORREF is 0x00BBGGRR.
         let colorref = |c: egui::Color32| u32::from_le_bytes([c.r(), c.g(), c.b(), 0]);
         let colors = [colorref(background), colorref(text)];
-        // All dpomo windows (main, settings, floating timer) live on this thread.
+        // All pomolotl windows (main, settings, floating timer) live on this thread.
         // SAFETY: the callback only reads `colors`, which outlives the call.
         unsafe {
             EnumThreadWindows(
@@ -94,12 +94,12 @@ fn register_windows_app_id() -> Result<(), Box<dyn std::error::Error>> {
         .and_then(|p| Some(p.parent()?.to_path_buf()))
         .ok_or("no config dir")?;
     std::fs::create_dir_all(&dir)?;
-    let icon = dir.join("dpomo.ico");
+    let icon = dir.join("pomolotl.ico");
     std::fs::write(&icon, include_bytes!("../assets/icon.ico"))?;
 
     let key = windows_registry::CURRENT_USER
         .create(format!(r"Software\Classes\AppUserModelId\{APP_ID}"))?;
-    key.set_string("DisplayName", "dpomo")?;
+    key.set_string("DisplayName", "Pomolotl")?;
     key.set_string("IconUri", icon.to_string_lossy())?;
     Ok(())
 }
@@ -131,12 +131,12 @@ pub fn notify_finished(finished: Phase, next: Phase, next_started: bool, setting
 
     std::thread::spawn(move || {
         let mut notification = notify_rust::Notification::new();
-        notification.appname("dpomo").summary(title).body(&body);
+        notification.appname("Pomolotl").summary(title).body(&body);
         #[cfg(windows)]
         notification.app_id(APP_ID);
         let result = notification.show();
         if let Err(e) = result {
-            eprintln!("dpomo: notification failed: {e}");
+            eprintln!("pomolotl: notification failed: {e}");
         }
     });
 }
@@ -164,11 +164,11 @@ pub fn open_path(path: &std::path::Path) -> std::io::Result<()> {
     cmd.spawn().map(|_| ())
 }
 
-/// Register or unregister dpomo to start (hidden, in the tray) on login.
+/// Register or unregister pomolotl to start (hidden, in the tray) on login.
 pub fn set_autostart(enabled: bool) -> Result<(), String> {
     let exe = std::env::current_exe().map_err(|e| e.to_string())?;
     let launcher = auto_launch::AutoLaunchBuilder::new()
-        .set_app_name("dpomo")
+        .set_app_name("pomolotl")
         .set_app_path(&exe.to_string_lossy())
         .set_args(&["--hidden"])
         .build()

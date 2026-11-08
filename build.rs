@@ -18,8 +18,8 @@ fn main() {
         println!("cargo:rerun-if-changed=assets/icon.ico");
         let mut res = winresource::WindowsResource::new();
         res.set_icon("assets/icon.ico")
-            .set("ProductName", "dpomo")
-            .set("FileDescription", "dpomo - Pomodoro timer");
+            .set("ProductName", "Pomolotl")
+            .set("FileDescription", "Pomolotl - Pomodoro timer");
         res.compile().expect("failed to embed Windows resources");
     }
     let out = PathBuf::from(env::var("OUT_DIR").unwrap());

@@ -31,21 +31,21 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - run: cargo build --release --locked
-      # Sign dpomo.exe first (it goes inside the installer), then the installer.
+      # Sign pomolotl.exe first (it goes inside the installer), then the installer.
       - name: Upload unsigned exe
         id: unsigned-exe
         if: env.SIGN == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: unsigned-exe
-          path: target/release/dpomo.exe
+          path: target/release/pomolotl.exe
       - name: Sign exe (SignPath)
         if: env.SIGN == 'true'
         uses: signpath/github-action-submit-signing-request@v3
         with:
           api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
           organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
-          project-slug: dpomo
+          project-slug: pomolotl
           signing-policy-slug: release-signing
           artifact-configuration-slug: exe
           github-artifact-id: ${{ steps.unsigned-exe.outputs.artifact-id }}
@@ -57,7 +57,7 @@ jobs:
           $version = (Select-String -Path Cargo.toml -Pattern '^version = "(.+)"').Matches[0].Groups[1].Value
           $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
           if (-not (Test-Path $iscc)) { choco install innosetup --no-progress -y }
-          & $iscc /Qp "/DAppVersion=$version" packaging\windows\dpomo.iss
+          & $iscc /Qp "/DAppVersion=$version" packaging\windows\pomolotl.iss
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Upload unsigned installer
         id: unsigned-installer
@@ -65,14 +65,14 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: unsigned-installer
-          path: dist/dpomo-setup.exe
+          path: dist/pomolotl-setup.exe
       - name: Sign installer (SignPath)
         if: env.SIGN == 'true'
         uses: signpath/github-action-submit-signing-request@v3
         with:
           api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
           organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
-          project-slug: dpomo
+          project-slug: pomolotl
           signing-policy-slug: release-signing
           artifact-configuration-slug: installer
           github-artifact-id: ${{ steps.unsigned-installer.outputs.artifact-id }}
@@ -80,7 +80,7 @@ jobs:
           output-artifact-directory: dist
       - name: Portable zip
         shell: pwsh
-        run: Compress-Archive -Path target\release\dpomo.exe, LICENSE, README.md -DestinationPath dist\dpomo-windows-portable.zip
+        run: Compress-Archive -Path target\release\pomolotl.exe, LICENSE, README.md -DestinationPath dist\pomolotl-windows-portable.zip
       - uses: actions/upload-artifact@v4
         with:
           name: pkg-windows
@@ -106,10 +106,10 @@ jobs:
       - name: Package
         run: |
           mkdir -p dist
-          cargo deb --no-build --output dist/dpomo-linux-${{ matrix.deb }}.deb
-          mkdir -p pkg/dpomo
-          cp target/release/dpomo packaging/linux/dpomo.desktop assets/icon.png LICENSE README.md pkg/dpomo/
-          tar -C pkg -czf dist/dpomo-linux-${{ matrix.tar }}.tar.gz dpomo
+          cargo deb --no-build --output dist/pomolotl-linux-${{ matrix.deb }}.deb
+          mkdir -p pkg/pomolotl
+          cp target/release/pomolotl packaging/linux/pomolotl.desktop assets/icon.png LICENSE README.md pkg/pomolotl/
+          tar -C pkg -czf dist/pomolotl-linux-${{ matrix.tar }}.tar.gz pomolotl
       - uses: actions/upload-artifact@v4
         with:
           name: pkg-linux-${{ matrix.deb }}
@@ -144,11 +144,11 @@ jobs:
       - name: App bundle + dmg
         run: |
           version=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
-          app=dmg/dpomo.app
+          app=dmg/Pomolotl.app
           mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources" dist
-          lipo -create -output "$app/Contents/MacOS/dpomo" \
-            target/aarch64-apple-darwin/release/dpomo target/x86_64-apple-darwin/release/dpomo
-          cp assets/icon.icns "$app/Contents/Resources/dpomo.icns"
+          lipo -create -output "$app/Contents/MacOS/pomolotl" \
+            target/aarch64-apple-darwin/release/pomolotl target/x86_64-apple-darwin/release/pomolotl
+          cp assets/icon.icns "$app/Contents/Resources/pomolotl.icns"
           sed "s/VERSION/$version/g" packaging/macos/Info.plist > "$app/Contents/Info.plist"
           if [ "$NOTARIZE" = true ]; then
             codesign --force --options runtime --timestamp --sign "Developer ID Application" "$app"
@@ -157,7 +157,7 @@ jobs:
             codesign --force --deep --sign - "$app"
           fi
           ln -s /Applications dmg/Applications
-          hdiutil create -volname dpomo -srcfolder dmg -ov -format UDZO dist/dpomo-macos.dmg
+          hdiutil create -volname Pomolotl -srcfolder dmg -ov -format UDZO dist/pomolotl-macos.dmg
       - name: Notarize dmg
         if: env.NOTARIZE == 'true'
         env:
@@ -165,9 +165,9 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
         run: |
-          codesign --timestamp --sign "Developer ID Application" dist/dpomo-macos.dmg
-          xcrun notarytool submit dist/dpomo-macos.dmg --apple-id "$APPLE_ID" --team-id "$APPLE_TEAM_ID" --password "$APPLE_APP_PASSWORD" --wait
-          xcrun stapler staple dist/dpomo-macos.dmg
+          codesign --timestamp --sign "Developer ID Application" dist/pomolotl-macos.dmg
+          xcrun notarytool submit dist/pomolotl-macos.dmg --apple-id "$APPLE_ID" --team-id "$APPLE_TEAM_ID" --password "$APPLE_APP_PASSWORD" --wait
+          xcrun stapler staple dist/pomolotl-macos.dmg
       - uses: actions/upload-artifact@v4
         with:
           name: pkg-macos
@@ -185,7 +185,7 @@ jobs:
         with:
           name: pkg-windows
           path: dist
-      - run: packaging/smoke/smoke-windows.ps1 dist/dpomo-setup.exe smoke
+      - run: packaging/smoke/smoke-windows.ps1 dist/pomolotl-setup.exe smoke
         shell: pwsh
       - uses: actions/upload-artifact@v4
         if: always()
@@ -210,7 +210,7 @@ jobs:
           name: pkg-linux-${{ matrix.arch }}
           path: dist
       # Installing the .deb with apt proves its declared dependencies resolve.
-      - run: sudo apt-get update && sudo apt-get install -y ./dist/dpomo-linux-${{ matrix.arch }}.deb xvfb dunst imagemagick libgl1-mesa-dri
+      - run: sudo apt-get update && sudo apt-get install -y ./dist/pomolotl-linux-${{ matrix.arch }}.deb xvfb dunst imagemagick libgl1-mesa-dri
       - run: dbus-run-session -- bash packaging/smoke/smoke-linux.sh smoke
       - uses: actions/upload-artifact@v4
         if: always()
@@ -231,7 +231,7 @@ jobs:
         with:
           name: pkg-macos
           path: dist
-      - run: bash packaging/smoke/smoke-macos.sh dist/dpomo-macos.dmg smoke
+      - run: bash packaging/smoke/smoke-macos.sh dist/pomolotl-macos.dmg smoke
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -255,5 +255,5 @@ jobs:
         run: |
           gh release create "$GITHUB_REF_NAME" dist/* \
             --repo "$GITHUB_REPOSITORY" \
-            --title "dpomo $GITHUB_REF_NAME" \
+            --title "pomolotl $GITHUB_REF_NAME" \
             --generate-notes

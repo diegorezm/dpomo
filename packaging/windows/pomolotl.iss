@@ -1,7 +1,7 @@
 ; Inno Setup script for the Windows installer.
 ; Built by .github/workflows/release.yml:
-;   iscc /DAppVersion=0.1.0 packaging\windows\dpomo.iss
-; Output: dist\dpomo-setup.exe
+;   iscc /DAppVersion=0.1.0 packaging\windows\pomolotl.iss
+; Output: dist\pomolotl-setup.exe
 
 #ifndef AppVersion
   #define AppVersion "0.0.0"
@@ -9,34 +9,34 @@
 
 [Setup]
 ; Never change AppId: it's how upgrades/uninstall find the existing install.
-AppId={{8C3F1C2A-6E7B-4D7E-9B1A-5D2F0A9C4E11}
-AppName=dpomo
+AppId={{73852F4F-6F68-41B1-9A59-5D5E13805E15}
+AppName=pomolotl
 AppVersion={#AppVersion}
-AppVerName=dpomo {#AppVersion}
+AppVerName=pomolotl {#AppVersion}
 ; File metadata (SignPath checks product name/version when signing).
 VersionInfoVersion={#AppVersion}
-VersionInfoProductName=dpomo
+VersionInfoProductName=pomolotl
 VersionInfoProductVersion={#AppVersion}
 AppPublisher=diegorezm
-AppPublisherURL=https://github.com/diegorezm/dpomo
-AppSupportURL=https://github.com/diegorezm/dpomo/issues
+AppPublisherURL=https://github.com/diegorezm/pomolotl
+AppSupportURL=https://github.com/diegorezm/pomolotl/issues
 ; Per-user install: no admin prompt.
 PrivilegesRequired=lowest
-DefaultDirName={autopf}\dpomo
+DefaultDirName={autopf}\pomolotl
 DisableProgramGroupPage=yes
 DisableDirPage=auto
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 OutputDir=..\..\dist
-OutputBaseFilename=dpomo-setup
+OutputBaseFilename=pomolotl-setup
 SetupIconFile=..\..\assets\icon.ico
-UninstallDisplayIcon={app}\dpomo.exe
-UninstallDisplayName=dpomo
+UninstallDisplayIcon={app}\pomolotl.exe
+UninstallDisplayName=pomolotl
 Compression=lzma2/max
 SolidCompression=yes
 WizardStyle=modern
 ShowLanguageDialog=no
-; We close dpomo ourselves (see [Code]); it lives in the tray, which the
+; We close pomolotl ourselves (see [Code]); it lives in the tray, which the
 ; Restart Manager doesn't handle well.
 CloseApplications=no
 
@@ -56,39 +56,39 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "checkupdates"; Description: "{cm:CheckUpdates}"; GroupDescription: "{cm:Privacy}"; Check: IsFirstInstall
 
 [Files]
-Source: "..\..\target\release\dpomo.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\target\release\pomolotl.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\LICENSE"; DestDir: "{app}"; DestName: "LICENSE.txt"; Flags: ignoreversion
 
 [Icons]
 ; AppUserModelID matches system.rs so notifications are grouped with the app.
-Name: "{autoprograms}\dpomo"; Filename: "{app}\dpomo.exe"; AppUserModelID: "dpomo.timer"
-Name: "{autodesktop}\dpomo"; Filename: "{app}\dpomo.exe"; AppUserModelID: "dpomo.timer"; Tasks: desktopicon
+Name: "{autoprograms}\pomolotl"; Filename: "{app}\pomolotl.exe"; AppUserModelID: "pomolotl.timer"
+Name: "{autodesktop}\pomolotl"; Filename: "{app}\pomolotl.exe"; AppUserModelID: "pomolotl.timer"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\dpomo.exe"; Description: "{cm:LaunchProgram,dpomo}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\pomolotl.exe"; Description: "{cm:LaunchProgram,pomolotl}"; Flags: nowait postinstall skipifsilent
 
 [UninstallRun]
-Filename: "{sys}\taskkill.exe"; Parameters: "/F /IM dpomo.exe"; Flags: runhidden; RunOnceId: "StopDpomo"
+Filename: "{sys}\taskkill.exe"; Parameters: "/F /IM pomolotl.exe"; Flags: runhidden; RunOnceId: "StopPomolotl"
 
 [Registry]
 ; Created by the app at runtime; only removed here on uninstall.
-Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: none; ValueName: "dpomo"; Flags: dontcreatekey uninsdeletevalue
-Root: HKCU; Subkey: "Software\Classes\AppUserModelId\dpomo.timer"; Flags: dontcreatekey uninsdeletekey
+Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: none; ValueName: "pomolotl"; Flags: dontcreatekey uninsdeletevalue
+Root: HKCU; Subkey: "Software\Classes\AppUserModelId\pomolotl.timer"; Flags: dontcreatekey uninsdeletekey
 
 [Code]
-// Stop a running dpomo (it may be hidden in the tray) so its .exe can be replaced.
+// Stop a running pomolotl (it may be hidden in the tray) so its .exe can be replaced.
 function PrepareToInstall(var NeedsRestart: Boolean): String;
 var
   Code: Integer;
 begin
-  Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /IM dpomo.exe', '', SW_HIDE, ewWaitUntilTerminated, Code);
+  Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /IM pomolotl.exe', '', SW_HIDE, ewWaitUntilTerminated, Code);
   Result := '';
 end;
 
 // Config file the app creates on first launch.
 function ConfigPath(): String;
 begin
-  Result := ExpandConstant('{userappdata}\dpomo\config.toml');
+  Result := ExpandConstant('{userappdata}\pomolotl\config.toml');
 end;
 
 // Only offered on a first install; after that the setting lives in the app.

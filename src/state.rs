@@ -67,7 +67,7 @@ impl State {
             .map_err(std::io::Error::other)
             .and_then(|text| std::fs::write(path, text));
         if let Err(e) = result {
-            eprintln!("dpomo: could not save state: {e}");
+            eprintln!("pomolotl: could not save state: {e}");
         }
     }
 

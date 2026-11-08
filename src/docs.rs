@@ -5,7 +5,7 @@
 //! written by hand, in the tables below (English + Portuguese).
 //!
 //! `cargo test docs` fails when the page is out of date or a setting has no description;
-//! `DPOMO_BLESS=1 cargo test docs` rewrites the generated parts of the page (between
+//! `POMOLOTL_BLESS=1 cargo test docs` rewrites the generated parts of the page (between
 //! `<!-- gen:NAME -->` and `<!-- /gen:NAME -->`). Test-only: none of this is in the binary.
 
 use std::fmt::Write;
@@ -35,16 +35,16 @@ const SECTIONS: &[(&str, [&str; 2], [&str; 2])] = &[
         "mini",
         ["Floating timer", "Timer flutuante"],
         [
-            "A small borderless window that stays on top of everything. Drag it to move it, drag its bottom-right corner to resize it, double-click it to open dpomo.",
-            "Uma janelinha sem borda que fica por cima de tudo. Arraste para mover, puxe o canto inferior direito para mudar o tamanho, clique duas vezes para abrir o dpomo.",
+            "A small borderless window that stays on top of everything. Drag it to move it, drag its bottom-right corner to resize it, double-click it to open Pomolotl.",
+            "Uma janelinha sem borda que fica por cima de tudo. Arraste para mover, puxe o canto inferior direito para mudar o tamanho, clique duas vezes para abrir o Pomolotl.",
         ],
     ),
     (
         "keys",
         ["Shortcuts", "Atalhos"],
         [
-            "Keys that work while a dpomo window is focused. Values are [key names](#key-names); an unknown name falls back to the default. For shortcuts that work anywhere, see [Command line](#cli).",
-            "Teclas que funcionam com uma janela do dpomo em foco. Os valores são [nomes de teclas](#key-names); um nome desconhecido volta ao padrão. Para atalhos que funcionam em qualquer lugar, veja [Linha de comando](#cli).",
+            "Keys that work while a Pomolotl window is focused. Values are [key names](#key-names); an unknown name falls back to the default. For shortcuts that work anywhere, see [Command line](#cli).",
+            "Teclas que funcionam com uma janela do Pomolotl em foco. Os valores são [nomes de teclas](#key-names); um nome desconhecido volta ao padrão. Para atalhos que funcionam em qualquer lugar, veja [Linha de comando](#cli).",
         ],
     ),
     (
@@ -190,8 +190,8 @@ const SETTINGS: &[(&str, [&str; 2])] = &[
     (
         "behavior.tray",
         [
-            "Tray icon with live progress and a menu. If the system has no tray, dpomo turns this off by itself.",
-            "Ícone na bandeja com o progresso e um menu. Se o sistema não tiver bandeja, o dpomo desliga isso sozinho.",
+            "Tray icon with live progress and a menu. If the system has no tray, Pomolotl turns this off by itself.",
+            "Ícone na bandeja com o progresso e um menu. Se o sistema não tiver bandeja, o Pomolotl desliga isso sozinho.",
         ],
     ),
     (
@@ -211,15 +211,15 @@ const SETTINGS: &[(&str, [&str; 2])] = &[
     (
         "behavior.start_with_system",
         [
-            "Start dpomo, hidden in the tray, when you log in.",
-            "Abrir o dpomo, escondido na bandeja, quando você entra no computador.",
+            "Start Pomolotl, hidden in the tray, when you log in.",
+            "Abrir o Pomolotl, escondido na bandeja, quando você entra no computador.",
         ],
     ),
     (
         "behavior.start_hidden",
         [
-            "Also start hidden in the tray when you open dpomo yourself.",
-            "Abrir escondido na bandeja também quando você abre o dpomo.",
+            "Also start hidden in the tray when you open Pomolotl yourself.",
+            "Abrir escondido na bandeja também quando você abre o Pomolotl.",
         ],
     ),
     (
@@ -309,8 +309,8 @@ const SETTINGS: &[(&str, [&str; 2])] = &[
     (
         "mini.enabled",
         [
-            "Show the floating timer. Also: the button at the top of the main window, the `M` key, the tray menu or `dpomo --mini`.",
-            "Mostrar o timer flutuante. Também: o botão no topo da janela principal, a tecla `M`, o menu da bandeja ou `dpomo --mini`.",
+            "Show the floating timer. Also: the button at the top of the main window, the `M` key, the tray menu or `pomolotl --mini`.",
+            "Mostrar o timer flutuante. Também: o botão no topo da janela principal, a tecla `M`, o menu da bandeja ou `pomolotl --mini`.",
         ],
     ),
     (
@@ -427,8 +427,8 @@ const FLAGS: &[(&str, [&str; 2])] = &[
     (
         "--show",
         [
-            "Show the main window (same as opening dpomo again).",
-            "Mostrar a janela principal (igual a abrir o dpomo de novo).",
+            "Show the main window (same as opening Pomolotl again).",
+            "Mostrar a janela principal (igual a abrir o Pomolotl de novo).",
         ],
     ),
     ("--toggle", ["Start / pause.", "Iniciar / pausar."]),
@@ -451,7 +451,7 @@ const FLAGS: &[(&str, [&str; 2])] = &[
         "--settings",
         ["Open the settings window.", "Abrir a janela de ajustes."],
     ),
-    ("--quit", ["Quit dpomo.", "Fechar o dpomo."]),
+    ("--quit", ["Quit Pomolotl.", "Fechar o Pomolotl."]),
 ];
 
 /// Character pose files (`Pose::file_name`).
@@ -572,7 +572,7 @@ fn key_names() -> String {
 }
 
 fn cli() -> String {
-    described(FLAGS, |_| None).replace("<code>--", "<code>dpomo --")
+    described(FLAGS, |_| None).replace("<code>--", "<code>pomolotl --")
 }
 
 fn theme_example() -> String {
@@ -709,10 +709,10 @@ fn website_docs_are_up_to_date() {
         fresh = splice(&fresh, name, &html);
     }
     if fresh != page {
-        if std::env::var_os("DPOMO_BLESS").is_some() {
+        if std::env::var_os("POMOLOTL_BLESS").is_some() {
             std::fs::write(&path, fresh).unwrap();
         } else {
-            panic!("site/docs.html is out of date: run `DPOMO_BLESS=1 cargo test docs`");
+            panic!("site/docs.html is out of date: run `POMOLOTL_BLESS=1 cargo test docs`");
         }
     }
 }

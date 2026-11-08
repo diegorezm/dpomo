@@ -6,8 +6,8 @@ use std::time::Duration;
 
 use crate::command::Command;
 
-pub const RELEASES_URL: &str = "https://github.com/diegorezm/dpomo/releases/latest";
-const API_URL: &str = "https://api.github.com/repos/diegorezm/dpomo/releases/latest";
+pub const RELEASES_URL: &str = "https://github.com/diegorezm/pomolotl/releases/latest";
+const API_URL: &str = "https://api.github.com/repos/diegorezm/pomolotl/releases/latest";
 
 /// Check shortly after startup and then once a day, on a background thread.
 pub fn spawn_checker(ctx: egui::Context, tx: Sender<Command>) {
@@ -22,7 +22,7 @@ pub fn spawn_checker(ctx: egui::Context, tx: Sender<Command>) {
                     ctx.request_repaint();
                 }
                 Ok(_) => {}
-                Err(e) => eprintln!("dpomo: update check failed: {e}"),
+                Err(e) => eprintln!("pomolotl: update check failed: {e}"),
             }
             std::thread::sleep(Duration::from_secs(24 * 60 * 60));
         }
@@ -54,7 +54,10 @@ fn latest_version() -> Result<String, Box<dyn std::error::Error>> {
             "--max-time",
             "10",
         ])
-        .args(["--user-agent", concat!("dpomo/", env!("CARGO_PKG_VERSION"))])
+        .args([
+            "--user-agent",
+            concat!("pomolotl/", env!("CARGO_PKG_VERSION")),
+        ])
         .args(["--header", "Accept: application/vnd.github+json", API_URL])
         .stdin(std::process::Stdio::null())
         .output()?;

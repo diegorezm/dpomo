@@ -1,11 +1,11 @@
-# 🍅 dpomo
+# 🍅 Pomolotl
 
 Um timer Pomodoro **bonito**, **leve** e **do seu jeito**, com um amiguinho que trabalha e descansa
 junto com você. 🦎💗 Feito em Rust com [egui](https://github.com/emilk/egui).
 
-[English](README.md) · **Português** · 🌐 [Site](https://diegorezm.github.io/dpomo/)
+[English](README.md) · **Português** · 🌐 [Site](https://diegorezm.github.io/pomolotl/)
 
-![dpomo](assets/screenshot.png)
+![Pomolotl](assets/screenshot.png)
 
 ## O que é Pomodoro?
 
@@ -16,22 +16,22 @@ Só isso. (Todos esses números você pode mudar.)
 
 | Sistema | Download | Como instalar |
 | ------- | -------- | ------------- |
-| **Windows** | [dpomo-setup.exe](https://github.com/diegorezm/dpomo/releases/latest/download/dpomo-setup.exe) | Abra e clique em *Avançar* até o fim. Não pede senha de administrador. |
-| **Linux** (Ubuntu/Debian) · *beta* | [dpomo-linux-amd64.deb](https://github.com/diegorezm/dpomo/releases/latest/download/dpomo-linux-amd64.deb) | Dois cliques no arquivo, ou `sudo apt install ./dpomo-linux-amd64.deb` |
-| **macOS** · *beta* | [dpomo-macos.dmg](https://github.com/diegorezm/dpomo/releases/latest/download/dpomo-macos.dmg) | Arraste o dpomo para *Aplicativos*. |
+| **Windows** | [pomolotl-setup.exe](https://github.com/diegorezm/pomolotl/releases/latest/download/pomolotl-setup.exe) | Abra e clique em *Avançar* até o fim. Não pede senha de administrador. |
+| **Linux** (Ubuntu/Debian) · *beta* | [pomolotl-linux-amd64.deb](https://github.com/diegorezm/pomolotl/releases/latest/download/pomolotl-linux-amd64.deb) | Dois cliques no arquivo, ou `sudo apt install ./pomolotl-linux-amd64.deb` |
+| **macOS** · *beta* | [pomolotl-macos.dmg](https://github.com/diegorezm/pomolotl/releases/latest/download/pomolotl-macos.dmg) | Arraste o Pomolotl para *Aplicativos*. |
 
 Outras opções (versão portátil para Windows, `.tar.gz` para outros Linux, Linux ARM64) estão na
-[página de releases](https://github.com/diegorezm/dpomo/releases/latest).
+[página de releases](https://github.com/diegorezm/pomolotl/releases/latest).
 
 > **Windows:** se aparecer "O Windows protegeu o computador", clique em *Mais informações* → *Executar assim mesmo*.
 > Isso acontece porque o instalador ainda não é assinado digitalmente.
 >
-> **macOS:** na primeira vez, clique com o **botão direito** no dpomo → *Abrir* → *Abrir*.
+> **macOS:** na primeira vez, clique com o **botão direito** no Pomolotl → *Abrir* → *Abrir*.
 > O app não é notarizado pela Apple, então o macOS pede essa confirmação uma vez.
 >
 > **Linux:** para ver o ícone na bandeja no GNOME, instale a extensão *AppIndicator* (KDE já funciona direto).
 
-Para desinstalar no Windows: *Configurações → Aplicativos → dpomo → Desinstalar*.
+Para desinstalar no Windows: *Configurações → Aplicativos → Pomolotl → Desinstalar*.
 
 ## Como usar
 
@@ -44,12 +44,12 @@ curta e tira uma soneca na pausa longa.
 
 ### Fica rodando em segundo plano
 
-O dpomo mora na **bandeja do sistema** (os ícones pequenos perto do relógio):
+O Pomolotl mora na **bandeja do sistema** (os ícones pequenos perto do relógio):
 
 - Fechar a janela **não fecha o app**: ele continua contando lá na bandeja.
 - O ícone mostra o **anel de progresso** ao vivo; passe o mouse para ver o tempo.
 - **Clique** no ícone para mostrar/esconder a janela; **botão direito** abre o menu (iniciar/pausar, pular, reiniciar, **sair**).
-- Abriu o dpomo de novo sem querer? Tudo bem, ele só mostra a janela que já estava aberta.
+- Abriu o Pomolotl de novo sem querer? Tudo bem, ele só mostra a janela que já estava aberta.
 - Fechou o app ou reiniciou o computador no meio da sessão? Ele **continua de onde parou** (pausado).
 - Quer que ele abra sozinho quando ligar o computador? Ative **Iniciar com o sistema** nos ajustes.
 
@@ -58,7 +58,7 @@ O dpomo mora na **bandeja do sistema** (os ícones pequenos perto do relógio):
 Quer o tempo sempre à vista? Ligue o **timer flutuante** (o botãozinho quadrado no topo da janela, a
 tecla `M` ou o menu da bandeja): uma janelinha que fica por cima de tudo com o tempo que falta, a fase e
 o seu companheiro. Arraste para onde quiser, puxe o canto para aumentar ou diminuir, clique duas vezes
-para abrir o dpomo. Ela continua funcionando com a janela principal escondida na bandeja.
+para abrir o Pomolotl. Ela continua funcionando com a janela principal escondida na bandeja.
 
 ### Atalhos
 
@@ -76,20 +76,20 @@ Dá para trocar qualquer atalho no `config.toml` (seção `[keys]`, veja [Config
 
 ### Linha de comando
 
-Rodar `dpomo` de novo com uma destas opções conversa com o dpomo que já está aberto (ou abre ele):
+Rodar `pomolotl` de novo com uma destas opções conversa com o Pomolotl que já está aberto (ou abre ele):
 
 | Comando | O que faz |
 | ------- | --------- |
-| `dpomo --toggle` | Iniciar / pausar |
-| `dpomo --skip` | Pular para a próxima fase |
-| `dpomo --reset` | Reiniciar a fase |
-| `dpomo --show` | Mostrar a janela |
-| `dpomo --mini` | Mostrar / esconder o timer flutuante |
-| `dpomo --settings` | Abrir os ajustes |
-| `dpomo --quit` | Sair |
+| `pomolotl --toggle` | Iniciar / pausar |
+| `pomolotl --skip` | Pular para a próxima fase |
+| `pomolotl --reset` | Reiniciar a fase |
+| `pomolotl --show` | Mostrar a janela |
+| `pomolotl --mini` | Mostrar / esconder o timer flutuante |
+| `pomolotl --settings` | Abrir os ajustes |
+| `pomolotl --quit` | Sair |
 
-Útil para um **atalho global**: associe `dpomo --toggle` a uma tecla nas configurações de teclado do
-sistema (no Windows: um atalho para `dpomo.exe --toggle` com uma *Tecla de atalho* nas propriedades).
+Útil para um **atalho global**: associe `pomolotl --toggle` a uma tecla nas configurações de teclado do
+sistema (no Windows: um atalho para `pomolotl.exe --toggle` com uma *Tecla de atalho* nas propriedades).
 
 ## Personalizar
 
@@ -107,13 +107,13 @@ Clique no ícone de ajustes (canto superior direito). Você pode mudar:
 ## Configuração
 
 **Toda** a configuração fica num arquivo de texto, o `config.toml`. Os ajustes do app só editam esse
-arquivo por você. Ele é criado na primeira vez que o dpomo abre:
+arquivo por você. Ele é criado na primeira vez que o Pomolotl abre:
 
 | Sistema | Onde fica |
 | ------- | --------- |
-| Windows | `%APPDATA%\dpomo\config.toml` |
-| Linux | `~/.config/dpomo/config.toml` |
-| macOS | `~/Library/Application Support/dpomo/config.toml` |
+| Windows | `%APPDATA%\pomolotl\config.toml` |
+| Linux | `~/.config/pomolotl/config.toml` |
+| macOS | `~/Library/Application Support/pomolotl/config.toml` |
 
 (Nos ajustes há os botões **Abrir config.toml** e **Abrir pasta**.)
 
@@ -121,7 +121,7 @@ arquivo por você. Ele é criado na primeira vez que o dpomo abre:
 - Pode apagar o que não quiser: o que faltar usa o padrão.
 - Errou algo? O app avisa qual linha está errada e **não mexe no seu arquivo** até você corrigir.
 
-Tudo o que dá para configurar, com os valores padrão (o [guia de configuração](https://diegorezm.github.io/dpomo/docs.html)
+Tudo o que dá para configurar, com os valores padrão (o [guia de configuração](https://diegorezm.github.io/pomolotl/docs.html)
 explica cada opção, os nomes de teclas e como criar temas e personagens):
 
 ```toml
@@ -204,7 +204,7 @@ Seu progresso e suas estatísticas ficam separados, no `state.toml` (mesma pasta
 ### Criar seu próprio tema 🎨
 
 Temas são arquivos `.toml`. Coloque o seu na pasta `themes`, ao lado do `config.toml`
-(ex.: `%APPDATA%\dpomo\themes\dracula.toml`):
+(ex.: `%APPDATA%\pomolotl\themes\dracula.toml`):
 
 ```toml
 name = "Dracula"
@@ -224,7 +224,7 @@ Prefere escolher as cores clicando? Selecione **Personalizado**, ajuste as cores
 
 ### Criar seu próprio personagem 🦎
 
-Crie uma pasta em `characters`, ao lado do `config.toml` (ex.: `%APPDATA%\dpomo\characters\gato\`),
+Crie uma pasta em `characters`, ao lado do `config.toml` (ex.: `%APPDATA%\pomolotl\characters\gato\`),
 com estes arquivos SVG:
 
 | Arquivo | Quando aparece |
@@ -259,15 +259,15 @@ Medido no Windows 11 (versão release, CPU de 16 núcleos):
 Memória (coluna "Memória" do Gerenciador de Tarefas): **~12 MB** aberto e pausado, **~45 MB** com a
 animação suave rodando, **~7 MB** escondido na bandeja. O executável para Windows tem ~13 MB.
 
-Sem OpenGL na máquina (máquina virtual, área de trabalho remota, Windows ARM)? O dpomo passa a usar
+Sem OpenGL na máquina (máquina virtual, área de trabalho remota, Windows ARM)? O Pomolotl passa a usar
 o Direct3D 12 sozinho; gasta mais memória assim, mas funciona.
 
 ## Privacidade
 
-O dpomo não tem conta, telemetria nem anúncios. Seus ajustes, estatísticas e sessão ficam no seu
+O Pomolotl não tem conta, telemetria nem anúncios. Seus ajustes, estatísticas e sessão ficam no seu
 computador, na pasta de configuração.
 
-A única conexão de rede é a **verificação de atualização**: uma vez por dia o dpomo pergunta à API
+A única conexão de rede é a **verificação de atualização**: uma vez por dia o Pomolotl pergunta à API
 pública do GitHub (`api.github.com`) qual é o número da versão mais nova. Nada sobre você é enviado, só
 uma requisição web comum (o GitHub vê seu endereço IP, veja a [declaração de privacidade do GitHub](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement)).
 Ele nunca baixa nem instala nada sozinho. Para desligar: nos ajustes, com `check_updates = false` ou
@@ -278,7 +278,7 @@ desmarcando *Procurar novas versões* no instalador do Windows.
 Precisa do [Rust](https://rustup.rs):
 
 ```sh
-cargo install --git https://github.com/diegorezm/dpomo
+cargo install --git https://github.com/diegorezm/pomolotl
 ```
 
 > **Linux:** instale antes `libxkbcommon-dev`, `libgl1-mesa-dev`, `libwayland-dev` e `libasound2-dev`.

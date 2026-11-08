@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to dpomo. Format based on [Keep a Changelog](https://keepachangelog.com/),
+All notable changes to Pomolotl. Format based on [Keep a Changelog](https://keepachangelog.com/),
 versions follow [Semantic Versioning](https://semver.org/).
 
 ## [1.0.0] - 2026-11-07
@@ -11,20 +11,20 @@ versions follow [Semantic Versioning](https://semver.org/).
 - Statistics: a bar chart of your focus time over the last 7 days.
 - New or edited themes and characters in your folders show up by themselves (no Reload click).
 - Linux ARM64 builds (`.deb` and `.tar.gz`), for Raspberry Pi and ARM laptops.
-- Website configuration guide (https://diegorezm.github.io/dpomo/docs.html): every setting with its
+- Website configuration guide (https://diegorezm.github.io/pomolotl/docs.html): every setting with its
   default, key names, command line, how to make themes and characters. Generated from the code.
 - **Floating timer**: a small borderless window that stays on top with the time left, the phase,
   the progress and the character. Drag to move, drag the corner to resize, double-click to open
-  dpomo; remembers its place and size (`[mini]`, key `M`, tray menu, `dpomo --mini`).
+  Pomolotl; remembers its place and size (`[mini]`, key `M`, tray menu, `pomolotl --mini`).
 - **Settings in their own window**, bigger and easier to read: search (`/`) across every option, a
   sidebar with icons, each option on its own row with an explanation, switches and dropdowns, and
-  "Restore defaults" (with a confirmation). Also in the tray menu and `dpomo --settings`.
+  "Restore defaults" (with a confirmation). Also in the tray menu and `pomolotl --settings`.
 - **English UI** (now the main language) with Portuguese available; follows the OS by default
   (`appearance.language`).
 - **Sounds** when a phase ends: chime, bell, soft (synthesized, no audio files) or your own
   `.wav`/`.mp3`/`.ogg`, with volume and a test button (`[sound]`).
 - **Resume after restart**: the current session is saved to `state.toml` and restored (paused) the
-  next time dpomo opens on the same day.
+  next time Pomolotl opens on the same day.
 - **Statistics**: focus sessions and focus time for today, the last 7 days and all time.
 - **Update notice**: checks GitHub releases once a day and shows a link when a new version exists.
   Never downloads anything; turn it off with `behavior.check_updates = false`.
@@ -34,7 +34,7 @@ versions follow [Semantic Versioning](https://semver.org/).
   are configurable.
 - Installers: Windows (Inno Setup + portable zip), Linux (`.deb`, `.tar.gz`) and macOS (`.dmg`).
 - App icon (the axolotl's face) for the executable, window, installer and notifications.
-- Command line: `dpomo --toggle`, `--skip`, `--reset`, `--show`, `--quit` control the running app
+- Command line: `pomolotl --toggle`, `--skip`, `--reset`, `--show`, `--quit` control the running app
   (bind them to a global shortcut).
 - Release pipeline smoke tests: every package is installed on fresh Windows, Ubuntu 22.04/24.04 and
   macOS (arm64 + Intel) machines and runs a real pomodoro before anything is published.
@@ -49,7 +49,7 @@ versions follow [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 - Windows without a working OpenGL driver (virtual machines, remote desktop, Windows on ARM, CI
-  runners): dpomo closed right away; it now falls back to Direct3D 12.
+  runners): Pomolotl closed right away; it now falls back to Direct3D 12.
 - macOS: the first notification no longer opens a "Choose Application" dialog.
 - Windows 11: the title bar takes the theme's colors instead of the system's (a light theme
   had a dark title bar when Windows was in dark mode or used accent-colored title bars).
@@ -59,5 +59,5 @@ versions follow [Semantic Versioning](https://semver.org/).
 First public release: cozy layout with the axolotl, classic ring layout, 8 themes + custom themes as
 TOML files, system tray, notifications, single instance, start with the system.
 
-[1.0.0]: https://github.com/diegorezm/dpomo/releases/tag/v1.0.0
-[0.1.0]: https://github.com/diegorezm/dpomo/releases/tag/v0.1.0
+[1.0.0]: https://github.com/diegorezm/pomolotl/releases/tag/v1.0.0
+[0.1.0]: https://github.com/diegorezm/pomolotl/releases/tag/v0.1.0

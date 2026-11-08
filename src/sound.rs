@@ -39,7 +39,7 @@ pub fn play(kind: SoundKind, file: &str, volume: f32, rising: bool) {
     let volume = volume.clamp(0.0, 1.0);
     std::thread::spawn(move || {
         if let Err(e) = play_blocking(kind, &file, volume, rising) {
-            eprintln!("dpomo: could not play sound: {e}");
+            eprintln!("pomolotl: could not play sound: {e}");
         }
     });
 }
@@ -89,7 +89,7 @@ impl Ticker {
                 let (tx, rx) = mpsc::channel();
                 std::thread::spawn(move || {
                     if let Err(e) = tick_blocking(volume, rx) {
-                        eprintln!("dpomo: could not play the ticking: {e}");
+                        eprintln!("pomolotl: could not play the ticking: {e}");
                     }
                 });
                 self.running = Some((volume, tx));

@@ -50,7 +50,7 @@ def head(eyes="open", mouth="smile"):
 
 def svg(body, w=200, h=160):
     return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}">
-  <!-- dpomo character. {ACC} becomes the phase color and {INK} the theme's muted text color. -->
+  <!-- pomolotl character. {ACC} becomes the phase color and {INK} the theme's muted text color. -->
   {body}
 </svg>
 '''

@@ -26,7 +26,7 @@ use instance::Instance;
 
 fn main() -> eframe::Result {
     // A second launch hands its request (default: "show") to the one already
-    // running and exits. `dpomo --toggle` etc. work for OS-level shortcuts.
+    // running and exits. `pomolotl --toggle` etc. work for OS-level shortcuts.
     let request = instance::request_from_args();
     let listener = match instance::acquire(request) {
         Instance::Primary(listener) => Some(listener),
@@ -52,8 +52,8 @@ fn main() -> eframe::Result {
 
     let icon = std::sync::Arc::new(window_icon());
     let viewport = egui::ViewportBuilder::default()
-        .with_title("dpomo")
-        .with_app_id("dpomo")
+        .with_title("Pomolotl")
+        .with_app_id("pomolotl")
         .with_icon(icon.clone())
         .with_visible(!start_hidden)
         .with_inner_size([
@@ -72,11 +72,11 @@ fn main() -> eframe::Result {
         icon,
     })));
 
-    // OpenGL (glow) first: by far the lightest. `DPOMO_RENDERER=wgpu` skips it.
-    let force_wgpu = cfg!(windows) && std::env::var("DPOMO_RENDERER").is_ok_and(|r| r == "wgpu");
+    // OpenGL (glow) first: by far the lightest. `POMOLOTL_RENDERER=wgpu` skips it.
+    let force_wgpu = cfg!(windows) && std::env::var("POMOLOTL_RENDERER").is_ok_and(|r| r == "wgpu");
     let result = if force_wgpu {
         Err(eframe::Error::AppCreation(
-            "glow skipped (DPOMO_RENDERER=wgpu)".into(),
+            "glow skipped (POMOLOTL_RENDERER=wgpu)".into(),
         ))
     } else {
         run(eframe::Renderer::Glow, viewport.clone(), &startup)
@@ -89,13 +89,13 @@ fn main() -> eframe::Result {
     if let Err(e) = &result
         && startup.borrow().is_some()
     {
-        eprintln!("dpomo: OpenGL unavailable ({e}), trying Direct3D 12");
+        eprintln!("pomolotl: OpenGL unavailable ({e}), trying Direct3D 12");
         return run(eframe::Renderer::Wgpu, viewport, &startup);
     }
     result
 }
 
-/// What `DpomoApp::new` needs besides the egui context.
+/// What `PomolotlApp::new` needs besides the egui context.
 struct Startup {
     config: config::Config,
     listener: Option<TcpListener>,
@@ -117,14 +117,14 @@ fn run(
         ..Default::default()
     };
     eframe::run_native(
-        "dpomo",
+        "pomolotl",
         options,
         Box::new(move |cc| {
             let s = startup
                 .borrow_mut()
                 .take()
                 .expect("the app is created once");
-            Ok(Box::new(app::DpomoApp::new(
+            Ok(Box::new(app::PomolotlApp::new(
                 cc,
                 s.config,
                 s.listener,

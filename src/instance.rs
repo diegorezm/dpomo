@@ -1,6 +1,6 @@
-//! Single instance: the first `dpomo` listens on a localhost port; launching
+//! Single instance: the first `pomolotl` listens on a localhost port; launching
 //! it again sends that one a request (show its window, or a timer command
-//! like `dpomo --toggle`), then exits.
+//! like `pomolotl --toggle`), then exits.
 
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
@@ -10,10 +10,10 @@ use std::time::Duration;
 use crate::command::Command;
 
 const ADDR: &str = "127.0.0.1:47613";
-const PREFIX: &str = "dpomo:";
-const ACK: &[u8] = b"dpomo:ok";
+const PREFIX: &str = "pomolotl:";
+const ACK: &[u8] = b"pomolotl:ok";
 
-/// Command-line requests for the running instance: `dpomo --<flag>`.
+/// Command-line requests for the running instance: `pomolotl --<flag>`.
 /// Launching without one of these flags means "show".
 pub const FLAGS: [(&str, &str); 7] = [
     ("--show", "show"),
@@ -54,7 +54,7 @@ pub fn command_for(verb: &str) -> Option<Command> {
 pub enum Instance {
     /// We are the only one running; keep this to receive requests.
     Primary(TcpListener),
-    /// Another dpomo answered and got the request.
+    /// Another pomolotl answered and got the request.
     AlreadyRunning,
     /// Couldn't tell (port taken by something else). Run normally.
     Unknown,
@@ -83,7 +83,7 @@ fn send(verb: &str) -> std::io::Result<bool> {
     Ok(buf == ACK)
 }
 
-/// Read one `dpomo:<verb>\n` request (at most 64 bytes, 500 ms).
+/// Read one `pomolotl:<verb>\n` request (at most 64 bytes, 500 ms).
 fn read_request(stream: &mut TcpStream) -> Option<Command> {
     stream
         .set_read_timeout(Some(Duration::from_millis(500)))

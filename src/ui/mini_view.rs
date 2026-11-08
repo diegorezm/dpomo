@@ -50,7 +50,7 @@ pub fn show(ui: &mut Ui, input: Inputs<'_>) -> Option<Action> {
     let accent = theme.accent(timer.phase());
     let t = tr();
 
-    // The whole window: drag to move it, double-click to open dpomo.
+    // The whole window: drag to move it, double-click to open pomolotl.
     // Registered first so the buttons below win over it.
     let body = ui.interact(
         rect,
