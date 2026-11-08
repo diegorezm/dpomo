@@ -71,5 +71,6 @@
   "lang_switch": "English",
   "docs_title": "dpomo — guia de configuração",
   "docs_desc": "Todos os ajustes do dpomo com o valor padrão, como editar o config.toml à mão e como criar seus próprios temas e personagens.",
-  "nav_docs": "Docs"
+  "nav_docs": "Docs",
+  "linux_arm": "ARM64 / Raspberry Pi (.deb)"
 }

@@ -225,6 +225,11 @@ pub struct CharacterImage {
 }
 
 impl CharacterImage {
+    /// Rebuild on the next `image` call (the character's files changed).
+    pub fn invalidate(&mut self) {
+        self.key = None;
+    }
+
     pub fn image(
         &mut self,
         ctx: &egui::Context,

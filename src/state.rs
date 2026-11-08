@@ -40,6 +40,8 @@ pub struct Totals {
     pub today: DayStats,
     pub week: DayStats,
     pub all_time: DayStats,
+    /// The last 7 days, oldest first (today last), for the chart.
+    pub days: [(NaiveDate, DayStats); 7],
 }
 
 pub fn today() -> NaiveDate {
@@ -91,10 +93,17 @@ impl State {
                 },
             )
         };
+        let days = std::array::from_fn(|i| {
+            let day = week_start
+                .checked_add_days(Days::new(i as u64))
+                .unwrap_or(today);
+            (day, self.history.get(&day).copied().unwrap_or_default())
+        });
         Totals {
             today: sum(&|d| *d == today),
             week: sum(&|d| (week_start..=today).contains(d)),
             all_time: sum(&|_| true),
+            days,
         }
     }
 }
@@ -138,6 +147,11 @@ mod tests {
             }
         );
         assert_eq!(t.all_time.sessions, 4);
+        // Chart: 7 days ending today, empty days included.
+        assert_eq!(t.days[0].0, day("2026-11-01"));
+        assert_eq!(t.days[1].1.focus_minutes, 50);
+        assert_eq!(t.days[5].1, DayStats::default());
+        assert_eq!(t.days[6], (day("2026-11-07"), t.today));
     }
 
     #[test]

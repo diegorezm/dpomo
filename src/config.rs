@@ -165,12 +165,21 @@ impl Default for Behavior {
 #[serde(default)]
 pub struct Sound {
     pub enabled: bool,
-    /// "chime", "bell", "soft" or "file" (uses `file`).
+    /// When a break starts: "chime", "bell", "soft" or "file" (uses `file`).
     pub kind: SoundKind,
     /// Path to a .wav/.mp3/.ogg, when `kind = "file"`.
     pub file: String,
+    /// When focus starts again. Missing = same as `kind`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub focus_kind: Option<SoundKind>,
+    /// File for `focus_kind = "file"`. Empty = `file`.
+    #[serde(skip_serializing_if = "String::is_empty")]
+    pub focus_file: String,
     /// 0.0 to 1.0.
     pub volume: f32,
+    /// A soft clock tick every second while focus runs.
+    pub ticking: bool,
+    pub ticking_volume: f32,
 }
 
 impl Default for Sound {
@@ -179,7 +188,28 @@ impl Default for Sound {
             enabled: true,
             kind: SoundKind::Chime,
             file: String::new(),
+            focus_kind: None,
+            focus_file: String::new(),
             volume: 0.6,
+            ticking: false,
+            ticking_volume: 0.3,
+        }
+    }
+}
+
+impl Sound {
+    /// Sound and file to play when a phase starts.
+    pub fn for_start(&self, focus: bool) -> (SoundKind, &str) {
+        match self.focus_kind {
+            Some(kind) if focus => {
+                let file = if self.focus_file.is_empty() {
+                    &self.file
+                } else {
+                    &self.focus_file
+                };
+                (kind, file)
+            }
+            _ => (self.kind, &self.file),
         }
     }
 }
@@ -284,6 +314,33 @@ impl Keys {
     }
 }
 
+/// Every file in the user's themes/ and characters/<id>/ folders with its
+/// modification time: when this changes, something was added, edited or removed.
+fn user_files() -> Vec<(PathBuf, Option<SystemTime>)> {
+    fn scan(dir: &std::path::Path, depth: u32, out: &mut Vec<(PathBuf, Option<SystemTime>)>) {
+        let Ok(entries) = std::fs::read_dir(dir) else {
+            return;
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            let meta = entry.metadata().ok();
+            if depth > 0 && meta.as_ref().is_some_and(|m| m.is_dir()) {
+                scan(&path, depth - 1, out);
+            }
+            out.push((path, meta.and_then(|m| m.modified().ok())));
+        }
+    }
+    let mut out = Vec::new();
+    if let Some(dir) = crate::theme::Themes::dir() {
+        scan(&dir, 0, &mut out);
+    }
+    if let Some(dir) = crate::character::Characters::dir() {
+        scan(&dir, 1, &mut out);
+    }
+    out.sort();
+    out
+}
+
 /// Why the config file couldn't be used.
 #[derive(Debug, PartialEq)]
 pub enum LoadError {
@@ -350,16 +407,27 @@ impl Config {
     }
 
     /// Poll the file once a second and send `Command::ReloadConfig` when it
-    /// changes. One `stat` per second, no extra dependencies.
+    /// changes, and `Command::ReloadFiles` when the user's themes/characters
+    /// folders do. A few `stat`s per second, no extra dependencies.
     pub fn watch(ctx: egui::Context, tx: Sender<Command>) {
         std::thread::spawn(move || {
             let mut last = Self::modified();
+            let mut last_files = user_files();
             loop {
                 std::thread::sleep(Duration::from_secs(1));
+                let mut changed = Vec::new();
                 let now = Self::modified();
                 if now != last {
                     last = now;
-                    if tx.send(Command::ReloadConfig).is_err() {
+                    changed.push(Command::ReloadConfig);
+                }
+                let files = user_files();
+                if files != last_files {
+                    last_files = files;
+                    changed.push(Command::ReloadFiles);
+                }
+                for command in changed {
+                    if tx.send(command).is_err() {
                         return;
                     }
                     ctx.request_repaint();

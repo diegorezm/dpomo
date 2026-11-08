@@ -20,7 +20,7 @@ Focus for **25 minutes**, rest for **5**. Every **4 sessions**, take a long **15
 | **Linux** (Ubuntu/Debian) · *beta* | [dpomo-linux-amd64.deb](https://github.com/diegorezm/dpomo/releases/latest/download/dpomo-linux-amd64.deb) | Double-click it, or `sudo apt install ./dpomo-linux-amd64.deb` |
 | **macOS** · *beta* | [dpomo-macos.dmg](https://github.com/diegorezm/dpomo/releases/latest/download/dpomo-macos.dmg) | Drag dpomo into *Applications*. |
 
-More options (a portable Windows version, a `.tar.gz` for other Linux distros) are on the
+More options (a portable Windows version, a `.tar.gz` for other Linux distros, ARM64 Linux builds) are on the
 [releases page](https://github.com/diegorezm/dpomo/releases/latest).
 
 > **Windows:** if you see "Windows protected your PC", click *More info* → *Run anyway*.
@@ -158,9 +158,13 @@ check_updates = true             # see "Privacy" below
 
 [sound]
 enabled = true
-kind = "chime"                   # "chime", "bell", "soft" or "file"
+kind = "chime"                   # when a break starts: "chime", "bell", "soft" or "file"
 file = ""                        # path to a .wav/.mp3/.ogg when kind = "file"
+# focus_kind = "bell"            # when focus starts (missing = same as kind)
+# focus_file = ""                # its file, when focus_kind = "file" (empty = file)
 volume = 0.6                     # 0.0 to 1.0
+ticking = false                  # soft tick every second while focusing
+ticking_volume = 0.3
 
 [window]
 width = 360.0

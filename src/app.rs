@@ -71,6 +71,8 @@ pub struct DpomoApp {
     /// When to give memory back to the OS: shortly after startup and after hiding
     /// (see `system::trim_memory`).
     trim_memory_at: Option<Instant>,
+    /// Clock tick during focus (`sound.ticking`).
+    ticker: sound::Ticker,
 }
 
 impl DpomoApp {
@@ -112,6 +114,7 @@ impl DpomoApp {
             applied_language: None,
             update_checker_started: false,
             trim_memory_at: Some(Instant::now() + TRIM_MEMORY_DELAY),
+            ticker: sound::Ticker::default(),
             commands,
             tray: None,
             window_visible: !start_hidden,
@@ -204,7 +207,8 @@ impl DpomoApp {
         let s = &self.config.sound;
         if s.enabled {
             // Rising melody into a break, falling back into focus.
-            sound::play(s.kind, &s.file, s.volume, next != Phase::Focus);
+            let (kind, file) = s.for_start(next == Phase::Focus);
+            sound::play(kind, file, s.volume, next != Phase::Focus);
         }
         if self.config.behavior.system_notification {
             let started = self.timer.is_running();
@@ -220,6 +224,15 @@ impl DpomoApp {
         if self.config.behavior.focus_on_finish {
             self.set_window_visible(ctx, true);
         }
+    }
+
+    /// Read the themes and characters folders again.
+    fn reload_files(&mut self) {
+        self.themes = Themes::load();
+        self.characters = Characters::load();
+        self.character_image.invalidate();
+        self.mini_image.invalidate();
+        self.settings.thumbnails.clear();
     }
 
     fn handle_shortcuts(&mut self, ctx: &egui::Context, now: Instant) {
@@ -288,9 +301,10 @@ impl DpomoApp {
                     self.settings.notice = Some(fill(tr().open_failed, &[("e", &e.to_string())]));
                 }
             }
-            Action::PlaySound => {
+            Action::PlaySound { focus } => {
                 let s = &self.config.sound;
-                sound::play(s.kind, &s.file, s.volume, true);
+                let (kind, file) = s.for_start(focus);
+                sound::play(kind, file, s.volume, !focus);
             }
             Action::OverwriteConfig => {
                 self.settings.config_error = None;
@@ -299,8 +313,7 @@ impl DpomoApp {
             }
             Action::ResetDefaults => self.config = Config::default(),
             Action::ReloadThemes => {
-                self.themes = Themes::load();
-                self.characters = Characters::load();
+                self.reload_files();
                 self.settings.notice = Some(fill(
                     tr().reloaded,
                     &[
@@ -382,6 +395,7 @@ impl DpomoApp {
                 Command::OpenSettings => self.open_settings(ctx),
                 Command::Quit => self.quit(),
                 Command::ReloadConfig => self.reload_config(),
+                Command::ReloadFiles => self.reload_files(),
                 Command::UpdateAvailable(version) => {
                     if self.config.behavior.check_updates {
                         self.settings.update = Some(version);
@@ -783,6 +797,10 @@ impl eframe::App for DpomoApp {
         if let Some(event) = self.timer.tick(now, &self.config.timer) {
             self.on_timer_event(ctx, event, now);
         }
+        let s = &self.config.sound;
+        let focusing = self.timer.is_running() && self.timer.phase() == Phase::Focus;
+        self.ticker
+            .set(s.enabled && s.ticking && focusing, s.ticking_volume);
         if self.timer.is_running()
             && now.duration_since(self.last_state_save) >= STATE_SAVE_INTERVAL
         {

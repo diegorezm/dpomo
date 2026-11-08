@@ -239,8 +239,8 @@ const SETTINGS: &[(&str, [&str; 2])] = &[
     (
         "sound.kind",
         [
-            "`\"chime\"`, `\"bell\"`, `\"soft\"`, or `\"file\"` to play your own file.",
-            "`\"chime\"`, `\"bell\"`, `\"soft\"`, ou `\"file\"` para tocar um arquivo seu.",
+            "Sound when a break starts: `\"chime\"`, `\"bell\"`, `\"soft\"`, or `\"file\"` to play your own file.",
+            "Som quando a pausa começa: `\"chime\"`, `\"bell\"`, `\"soft\"`, ou `\"file\"` para tocar um arquivo seu.",
         ],
     ),
     (
@@ -251,10 +251,38 @@ const SETTINGS: &[(&str, [&str; 2])] = &[
         ],
     ),
     (
+        "sound.focus_kind",
+        [
+            "Sound when focus starts again, same values as `kind`. Missing: the same sound as `kind`.",
+            "Som quando o foco recomeça, os mesmos valores de `kind`. Sem isso: o mesmo som de `kind`.",
+        ],
+    ),
+    (
+        "sound.focus_file",
+        [
+            "Your file for `focus_kind = \"file\"`. Missing or empty: `file`.",
+            "Seu arquivo para `focus_kind = \"file\"`. Sem isso ou vazio: `file`.",
+        ],
+    ),
+    (
         "sound.volume",
         [
             "From `0.0` (silent) to `1.0` (loudest).",
             "De `0.0` (mudo) a `1.0` (mais alto).",
+        ],
+    ),
+    (
+        "sound.ticking",
+        [
+            "A soft clock tick every second, only while a focus session runs.",
+            "Um tique suave de relógio a cada segundo, só enquanto uma sessão de foco está rodando.",
+        ],
+    ),
+    (
+        "sound.ticking_volume",
+        [
+            "Volume of the ticking, `0.0` to `1.0`.",
+            "Volume do tique-taque, de `0.0` a `1.0`.",
         ],
     ),
     (
@@ -350,7 +378,7 @@ const SETTINGS: &[(&str, [&str; 2])] = &[
 ];
 
 /// Settings that aren't written until they have a value.
-const UNSET: &[&str] = &["mini.x", "mini.y"];
+const UNSET: &[&str] = &["mini.x", "mini.y", "sound.focus_kind", "sound.focus_file"];
 
 /// Keys of a theme file (and of `[custom_theme]`).
 const THEME_FIELDS: &[(&str, [&str; 2])] = &[

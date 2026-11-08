@@ -6,6 +6,10 @@
 
 use std::f32::consts::TAU;
 use std::num::NonZero;
+use std::sync::mpsc::{self, RecvTimeoutError, Sender};
+use std::time::Duration;
+
+use rodio::Source;
 
 use serde::{Deserialize, Serialize};
 
@@ -71,6 +75,72 @@ fn play_blocking(
     Ok(())
 }
 
+/// The clock tick during focus (`sound.ticking`). The output device is open
+/// only while it ticks: dropping the sender stops the thread.
+#[derive(Default)]
+pub struct Ticker {
+    running: Option<(f32, Sender<f32>)>,
+}
+
+impl Ticker {
+    /// Call every pass; cheap when nothing changes.
+    pub fn set(&mut self, on: bool, volume: f32) {
+        let volume = volume.clamp(0.0, 1.0);
+        match (&mut self.running, on) {
+            (None, false) => {}
+            (Some(_), false) => self.running = None,
+            (Some((current, tx)), true) => {
+                if *current != volume && tx.send(volume).is_ok() {
+                    *current = volume;
+                }
+            }
+            (None, true) => {
+                let (tx, rx) = mpsc::channel();
+                std::thread::spawn(move || {
+                    if let Err(e) = tick_blocking(volume, rx) {
+                        eprintln!("dpomo: could not play the ticking: {e}");
+                    }
+                });
+                self.running = Some((volume, tx));
+            }
+        }
+    }
+}
+
+fn tick_blocking(volume: f32, rx: mpsc::Receiver<f32>) -> Result<(), Box<dyn std::error::Error>> {
+    let mut sink = rodio::DeviceSinkBuilder::open_default_sink()?;
+    sink.log_on_drop(false);
+    let player = rodio::Player::connect_new(sink.mixer());
+    player.set_volume(volume);
+    player.append(
+        rodio::buffer::SamplesBuffer::new(
+            NonZero::new(1).expect("1 channel"),
+            NonZero::new(RATE).expect("non-zero rate"),
+            tick(),
+        )
+        .repeat_infinite(),
+    );
+    loop {
+        match rx.recv_timeout(Duration::from_millis(200)) {
+            Ok(volume) => player.set_volume(volume),
+            Err(RecvTimeoutError::Timeout) => {}
+            Err(RecvTimeoutError::Disconnected) => return Ok(()),
+        }
+    }
+}
+
+/// One second: a short wooden "tock" followed by silence.
+pub fn tick() -> Vec<f32> {
+    let mut out = vec![0.0f32; RATE as usize];
+    for (i, sample) in out.iter_mut().enumerate().take(RATE as usize / 20) {
+        let t = i as f32 / RATE as f32;
+        let envelope = (t / 0.001).min(1.0) * (-t * 160.0).exp();
+        let tone = (TAU * 1250.0 * t).sin() + 0.4 * (TAU * 2900.0 * t).sin();
+        *sample = 0.35 * envelope * tone;
+    }
+    out
+}
+
 /// Mono samples for a built-in sound.
 pub fn synthesize(kind: SoundKind, rising: bool) -> Vec<f32> {
     let (notes, partials, decay): (Vec<Note>, &[Partial], f32) = match kind {
@@ -127,6 +197,14 @@ fn arpeggio(freqs: &[f32], step: f32, rising: bool) -> Vec<Note> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn tick_is_one_quiet_second() {
+        let s = tick();
+        assert_eq!(s.len(), RATE as usize);
+        assert!(s.iter().all(|x| x.abs() <= 0.5));
+        assert!(s[RATE as usize / 10..].iter().all(|x| *x == 0.0));
+    }
 
     #[test]
     fn built_in_sounds_are_short_and_never_clip() {

@@ -45,12 +45,12 @@ The release workflow now installs every package on fresh Windows, Ubuntu 22.04/2
 - [x] Settings in their own bigger window (sidebar, larger text, explanations under options).
 - [x] Floating timer: borderless always-on-top window, movable and resizable, remembers its place.
 - [ ] More languages (add a `Strings` static in `src/i18n.rs` + a `Language` variant).
-- [ ] Statistics view with a small weekly chart (data is already in `state.toml`).
-- [ ] Optional ticking sound during focus.
-- [ ] Per-phase sounds (different sound for "break starts" and "focus starts").
+- [x] Statistics: weekly bar chart of focus time (settings → Statistics).
+- [x] Optional ticking sound during focus (`sound.ticking`).
+- [x] Per-phase sounds (`sound.focus_kind` / `focus_file`).
 - [ ] Built-in global shortcut while the window is hidden (today: bind `dpomo --toggle` in the OS).
-- [ ] Watch the themes/characters folders like `config.toml` (today: "Reload" button).
-- [ ] Linux ARM (aarch64) builds.
+- [x] Watch the themes/characters folders like `config.toml` (the Reload button stays).
+- [x] Linux ARM64 builds (`.deb` + `.tar.gz` on native ARM runners, smoke-tested on Ubuntu 24.04 ARM).
 
 ## Project
 

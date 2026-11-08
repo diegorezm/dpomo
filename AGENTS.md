@@ -265,15 +265,15 @@ handler, and handle the variant in `App::handle_commands`.
 | ---- | ---------- | ------ |
 | `dpomo-setup.exe` | Inno Setup (`iscc`) | `packaging/windows/dpomo.iss` |
 | `dpomo-windows-portable.zip` | `Compress-Archive` | release `.exe` |
-| `dpomo-linux-amd64.deb` | `cargo deb` | `[package.metadata.deb]` in `Cargo.toml`, `packaging/linux/dpomo.desktop` |
-| `dpomo-linux-x86_64.tar.gz` | `tar` | binary + `.desktop` + icon |
+| `dpomo-linux-amd64.deb` / `-arm64.deb` | `cargo deb` (native ARM runner for arm64) | `[package.metadata.deb]` in `Cargo.toml`, `packaging/linux/dpomo.desktop` |
+| `dpomo-linux-x86_64.tar.gz` / `-aarch64.tar.gz` | `tar` | binary + `.desktop` + icon |
 | `dpomo-macos.dmg` | `lipo` + `hdiutil` (universal, ad-hoc signed) | `packaging/macos/Info.plist` |
 
 To release: bump `version` in `Cargo.toml`, add a `CHANGELOG.md` entry, commit, `git tag vX.Y.Z && git push origin vX.Y.Z`.
 To test packaging without publishing: run the workflow manually (workflow_dispatch) and download the artifacts.
 
 **Smoke tests** (`smoke-*` jobs, scripts in `packaging/smoke/`): each package is installed on fresh runners
-(Windows installer; `.deb` with apt on Ubuntu 22.04 + 24.04 under Xvfb + D-Bus + dunst; `.dmg` on macOS
+(Windows installer; `.deb` with apt on Ubuntu 22.04 + 24.04 (+ 24.04 ARM) under Xvfb + D-Bus + dunst; `.dmg` on macOS
 arm64 + Intel), dpomo runs a real 1-minute focus driven by `dpomo --toggle`, quits with `--quit`, and the
 script checks `state.toml` recorded the session (Windows also uninstalls and checks the registry cleanup).
 Screenshots and logs are uploaded as `smoke-*` artifacts — **look at them** after packaging changes.

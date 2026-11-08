@@ -1,9 +1,10 @@
 //! Settings window. Edits `Config` in place; `App` decides when to save.
 
+use chrono::Datelike;
 use egui::color_picker::{Alpha, color_edit_button_srgba};
 use egui::{
-    Align, Color32, CornerRadius, CursorIcon, DragValue, Layout, RichText, Sense, Slider, Stroke,
-    Ui, vec2,
+    Align, Align2, Color32, CornerRadius, CursorIcon, DragValue, FontId, Layout, Rect, RichText,
+    Sense, Slider, Stroke, Ui, pos2, vec2,
 };
 
 use std::collections::HashMap;
@@ -27,7 +28,10 @@ pub enum Action {
     OpenConfigFolder,
     /// Replace a broken config.toml with the current settings.
     OverwriteConfig,
-    PlaySound,
+    /// Test the sound for a break (`false`) or focus (`true`) starting.
+    PlaySound {
+        focus: bool,
+    },
     OpenUpdatePage,
     /// Put the floating timer back in its default corner.
     MiniToCorner,
@@ -414,33 +418,70 @@ fn sound_page(ui: &mut Ui, config: &mut Config, theme: &Theme) -> Option<Action>
     widgets::card(ui, theme, |ui| {
         ui.checkbox(&mut s.enabled, t.sound_enabled);
         ui.add_enabled_ui(s.enabled, |ui| {
+            row(ui, t.sound_break_starts, |ui| {
+                if ui.button(t.play_test).clicked() {
+                    action = Some(Action::PlaySound { focus: false });
+                }
+            });
             ui.horizontal_wrapped(|ui| {
                 for kind in SoundKind::ALL {
-                    let label = match kind {
-                        SoundKind::Chime => t.sound_chime,
-                        SoundKind::Bell => t.sound_bell,
-                        SoundKind::Soft => t.sound_soft,
-                        SoundKind::File => t.sound_file,
-                    };
-                    ui.selectable_value(&mut s.kind, kind, label);
+                    ui.selectable_value(&mut s.kind, kind, kind_label(kind));
                 }
             });
             if s.kind == SoundKind::File {
-                ui.add(
-                    egui::TextEdit::singleline(&mut s.file)
-                        .hint_text(t.sound_file_hint)
-                        .desired_width(f32::INFINITY),
-                );
+                file_field(ui, &mut s.file, t.sound_file_hint);
             }
-            row(ui, t.volume, |ui| {
+            ui.add_space(6.0);
+            row(ui, t.sound_focus_starts, |ui| {
                 if ui.button(t.play_test).clicked() {
-                    action = Some(Action::PlaySound);
+                    action = Some(Action::PlaySound { focus: true });
                 }
+            });
+            ui.horizontal_wrapped(|ui| {
+                ui.selectable_value(&mut s.focus_kind, None, t.sound_same);
+                for kind in SoundKind::ALL {
+                    ui.selectable_value(&mut s.focus_kind, Some(kind), kind_label(kind));
+                }
+            });
+            if s.focus_kind == Some(SoundKind::File) {
+                file_field(ui, &mut s.focus_file, t.sound_focus_file_hint);
+            }
+            ui.add_space(6.0);
+            row(ui, t.volume, |ui| {
                 ui.add(Slider::new(&mut s.volume, 0.0..=1.0).show_value(false));
             });
         });
     });
+    widgets::card(ui, theme, |ui| {
+        ui.add_enabled_ui(s.enabled, |ui| {
+            ui.checkbox(&mut s.ticking, t.ticking);
+            hint_indented(ui, t.ticking_hint, theme);
+            ui.add_enabled_ui(s.ticking, |ui| {
+                row(ui, t.volume, |ui| {
+                    ui.add(Slider::new(&mut s.ticking_volume, 0.0..=1.0).show_value(false));
+                });
+            });
+        });
+    });
     action
+}
+
+fn kind_label(kind: SoundKind) -> &'static str {
+    let t = tr();
+    match kind {
+        SoundKind::Chime => t.sound_chime,
+        SoundKind::Bell => t.sound_bell,
+        SoundKind::Soft => t.sound_soft,
+        SoundKind::File => t.sound_file,
+    }
+}
+
+fn file_field(ui: &mut Ui, path: &mut String, hint: &str) {
+    ui.add(
+        egui::TextEdit::singleline(path)
+            .hint_text(hint)
+            .desired_width(f32::INFINITY),
+    );
 }
 
 fn mini_page(ui: &mut Ui, config: &mut Config, theme: &Theme) -> Option<Action> {
@@ -504,6 +545,12 @@ fn tray_page(ui: &mut Ui, config: &mut Config, state: &State, theme: &Theme) -> 
 fn stats_page(ui: &mut Ui, totals: &Totals, theme: &Theme) -> Option<Action> {
     let t = tr();
     widgets::card(ui, theme, |ui| {
+        ui.label(RichText::new(t.stats_chart).strong());
+        ui.add_space(6.0);
+        week_chart(ui, totals, theme);
+    });
+    ui.add_space(8.0);
+    widgets::card(ui, theme, |ui| {
         for (label, stats) in [
             (t.stats_today, totals.today),
             (t.stats_week, totals.week),
@@ -522,6 +569,49 @@ fn stats_page(ui: &mut Ui, totals: &Totals, theme: &Theme) -> Option<Action> {
         }
     });
     None
+}
+
+/// Focus minutes of the last 7 days as bars, today on the right.
+fn week_chart(ui: &mut Ui, totals: &Totals, theme: &Theme) {
+    let t = tr();
+    let (rect, _) = ui.allocate_exact_size(vec2(ui.available_width(), 150.0), Sense::hover());
+    let painter = ui.painter_at(rect);
+    // A full bar is the best day, or one default session if that's more.
+    let max = totals
+        .days
+        .iter()
+        .map(|(_, s)| s.focus_minutes)
+        .max()
+        .unwrap_or(0)
+        .max(25) as f32;
+    let (top, bottom) = (rect.top() + 18.0, rect.bottom() - 20.0);
+    let slot = rect.width() / 7.0;
+    let width = (slot * 0.55).min(34.0);
+    for (i, (day, stats)) in totals.days.iter().enumerate() {
+        let x = rect.left() + slot * (i as f32 + 0.5);
+        let track = Rect::from_x_y_ranges(x - width / 2.0..=x + width / 2.0, top..=bottom);
+        painter.rect_filled(track, 6.0, mix(theme.surface, theme.muted, 0.15));
+        if stats.focus_minutes > 0 {
+            let height = ((bottom - top) * stats.focus_minutes as f32 / max).max(8.0);
+            let bar = Rect::from_x_y_ranges(track.x_range(), bottom - height..=bottom);
+            painter.rect_filled(bar, 6.0, theme.focus);
+            painter.text(
+                pos2(x, bar.top() - 3.0),
+                Align2::CENTER_BOTTOM,
+                format_minutes(stats.focus_minutes),
+                FontId::proportional(12.0),
+                theme.text,
+            );
+        }
+        let today = i == totals.days.len() - 1;
+        painter.text(
+            pos2(x, rect.bottom()),
+            Align2::CENTER_BOTTOM,
+            t.weekdays[day.weekday().num_days_from_monday() as usize],
+            FontId::proportional(12.5),
+            if today { theme.text } else { theme.muted },
+        );
+    }
 }
 
 fn config_page(ui: &mut Ui, theme: &Theme) -> Option<Action> {

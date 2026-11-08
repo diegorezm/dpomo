@@ -16,6 +16,8 @@ pub enum Command {
     Quit,
     /// `config.toml` changed on disk.
     ReloadConfig,
+    /// Something in the user's themes/ or characters/ folder changed.
+    ReloadFiles,
     /// A newer release exists (version without the `v`).
     UpdateAvailable(String),
 }

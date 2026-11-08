@@ -83,12 +83,17 @@ jobs:
         run: Compress-Archive -Path target\release\dpomo.exe, LICENSE, README.md -DestinationPath dist\dpomo-windows-portable.zip
       - uses: actions/upload-artifact@v4
         with:
-          name: windows
+          name: pkg-windows
           path: dist/*
 
   linux:
-    # Older Ubuntu = older glibc = the binary runs on more distros.
-    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        include:
+          # Older Ubuntu = older glibc = the binary runs on more distros.
+          - { runner: ubuntu-22.04, deb: amd64, tar: x86_64 }
+          - { runner: ubuntu-22.04-arm, deb: arm64, tar: aarch64 }
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -101,13 +106,13 @@ jobs:
       - name: Package
         run: |
           mkdir -p dist
-          cargo deb --no-build --output dist/dpomo-linux-amd64.deb
+          cargo deb --no-build --output dist/dpomo-linux-${{ matrix.deb }}.deb
           mkdir -p pkg/dpomo
           cp target/release/dpomo packaging/linux/dpomo.desktop assets/icon.png LICENSE README.md pkg/dpomo/
-          tar -C pkg -czf dist/dpomo-linux-x86_64.tar.gz dpomo
+          tar -C pkg -czf dist/dpomo-linux-${{ matrix.tar }}.tar.gz dpomo
       - uses: actions/upload-artifact@v4
         with:
-          name: linux
+          name: pkg-linux-${{ matrix.deb }}
           path: dist/*
 
   macos:
@@ -165,7 +170,7 @@ jobs:
           xcrun stapler staple dist/dpomo-macos.dmg
       - uses: actions/upload-artifact@v4
         with:
-          name: macos
+          name: pkg-macos
           path: dist/*
 
   # Smoke tests: install each package on a fresh runner and run a real
@@ -178,7 +183,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
-          name: windows
+          name: pkg-windows
           path: dist
       - run: packaging/smoke/smoke-windows.ps1 dist/dpomo-setup.exe smoke
         shell: pwsh
@@ -193,16 +198,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, ubuntu-24.04]
+        include:
+          - { os: ubuntu-22.04, arch: amd64 }
+          - { os: ubuntu-24.04, arch: amd64 }
+          - { os: ubuntu-24.04-arm, arch: arm64 }
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
-          name: linux
+          name: pkg-linux-${{ matrix.arch }}
           path: dist
       # Installing the .deb with apt proves its declared dependencies resolve.
-      - run: sudo apt-get update && sudo apt-get install -y ./dist/dpomo-linux-amd64.deb xvfb dunst imagemagick libgl1-mesa-dri
+      - run: sudo apt-get update && sudo apt-get install -y ./dist/dpomo-linux-${{ matrix.arch }}.deb xvfb dunst imagemagick libgl1-mesa-dri
       - run: dbus-run-session -- bash packaging/smoke/smoke-linux.sh smoke
       - uses: actions/upload-artifact@v4
         if: always()
@@ -221,7 +229,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
-          name: macos
+          name: pkg-macos
           path: dist
       - run: bash packaging/smoke/smoke-macos.sh dist/dpomo-macos.dmg smoke
       - uses: actions/upload-artifact@v4
@@ -235,8 +243,10 @@ jobs:
     needs: [windows, linux, macos, smoke-windows, smoke-linux, smoke-macos]
     runs-on: ubuntu-latest
     steps:
+      # Only the packages (pkg-*): not the unsigned intermediates or smoke screenshots.
       - uses: actions/download-artifact@v4
         with:
+          pattern: pkg-*
           path: dist
           merge-multiple: true
       - name: Publish

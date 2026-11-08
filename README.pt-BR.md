@@ -20,7 +20,7 @@ Só isso. (Todos esses números você pode mudar.)
 | **Linux** (Ubuntu/Debian) · *beta* | [dpomo-linux-amd64.deb](https://github.com/diegorezm/dpomo/releases/latest/download/dpomo-linux-amd64.deb) | Dois cliques no arquivo, ou `sudo apt install ./dpomo-linux-amd64.deb` |
 | **macOS** · *beta* | [dpomo-macos.dmg](https://github.com/diegorezm/dpomo/releases/latest/download/dpomo-macos.dmg) | Arraste o dpomo para *Aplicativos*. |
 
-Outras opções (versão portátil para Windows, `.tar.gz` para outros Linux) estão na
+Outras opções (versão portátil para Windows, `.tar.gz` para outros Linux, Linux ARM64) estão na
 [página de releases](https://github.com/diegorezm/dpomo/releases/latest).
 
 > **Windows:** se aparecer "O Windows protegeu o computador", clique em *Mais informações* → *Executar assim mesmo*.
@@ -158,9 +158,13 @@ check_updates = true             # veja "Privacidade" abaixo
 
 [sound]
 enabled = true
-kind = "chime"                   # "chime" (sininho), "bell" (sino), "soft" (suave) ou "file"
+kind = "chime"                   # quando a pausa começa: "chime" (sininho), "bell" (sino), "soft" (suave) ou "file"
 file = ""                        # caminho de um .wav/.mp3/.ogg quando kind = "file"
+# focus_kind = "bell"            # quando o foco começa (sem isso = igual a kind)
+# focus_file = ""                # o arquivo dele, quando focus_kind = "file" (vazio = file)
 volume = 0.6                     # de 0.0 a 1.0
+ticking = false                  # tique suave a cada segundo durante o foco
+ticking_volume = 0.3
 
 [window]
 width = 360.0

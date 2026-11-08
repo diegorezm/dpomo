@@ -8,17 +8,17 @@ Good fit for people looking for: a free Pomodoro timer app for Windows or Linux,
 
 - [Windows installer (.exe)](https://github.com/diegorezm/dpomo/releases/latest/download/dpomo-setup.exe): per-user, no admin password. Not code-signed yet, so SmartScreen asks once (More info → Run anyway).
 - [Windows portable (.zip)](https://github.com/diegorezm/dpomo/releases/latest/download/dpomo-windows-portable.zip)
-- [Ubuntu / Debian (.deb)](https://github.com/diegorezm/dpomo/releases/latest/download/dpomo-linux-amd64.deb) and [other Linux (.tar.gz)](https://github.com/diegorezm/dpomo/releases/latest/download/dpomo-linux-x86_64.tar.gz)
+- [Ubuntu / Debian (.deb)](https://github.com/diegorezm/dpomo/releases/latest/download/dpomo-linux-amd64.deb) and [other Linux (.tar.gz)](https://github.com/diegorezm/dpomo/releases/latest/download/dpomo-linux-x86_64.tar.gz); ARM64 / Raspberry Pi: [.deb](https://github.com/diegorezm/dpomo/releases/latest/download/dpomo-linux-arm64.deb)
 - [macOS, Apple Silicon + Intel (.dmg)](https://github.com/diegorezm/dpomo/releases/latest/download/dpomo-macos.dmg): not notarized, right-click → Open the first time.
 
 ## Features
 
 - Focus, short break and long break with adjustable durations (default 25/5/15, long break every 4 sessions); breaks and focus can auto-start.
 - Floating timer: a small borderless always-on-top window with the time left, the phase and the character; drag to move, resize from the corner.
-- Lives in the system tray; closing the window keeps the timer running. Sound and desktop notification when a phase ends.
+- Lives in the system tray; closing the window keeps the timer running. Sound (different for break and focus, or your own file) and desktop notification when a phase ends; optional ticking clock while focusing.
 - Two layouts (character or minimal ring), built-in themes (Rosé Pine, Catppuccin, Nord, Gruvbox, Tokyo Night, Latte, Paper, Mono), custom colors, user themes and characters as files.
 - Keyboard shortcuts (Space, S, R, M…, all configurable) and a command line (`dpomo --toggle`, `--skip`, `--reset`, `--mini`, `--settings`, `--quit`) for global hotkeys.
-- Resumes the session after a restart; daily focus statistics.
+- Resumes the session after a restart; daily focus statistics with a 7-day chart.
 - English and Portuguese. Every setting lives in a plain `config.toml` that applies live when saved.
 
 ## Links
