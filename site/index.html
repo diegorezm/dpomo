@@ -141,17 +141,20 @@ h2.display { font-size: clamp(40px, 5.6vw, 64px); line-height: 1; margin: 0 0 18
 .shot { width: 100%; height: auto; display: block; border-radius: 24px; margin-top: 44px; border: 2px solid var(--ink); }
 
 /* feature tiles, a vendor-board grid */
-.tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-.tile { border-radius: 14px; padding: 18px 14px 16px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; }
+.features-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px 48px; align-items: end; margin-bottom: 30px; }
+.features-head h2.display { margin: 0; }
+.features-head .lead { margin-bottom: 12px; }
+.tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.tile { border-radius: 18px; padding: 24px 24px 26px; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
 .tile.ink { background: var(--ink); color: var(--paper); --glyph: var(--cobalt); --eye: var(--ink); }
 .tile.cobalt { background: var(--cobalt); color: var(--paper); --glyph: var(--ice); --eye: var(--cobalt); }
 .tile:nth-child(4n+2) { --glyph: var(--paper); }
 .tile:nth-child(4n+3).ink { --glyph: var(--ice); }
-.glyph { width: 56px; height: 56px; color: var(--glyph); fill: currentColor; flex: none; }
+.glyph { width: 46px; height: 46px; color: var(--glyph); fill: currentColor; flex: none; margin-bottom: 4px; }
 .glyph .eye { fill: var(--eye); }
-.tile h3 { margin: 4px 0 0; font-size: 11.5px; }
-.tile p { margin: 0; font-size: 13.5px; line-height: 1.45; opacity: .82; }
-.tile code { background: rgba(255,255,255,.14); color: inherit; }
+.tile h3 { margin: 0; font-family: var(--serif); font-weight: 400; font-size: 30px; line-height: 1.05; letter-spacing: -0.01em; }
+.tile p { margin: 0; font-size: 15.5px; line-height: 1.55; opacity: .92; max-width: 32ch; }
+.tile code { background: rgba(255,255,255,.14); color: inherit; white-space: nowrap; }
 .tile a { color: inherit; }
 
 /* floating timer: a pretend desktop with a draggable, resizable mini window */
@@ -213,12 +216,14 @@ h2.display { font-size: clamp(40px, 5.6vw, 64px); line-height: 1; margin: 0 0 18
 .privacy p { margin: 0 0 12px; font-size: 15.5px; }
 
 @media (max-width: 900px) {
+  .features-head { grid-template-columns: 1fr; }
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .split, .privacy { grid-template-columns: 1fr; }
   .downloads { grid-template-columns: 1fr; }
   .panel { border-radius: 28px; }
 }
 @media (max-width: 520px) {
-  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tiles { grid-template-columns: 1fr; }
   .nav { gap: 6px 14px; }
   .nav .hide-sm { display: none; }
   .time { font-size: 52px; }
@@ -322,57 +327,61 @@ h2.display { font-size: clamp(40px, 5.6vw, 64px); line-height: 1; margin: 0 0 18
 
 <section class="panel cream" id="features">
   <div class="panel-in">
-    <div class="split">
+    <div class="features-head">
       <div>
         <p class="caps eyebrow" data-i18n="features_label">Features</p>
         <h2 class="display" data-i18n="features_h">Small, pretty, yours</h2>
+      </div>
+      <div>
         <p class="lead" data-i18n="features_sub">Everything a Pomodoro timer needs, nothing it doesn't.</p>
         <a class="text-link caps" href="docs.html"><span class="orn" aria-hidden="true"></span><span data-i18n="guide_link">Configuration guide</span><span class="orn" aria-hidden="true"></span></a>
       </div>
+    </div>
+    <div>
       <div class="tiles">
         <article class="tile ink">
           <svg class="glyph" aria-hidden="true"><use href="#g-petals8"/></svg>
-          <h3 class="caps" data-i18n="f1_h">A companion</h3>
+          <h3 data-i18n="f1_h">A companion</h3>
           <p data-i18n="f1">An axolotl, a capybara or a tomato that waves, works, relaxes and naps with you. Or draw your own as SVG.</p>
         </article>
         <article class="tile cobalt">
           <svg class="glyph" aria-hidden="true"><use href="#g-quatre"/></svg>
-          <h3 class="caps" data-i18n="f7_h">Floating timer</h3>
+          <h3 data-i18n="f7_h">Floating timer</h3>
           <p data-i18n="f7">A tiny always-on-top window with the time left. Put it in any corner, at any size.</p>
         </article>
         <article class="tile ink">
           <svg class="glyph" aria-hidden="true"><use href="#g-sun"/></svg>
-          <h3 class="caps" data-i18n="f2_h">Lives in the tray</h3>
+          <h3 data-i18n="f2_h">Lives in the tray</h3>
           <p data-i18n="f2">Close the window and the timer keeps going. A sound and a notification tell you when it's time.</p>
         </article>
         <article class="tile cobalt">
           <svg class="glyph" aria-hidden="true"><use href="#g-sprig"/></svg>
-          <h3 class="caps" data-i18n="f3_h">Make it yours</h3>
+          <h3 data-i18n="f3_h">Make it yours</h3>
           <p data-i18n-html="f3">Themes, layouts, sounds, shortcuts and durations. Everything lives in one <code>config.toml</code> you can edit live (<a href="docs.html">guide</a>).</p>
         </article>
         <article class="tile ink">
           <svg class="glyph" aria-hidden="true"><use href="#g-daisy"/></svg>
-          <h3 class="caps" data-i18n="f4_h">Featherweight</h3>
+          <h3 data-i18n="f4_h">Featherweight</h3>
           <p data-i18n="f4">0% CPU when paused, about 12 MB of memory open and 7 MB in the tray.</p>
         </article>
         <article class="tile cobalt">
           <svg class="glyph" aria-hidden="true"><use href="#g-asterisk"/></svg>
-          <h3 class="caps" data-i18n="f8_h">Settings you can read</h3>
+          <h3 data-i18n="f8_h">Settings you can read</h3>
           <p data-i18n="f8">A roomy, searchable settings window with every option explained in plain words. Changes show up live.</p>
         </article>
         <article class="tile ink">
           <svg class="glyph" aria-hidden="true"><use href="#g-blossom"/></svg>
-          <h3 class="caps" data-i18n="f5_h">Picks up where you left off</h3>
+          <h3 data-i18n="f5_h">Picks up where you left off</h3>
           <p data-i18n="f5">Restarted your computer mid-session? It resumes. And it counts your focus time per day.</p>
         </article>
         <article class="tile cobalt">
           <svg class="glyph" aria-hidden="true"><use href="#g-burst"/></svg>
-          <h3 class="caps" data-i18n="f9_h">Shortcuts everywhere</h3>
+          <h3 data-i18n="f9_h">Shortcuts everywhere</h3>
           <p data-i18n-html="f9">Keys inside the app, plus <code>pomolotl --toggle</code> and friends to bind global shortcuts.</p>
         </article>
         <article class="tile ink">
           <svg class="glyph" aria-hidden="true"><use href="#g-clover"/></svg>
-          <h3 class="caps" data-i18n="f6_h">Private</h3>
+          <h3 data-i18n="f6_h">Private</h3>
           <p data-i18n="f6">No account, no telemetry, no ads. Your data stays on your computer.</p>
         </article>
       </div>
