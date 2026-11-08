@@ -652,15 +652,21 @@ impl DpomoApp {
             .with_title(format!("dpomo · {}", tr().settings))
             .with_app_id("dpomo")
             .with_icon(self.icon.clone())
-            .with_inner_size([780.0, 640.0])
-            .with_min_inner_size([600.0, 440.0]);
+            .with_inner_size([900.0, 680.0])
+            .with_min_inner_size([680.0, 460.0]);
         let totals = self.app_state.totals(state::today());
         let back = Keys::key(&self.config.keys.back, &Keys::default().back);
         let mut close = false;
         let action = ctx.show_viewport_immediate(settings_viewport(), builder, |ui, _| {
-            close = ui.input_mut(|i| {
-                i.viewport().close_requested() || i.consume_key(Modifiers::NONE, back)
-            });
+            close = ui.input(|i| i.viewport().close_requested());
+            // Esc clears the search first, then closes the window.
+            if ui.input_mut(|i| i.consume_key(Modifiers::NONE, back)) {
+                if self.settings.query.is_empty() {
+                    close = true;
+                } else {
+                    self.settings.query.clear();
+                }
+            }
             settings_view::show(
                 ui,
                 &mut self.config,

@@ -221,16 +221,3 @@ pub fn pill(ui: &mut Ui, text: &str, selected: bool, accent: Color32, theme: &Th
     )
     .on_hover_cursor(CursorIcon::PointingHand)
 }
-
-/// A padded rounded card used to group settings.
-pub fn card<R>(ui: &mut Ui, theme: &Theme, add: impl FnOnce(&mut Ui) -> R) -> R {
-    egui::Frame::new()
-        .fill(theme.surface)
-        .corner_radius(CornerRadius::same(12))
-        .inner_margin(14)
-        .show(ui, |ui| {
-            ui.set_width(ui.available_width());
-            add(ui)
-        })
-        .inner
-}

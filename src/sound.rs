@@ -31,15 +31,6 @@ pub enum SoundKind {
     File,
 }
 
-impl SoundKind {
-    pub const ALL: [SoundKind; 4] = [
-        SoundKind::Chime,
-        SoundKind::Bell,
-        SoundKind::Soft,
-        SoundKind::File,
-    ];
-}
-
 /// Play `kind` at `volume` (0..=1) without blocking. `rising` picks the
 /// melody direction for built-in sounds: up when a break starts, down when
 /// it's time to focus again.

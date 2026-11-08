@@ -89,7 +89,7 @@ src/
     ├── cozy_view.rs     main screen, "cozy" layout (default): card + character + chunky timer
     ├── timer_view.rs    main screen, "classic" layout (ring); also owns Action + RingAnim shared by both
     ├── mini_view.rs     the floating timer window's content (scales from 120×44 up)
-    └── settings_view.rs settings window (sidebar + pages), edits &mut Config → Option<settings_view::Action>
+    └── settings_view.rs settings window (search + sidebar + pages of rows), edits &mut Config → Option<Action>
 ```
 
 ### Data flow (keep it this way)
@@ -149,7 +149,8 @@ Add the field to `Theme` (with `#[serde(with = "hex")]`) **and to every file in 
 
 ### Add a setting
 1. Add the field to the right struct in `config.rs` (`TimerSettings`, `Appearance`, `Behavior`, `Window`, `Keys`) **and** to its `Default` impl. All structs are `#[serde(default)]`, so old config files keep working.
-2. Add a control in `settings_view.rs` inside the matching `section(…)` (optional for power-user knobs).
+2. Add a row in the matching `<page>_page` fn of `settings_view.rs` (`f.toggle` / `f.choice` / `f.slider` / `f.row`,
+   with a one-line hint when it isn't obvious). Search finds it automatically. Optional for power-user knobs.
 3. Document it in the `config.toml` reference of `README.md` and `README.pt-BR.md`, add UI strings to `i18n.rs`,
    and describe it (EN + PT) in `SETTINGS` in `src/docs.rs`, then `DPOMO_BLESS=1 cargo test docs` (tests fail otherwise).
 4. Read it where needed. If it changes egui/window state, apply it in `App::sync_environment` with a change cache.
@@ -175,9 +176,12 @@ the main one is hidden in the tray — that's what keeps the floating timer tick
   they appear (`system::style_windows`).
 
 ### Add a settings page
-Add a `Section` variant (+ `Section::ALL`, title string) and a `<name>_page` fn in `settings_view.rs`.
-Pages are cards (`widgets::card`) of rows; put explanations under options with `hint`/`hint_indented`
-instead of hover tooltips.
+Add a `Section` variant (+ its place in `Section::groups`, title string and a sidebar icon in `nav_icon`) and
+a `<name>_page(ui, f, …)` fn in `settings_view.rs`. A page is `f.group(ui, title, |ui, f| …)` cards of rows:
+`f.toggle`, `f.choice` (dropdown), `f.slider`, `f.minutes`, `f.row` (any control on the right) and `f.block`
+(free-form content, like the pickers). Always go through `Form`: that's what search filters (by the words
+of the title, hint, group and page; accents ignored). While searching, a group's closure runs twice
+(count, then draw), so it must be `FnMut` and must not do anything but draw.
 
 ### React to a phase finishing (sound, notification, stats…)
 Hook into `App::on_timer_event` (it already records stats, saves state, plays the sound and notifies).
