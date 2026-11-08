@@ -3,7 +3,7 @@
 All notable changes to Pomolotl. Format based on [Keep a Changelog](https://keepachangelog.com/),
 versions follow [Semantic Versioning](https://semver.org/).
 
-## [1.0.0] - 2026-11-07
+## [1.0.0] - 2026-11-08
 
 ### Added
 - A different sound for "focus starts" and "break starts" (`focus_kind`), and an optional soft
