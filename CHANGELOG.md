@@ -6,6 +6,8 @@ versions follow [Semantic Versioning](https://semver.org/).
 ## [1.0.0] - 2026-11-07
 
 ### Added
+- Website configuration guide (https://diegorezm.github.io/dpomo/docs.html): every setting with its
+  default, key names, command line, how to make themes and characters. Generated from the code.
 - **Floating timer**: a small borderless window that stays on top with the time left, the phase,
   the progress and the character. Drag to move, drag the corner to resize, double-click to open
   dpomo; remembers its place and size (`[mini]`, key `M`, tray menu, `dpomo --mini`).

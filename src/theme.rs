@@ -83,6 +83,16 @@ impl Themes {
     }
 
     pub fn load() -> Self {
+        let mut themes = Self::builtin();
+        if let Some(dir) = Self::dir() {
+            themes.load_dir(&dir);
+        }
+        themes.sort();
+        themes
+    }
+
+    /// Only the themes embedded in the binary.
+    pub fn builtin() -> Self {
         let mut themes = Self::default();
         for (stem, text) in builtin::BUILTIN {
             match parse(text, stem) {
@@ -92,14 +102,14 @@ impl Themes {
                     .push(format!("{stem}.toml ({}): {e}", crate::i18n::tr().builtin)),
             }
         }
-        if let Some(dir) = Self::dir() {
-            themes.load_dir(&dir);
-        }
-        // Dark themes first, then light; alphabetical inside each group.
+        themes.sort();
         themes
-            .list
+    }
+
+    /// Dark themes first, then light; alphabetical inside each group.
+    fn sort(&mut self) {
+        self.list
             .sort_by_key(|(name, t)| (!t.is_dark(), name.to_lowercase()));
-        themes
     }
 
     fn load_dir(&mut self, dir: &Path) {

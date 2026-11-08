@@ -121,7 +121,8 @@ arquivo por você. Ele é criado na primeira vez que o dpomo abre:
 - Pode apagar o que não quiser: o que faltar usa o padrão.
 - Errou algo? O app avisa qual linha está errada e **não mexe no seu arquivo** até você corrigir.
 
-Tudo o que dá para configurar (com os valores padrão):
+Tudo o que dá para configurar, com os valores padrão (o [guia de configuração](https://diegorezm.github.io/dpomo/docs.html)
+explica cada opção, os nomes de teclas e como criar temas e personagens):
 
 ```toml
 [timer]
@@ -267,18 +268,6 @@ pública do GitHub (`api.github.com`) qual é o número da versão mais nova. Na
 uma requisição web comum (o GitHub vê seu endereço IP, veja a [declaração de privacidade do GitHub](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement)).
 Ele nunca baixa nem instala nada sozinho. Para desligar: nos ajustes, com `check_updates = false` ou
 desmarcando *Procurar novas versões* no instalador do Windows.
-
-## Política de assinatura de código (Code signing policy)
-
-As versões para Windows são compiladas a partir deste repositório pelo GitHub Actions
-([release.yml](.github/workflows/release.yml)) e serão assinadas assim que o projeto for aceito pela
-SignPath Foundation (pedido em andamento):
-Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by [SignPath Foundation](https://signpath.org).
-
-- Commits e revisão: [@diegorezm](https://github.com/diegorezm)
-- Aprovação: [@diegorezm](https://github.com/diegorezm)
-
-Veja [Privacidade](#privacidade) para o que o dpomo envia pela rede.
 
 ## Compilar você mesmo
 

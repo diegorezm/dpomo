@@ -17,6 +17,7 @@
 <meta property="og:image" content="https://diegorezm.github.io/dpomo/screenshot.png">
 <meta name="twitter:card" content="summary_large_image">
 <!-- Google Search Console verification: paste the <meta name="google-site-verification" …> tag here. -->
+<link rel="stylesheet" href="style.css">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -32,72 +33,6 @@
 }
 </script>
 <style>
-@font-face {
-  font-family: "Lilita One";
-  src: url("LilitaOne-Regular.ttf") format("truetype");
-  font-display: swap;
-}
-:root {
-  --bg: #f6ecdf;
-  --surface: #fffaf3;
-  --card: #efe2d1;
-  --stage: #ebdcc8;
-  --text: #3b2a2a;
-  --muted: #7a6464;
-  --line: #e2d2bd;
-  --accent: #e05a4f;
-  --on-accent: #fffaf3;
-  --focus: #e05a4f;
-  --short: #3f9e8f;
-  --long: #6f63c9;
-  color-scheme: light;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #191724;
-    --surface: #1f1d2e;
-    --card: #26233a;
-    --stage: #232136;
-    --text: #e0def4;
-    --muted: #908caa;
-    --line: #2f2c45;
-    --accent: #eb6f92;
-    --on-accent: #191724;
-    --focus: #eb6f92;
-    --short: #9ccfd8;
-    --long: #c4a7e7;
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #191724; --surface: #1f1d2e; --card: #26233a; --stage: #232136; --text: #e0def4;
-  --muted: #908caa; --line: #2f2c45; --accent: #eb6f92; --on-accent: #191724;
-  --focus: #eb6f92; --short: #9ccfd8; --long: #c4a7e7; color-scheme: dark;
-}
-* { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; }
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font: 17px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif;
-}
-a { color: inherit; }
-.display { font-family: "Lilita One", system-ui, sans-serif; font-weight: 400; letter-spacing: .01em; }
-.wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
-
-/* top bar */
-.top { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; gap: 12px; }
-.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font-size: 26px; }
-.brand img { width: 36px; height: 36px; }
-.top nav { display: flex; gap: 6px; align-items: center; }
-.chip {
-  border: 2px solid var(--line); background: transparent; color: var(--text);
-  border-radius: 999px; padding: 4px 12px; font: inherit; font-size: 14px; cursor: pointer;
-  text-decoration: none; white-space: nowrap;
-}
-.chip:hover { border-color: var(--muted); }
-
 /* hero */
 .hero { display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; align-items: center; padding: 32px 0 56px; }
 .hero h1 { font-size: clamp(40px, 6vw, 64px); line-height: 1.05; margin: 0 0 16px; }
@@ -150,6 +85,35 @@ a { color: inherit; }
 .friend[aria-pressed="true"] { border-color: var(--phase); }
 .friend img { width: 56px; height: 45px; display: block; }
 
+/* floating timer: a pretend desktop with a draggable, resizable mini window */
+.mini-wrap { display: grid; grid-template-columns: 1fr 1.2fr; gap: 40px; align-items: center; }
+.desk {
+  position: relative; aspect-ratio: 16 / 10; border-radius: 20px; overflow: hidden;
+  background: var(--card); --phase: var(--focus); touch-action: none;
+}
+.desk[data-phase="short"] { --phase: var(--short); }
+.desk[data-phase="long"] { --phase: var(--long); }
+.desk .app { position: absolute; background: var(--surface); border-radius: 10px; opacity: .55; }
+.desk .app::before { content: ""; position: absolute; left: 10px; right: 10px; top: 10px; height: 6px; border-radius: 3px; background: var(--line); }
+.float {
+  position: absolute; container-type: size; cursor: grab; user-select: none;
+  background: var(--bg); border-radius: 12px; overflow: hidden;
+  box-shadow: 0 10px 30px -12px rgba(0, 0, 0, .45), 0 0 0 1px var(--line);
+  display: flex; align-items: center; gap: 8px; padding: 0 12px 0 8px;
+}
+.float:active { cursor: grabbing; }
+.float img { height: 82cqh; width: auto; aspect-ratio: 200 / 160; flex: none; pointer-events: none; }
+.float .t { flex: 1; min-width: 0; text-align: center; line-height: 1; }
+.float-time { font-size: min(48cqh, 22cqw); font-variant-numeric: tabular-nums; }
+.float-phase { font-size: min(20cqh, 9cqw); color: var(--phase); margin-top: 4cqh; }
+.float .bar2 { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: var(--card); }
+.float .bar2 b { display: block; height: 100%; width: 0; background: var(--phase); }
+.grip { position: absolute; right: 0; bottom: 0; width: 18px; height: 18px; cursor: nwse-resize; }
+.grip::after { content: ""; position: absolute; right: 4px; bottom: 7px; width: 8px; height: 8px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); opacity: .6; }
+@container (max-aspect-ratio: 2 / 1) { .float img { display: none; } }
+@container (max-height: 60px) { .float-phase { display: none; } .float-time { font-size: min(66cqh, 24cqw); } }
+.hint-line { color: var(--muted); font-size: 15px; margin: 0; }
+
 /* sections */
 section { padding: 56px 0; }
 section h2 { font-size: clamp(30px, 4vw, 40px); line-height: 1.15; margin: 0 0 8px; }
@@ -160,7 +124,6 @@ section > .wrap > p.sub { color: var(--muted); margin: 0 0 28px; max-width: 40em
 .feature h3 { font-size: 22px; margin: 0 0 6px; }
 .feature p { margin: 0; color: var(--muted); font-size: 16px; }
 .feature .emoji { font-size: 26px; }
-code { background: var(--card); border-radius: 6px; padding: 1px 6px; font-size: .9em; }
 
 .downloads { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .os { background: var(--surface); border-radius: 20px; padding: 22px; display: flex; flex-direction: column; gap: 10px; }
@@ -170,21 +133,12 @@ code { background: var(--card); border-radius: 6px; padding: 1px 6px; font-size:
 .os .more { font-size: 14px; }
 .badge { font: 12px system-ui, sans-serif; background: var(--card); color: var(--muted); border-radius: 999px; padding: 2px 8px; vertical-align: middle; }
 
-.policy { background: var(--surface); border-radius: 20px; padding: 22px 24px; }
-.policy + .policy { margin-top: 16px; }
-.policy h3 { font-size: 24px; margin: 0 0 8px; }
-.policy p, .policy li { color: var(--muted); font-size: 16px; }
-.policy p:last-child { margin-bottom: 0; }
-
-footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; text-align: center; }
-
 @media (max-width: 860px) {
   .hero { grid-template-columns: 1fr; padding-top: 8px; }
-  .grid, .downloads { grid-template-columns: 1fr; }
+  .grid, .downloads, .mini-wrap { grid-template-columns: 1fr; }
   section { padding: 32px 0; }
 }
 @media (max-width: 420px) {
-  .top nav .hide-sm { display: none; }
   .time { font-size: 52px; }
 }
 @media (prefers-reduced-motion: reduce) { .btn { transition: none; } }
@@ -196,6 +150,7 @@ footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; text-align:
     <a class="brand display" href="./"><img src="icon.svg" alt="" width="36" height="36">dpomo</a>
     <nav>
       <a class="chip hide-sm" href="#download" data-i18n="nav_download">Download</a>
+      <a class="chip" href="docs.html" data-i18n="nav_docs">Docs</a>
       <a class="chip hide-sm" href="https://github.com/diegorezm/dpomo">GitHub</a>
       <button class="chip" id="lang" type="button" aria-label="Português / English">PT</button>
     </nav>
@@ -252,6 +207,26 @@ footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; text-align:
   </div>
 </section>
 
+<section id="floating">
+  <div class="wrap mini-wrap">
+    <div>
+      <h2 class="display" data-i18n="mini_h">Always in sight</h2>
+      <p class="sub" data-i18n="mini_sub">Turn on the floating timer and a little window stays in a corner of your screen, on top of everything: time left, phase and your companion. It keeps going while dpomo hides in the tray.</p>
+      <p class="hint-line" data-i18n-html="mini_how">Try it: drag it around, pull its corner to resize it. In the app: the <code>M</code> key, the tray menu or <code>dpomo --mini</code>.</p>
+    </div>
+    <div class="desk" id="desk" aria-hidden="true">
+      <div class="app" style="left:6%;top:12%;width:46%;height:62%"></div>
+      <div class="app" style="left:30%;top:40%;width:40%;height:48%"></div>
+      <div class="float" id="float">
+        <img id="float-pose" src="characters/axolotl/idle.svg" alt="" width="200" height="160">
+        <div class="t"><div class="float-time display" id="float-time">25:00</div><div class="float-phase display" id="float-phase">Focus</div></div>
+        <i class="bar2"><b id="float-progress"></b></i>
+        <span class="grip" id="grip"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section>
   <div class="wrap">
     <h2 class="display" data-i18n="features_h">Small, pretty, yours</h2>
@@ -259,10 +234,13 @@ footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; text-align:
     <div class="grid">
       <div class="feature"><div class="emoji">🦎</div><h3 class="display" data-i18n="f1_h">A companion</h3><p data-i18n="f1">An axolotl, a capybara or a tomato that waves, works, relaxes and naps with you. Or draw your own as SVG.</p></div>
       <div class="feature"><div class="emoji">🔔</div><h3 class="display" data-i18n="f2_h">Lives in the tray</h3><p data-i18n="f2">Close the window and the timer keeps going. A sound and a notification tell you when it's time.</p></div>
-      <div class="feature"><div class="emoji">🎨</div><h3 class="display" data-i18n="f3_h">Make it yours</h3><p data-i18n-html="f3">Themes, layouts, sounds, shortcuts and durations. Everything lives in one <code>config.toml</code> you can edit live.</p></div>
+      <div class="feature"><div class="emoji">🎨</div><h3 class="display" data-i18n="f3_h">Make it yours</h3><p data-i18n-html="f3">Themes, layouts, sounds, shortcuts and durations. Everything lives in one <code>config.toml</code> you can edit live (<a href="docs.html">guide</a>).</p></div>
       <div class="feature"><div class="emoji">🪶</div><h3 class="display" data-i18n="f4_h">Featherweight</h3><p data-i18n="f4">0% CPU when paused, about 12 MB of memory open and 7 MB in the tray.</p></div>
       <div class="feature"><div class="emoji">📈</div><h3 class="display" data-i18n="f5_h">Picks up where you left off</h3><p data-i18n="f5">Restarted your computer mid-session? It resumes. And it counts your focus time per day.</p></div>
       <div class="feature"><div class="emoji">🔒</div><h3 class="display" data-i18n="f6_h">Private</h3><p data-i18n="f6">No account, no telemetry, no ads. Your data stays on your computer.</p></div>
+      <div class="feature"><div class="emoji">🪟</div><h3 class="display" data-i18n="f7_h">Floating timer</h3><p data-i18n="f7">A tiny always-on-top window with the time left. Put it in any corner, at any size.</p></div>
+      <div class="feature"><div class="emoji">⚙️</div><h3 class="display" data-i18n="f8_h">Settings you can read</h3><p data-i18n="f8">A roomy settings window with every option explained in plain words. Changes show up live.</p></div>
+      <div class="feature"><div class="emoji">⌨️</div><h3 class="display" data-i18n="f9_h">Shortcuts everywhere</h3><p data-i18n-html="f9">Keys inside the app, plus <code>dpomo --toggle</code> and friends to bind global shortcuts.</p></div>
     </div>
   </div>
 </section>
@@ -300,21 +278,12 @@ footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; text-align:
       <p data-i18n="privacy_1">dpomo has no accounts, no telemetry and no ads. Your settings, statistics and session stay on your computer.</p>
       <p data-i18n-html="privacy_2">The only network request is the update check: once a day dpomo asks GitHub's public API (<code>api.github.com</code>) for the number of the latest version. Nothing about you is sent; GitHub sees a normal web request (see <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement">GitHub's privacy statement</a>). It never downloads or installs anything by itself. Turn it off in the settings, with <code>check_updates = false</code>, or in the Windows installer.</p>
     </div>
-    <div class="policy" id="code-signing-policy">
-      <h3 class="display">Code signing policy</h3>
-      <p data-i18n-html="sign_1">Windows releases are built from the <a href="https://github.com/diegorezm/dpomo">source code</a> by GitHub Actions and will be signed once SignPath Foundation accepts the project (application pending).</p>
-      <p>Free code signing provided by <a href="https://about.signpath.io">SignPath.io</a>, certificate by <a href="https://signpath.org">SignPath Foundation</a>.</p>
-      <ul>
-        <li data-i18n-html="sign_roles_1">Committers and reviewers: <a href="https://github.com/diegorezm">@diegorezm</a></li>
-        <li data-i18n-html="sign_roles_2">Approvers: <a href="https://github.com/diegorezm">@diegorezm</a></li>
-      </ul>
-    </div>
   </div>
 </section>
 
 <footer>
   <div class="wrap">
-    <span data-i18n-html="footer">Made with Rust and <a href="https://github.com/emilk/egui">egui</a> · <a href="https://github.com/diegorezm/dpomo">Source code</a> · MIT license</span>
+    <span data-i18n-html="footer">Made with Rust and <a href="https://github.com/emilk/egui">egui</a> · <a href="docs.html">Configuration guide</a> · <a href="https://github.com/diegorezm/dpomo">Source code</a> · MIT license</span>
   </div>
 </footer>
 
@@ -333,10 +302,16 @@ footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; text-align:
     features_sub: "Tudo que um Pomodoro precisa, nada que ele não precisa.",
     f1_h: "Um companheiro", f1: "Um axolote, uma capivara ou um tomate que acena, trabalha, relaxa e cochila com você. Ou desenhe o seu em SVG.",
     f2_h: "Fica na bandeja", f2: "Feche a janela e o timer continua. Um som e uma notificação avisam quando é a hora.",
-    f3_h: "Do seu jeito", f3: "Temas, layouts, sons, atalhos e tempos. Tudo num único <code>config.toml</code> que você edita com o app aberto.",
+    f3_h: "Do seu jeito", f3: "Temas, layouts, sons, atalhos e tempos. Tudo num único <code>config.toml</code> que você edita com o app aberto (<a href=\"docs.html\">guia</a>).",
     f4_h: "Levinho", f4: "0% de CPU pausado, uns 12 MB de memória aberto e 7 MB na bandeja.",
     f5_h: "Continua de onde parou", f5: "Reiniciou o computador no meio da sessão? Ele retoma. E conta seu tempo de foco por dia.",
     f6_h: "Privado", f6: "Sem conta, sem telemetria, sem anúncios. Seus dados ficam no seu computador.",
+    f7_h: "Timer flutuante", f7: "Uma janelinha sempre por cima com o tempo que falta. No canto que quiser, do tamanho que quiser.",
+    f8_h: "Ajustes fáceis de ler", f8: "Uma janela de ajustes espaçosa, com cada opção explicada em palavras simples. As mudanças aparecem na hora.",
+    f9_h: "Atalhos em todo lugar", f9: "Teclas dentro do app, e <code>dpomo --toggle</code> e companhia para criar atalhos globais.",
+    mini_h: "Sempre à vista",
+    mini_sub: "Ligue o timer flutuante e uma janelinha fica num canto da tela, por cima de tudo: tempo que falta, fase e o seu companheiro. Ele continua com o dpomo escondido na bandeja.",
+    mini_how: "Experimente: arraste, puxe o canto para mudar o tamanho. No app: a tecla <code>M</code>, o menu da bandeja ou <code>dpomo --mini</code>.",
     dl_h: "Baixar", dl_sub: "Grátis para sempre. Escolha seu sistema.",
     dl_win: "Instalador (.exe)",
     win_note: "Clique em Avançar até o fim; não pede senha de administrador. Se aparecer \"O Windows protegeu o computador\", clique em Mais informações → Executar assim mesmo (o instalador ainda não é assinado).",
@@ -349,10 +324,7 @@ footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; text-align:
     privacy_h: "Privacidade",
     privacy_1: "O dpomo não tem conta, telemetria nem anúncios. Seus ajustes, estatísticas e sessão ficam no seu computador.",
     privacy_2: "A única conexão de rede é a verificação de atualização: uma vez por dia o dpomo pergunta à API pública do GitHub (<code>api.github.com</code>) qual é o número da versão mais nova. Nada sobre você é enviado; o GitHub vê uma requisição web comum (veja a <a href=\"https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement\">declaração de privacidade do GitHub</a>). Ele nunca baixa nem instala nada sozinho. Para desligar: nos ajustes, com <code>check_updates = false</code> ou no instalador do Windows.",
-    sign_1: "As versões para Windows são compiladas a partir do <a href=\"https://github.com/diegorezm/dpomo\">código-fonte</a> pelo GitHub Actions e serão assinadas assim que a SignPath Foundation aceitar o projeto (pedido em andamento).",
-    sign_roles_1: "Commits e revisão: <a href=\"https://github.com/diegorezm\">@diegorezm</a>",
-    sign_roles_2: "Aprovação: <a href=\"https://github.com/diegorezm\">@diegorezm</a>",
-    footer: "Feito com Rust e <a href=\"https://github.com/emilk/egui\">egui</a> · <a href=\"https://github.com/diegorezm/dpomo\">Código-fonte</a> · Licença MIT",
+    footer: "Feito com Rust e <a href=\"https://github.com/emilk/egui\">egui</a> · <a href=\"docs.html\">Guia de configuração</a> · <a href=\"https://github.com/diegorezm/dpomo\">Código-fonte</a> · Licença MIT",
   };
   const OS_NAMES = { windows: "Windows", mac: "macOS", linux: "Linux (.deb)" };
   const EN = {};
@@ -395,14 +367,28 @@ footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; text-align:
   const playIcon = document.getElementById("play-icon");
   const MINUTES = { focus: 25, short: 5, long: 15 };
   const POSE = { focus: "focus", short: "short_break", long: "long_break" };
+  const PHASE_NAME = {
+    en: { focus: "Focus", short: "Short break", long: "Long break" },
+    pt: { focus: "Foco", short: "Pausa curta", long: "Pausa longa" },
+  };
+  const desk = document.getElementById("desk");
+  const float = document.getElementById("float");
   let phase = "focus", character = "axolotl", left = 25 * 60, timer = null;
 
   function render() {
     const running = timer !== null;
     const p = phase === "focus" && !running ? "idle" : POSE[phase];
-    pose.src = `characters/${character}/${p}.svg`;
-    time.textContent = `${String(Math.floor(left / 60)).padStart(2, "0")}:${String(left % 60).padStart(2, "0")}`;
-    bar.style.width = `${(1 - left / (MINUTES[phase] * 60)) * 100}%`;
+    const src = `characters/${character}/${p}.svg`;
+    const clock = `${String(Math.floor(left / 60)).padStart(2, "0")}:${String(left % 60).padStart(2, "0")}`;
+    const done = `${(1 - left / (MINUTES[phase] * 60)) * 100}%`;
+    pose.src = src;
+    time.textContent = clock;
+    bar.style.width = done;
+    document.getElementById("float-pose").src = src;
+    document.getElementById("float-time").textContent = clock;
+    document.getElementById("float-phase").textContent = PHASE_NAME[lang === "pt" ? "pt" : "en"][phase];
+    document.getElementById("float-progress").style.width = done;
+    desk.dataset.phase = phase;
     playIcon.setAttribute("d", running ? "M6 4h4v16H6zM14 4h4v16h-4z" : "M7 4v16l13-8z");
     demo.dataset.phase = phase;
     document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-pressed", b.dataset.phase === phase));
@@ -424,7 +410,39 @@ footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; text-align:
     }
     render();
   });
+  document.getElementById("lang").addEventListener("click", render);
   render();
+
+  // ---- floating timer: drag to move, drag the corner to resize (like the app) ----
+  const MIN = [120, 44];
+  let box = null;  // {x, y, w, h} in px inside the desk; null = not placed yet
+  function place() {
+    const d = desk.getBoundingClientRect();
+    if (!box) {
+      const w = Math.min(260, d.width * 0.62);
+      box = { w, h: Math.max(MIN[1], Math.round(w * 0.37)), y: 14 };
+      box.x = d.width - box.w - 14;
+    }
+    box.w = Math.min(Math.max(box.w, MIN[0]), d.width - 16);
+    box.h = Math.min(Math.max(box.h, MIN[1]), d.height - 16);
+    box.x = Math.min(Math.max(box.x, 8), d.width - box.w - 8);
+    box.y = Math.min(Math.max(box.y, 8), d.height - box.h - 8);
+    Object.assign(float.style, { left: box.x + "px", top: box.y + "px", width: box.w + "px", height: box.h + "px" });
+  }
+  function follow(e, apply) {
+    e.preventDefault();
+    const start = { px: e.clientX, py: e.clientY, ...box };
+    const move = ev => { apply(start, ev.clientX - start.px, ev.clientY - start.py); place(); };
+    const up = () => { removeEventListener("pointermove", move); removeEventListener("pointerup", up); };
+    addEventListener("pointermove", move);
+    addEventListener("pointerup", up);
+  }
+  float.addEventListener("pointerdown", e => {
+    if (e.target.id === "grip") follow(e, (s, dx, dy) => { box.w = s.w + dx; box.h = s.h + dy; });
+    else follow(e, (s, dx, dy) => { box.x = s.x + dx; box.y = s.y + dy; });
+  });
+  addEventListener("resize", place);
+  place();
 })();
 </script>
 </body>

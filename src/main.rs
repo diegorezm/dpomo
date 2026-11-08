@@ -5,6 +5,8 @@ mod app;
 mod character;
 mod command;
 mod config;
+#[cfg(test)]
+mod docs;
 mod i18n;
 mod instance;
 mod sound;
@@ -55,10 +57,10 @@ fn main() -> eframe::Result {
         .with_icon(icon.clone())
         .with_visible(!start_hidden)
         .with_inner_size([
-            config.window.width.max(280.0),
-            config.window.height.max(380.0),
+            config.window.width.max(config::Window::MIN_SIZE[0]),
+            config.window.height.max(config::Window::MIN_SIZE[1]),
         ])
-        .with_min_inner_size([280.0, 380.0]);
+        .with_min_inner_size(config::Window::MIN_SIZE);
 
     // Handed to the app by whichever renderer manages to start.
     let startup = Rc::new(RefCell::new(Some(Startup {

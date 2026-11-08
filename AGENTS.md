@@ -68,6 +68,7 @@ site/                    website (https://diegorezm.github.io/dpomo/), deployed 
 examples/svg_preview.rs  renders SVGs to a PNG grid (check art without running the app)
 src/
 ├── main.rs              window options, loads Config, starts eframe
+├── docs.rs              (tests only) generates site/docs.html, the configuration guide
 ├── app.rs               DpomoApp: owns ALL state, applies Actions/Commands, repaint scheduling, saving
 ├── command.rs           Command enum: requests from outside egui (tray, second launch, file watcher, updates)
 ├── i18n.rs              ALL user-facing strings (Strings struct, EN + PT_BR statics), active language
@@ -149,7 +150,8 @@ Add the field to `Theme` (with `#[serde(with = "hex")]`) **and to every file in 
 ### Add a setting
 1. Add the field to the right struct in `config.rs` (`TimerSettings`, `Appearance`, `Behavior`, `Window`, `Keys`) **and** to its `Default` impl. All structs are `#[serde(default)]`, so old config files keep working.
 2. Add a control in `settings_view.rs` inside the matching `section(…)` (optional for power-user knobs).
-3. Document it in the `config.toml` reference of `README.md` and `README.pt-BR.md`, add UI strings to `i18n.rs`.
+3. Document it in the `config.toml` reference of `README.md` and `README.pt-BR.md`, add UI strings to `i18n.rs`,
+   and describe it (EN + PT) in `SETTINGS` in `src/docs.rs`, then `DPOMO_BLESS=1 cargo test docs` (tests fail otherwise).
 4. Read it where needed. If it changes egui/window state, apply it in `App::sync_environment` with a change cache.
 
 ### Add a timer action / shortcut
@@ -290,9 +292,14 @@ The release job only publishes if every smoke test passes.
     in SignPath a project `dpomo`, a signing policy `release-signing`, artifact configurations `exe`
     (zip root containing `dpomo.exe`) and `installer` (zip root containing `dpomo-setup.exe`), link the
     GitHub connector, then add the repo variable `SIGNPATH_ORGANIZATION_ID` and secret `SIGNPATH_API_TOKEN`.
-    Every release then waits for a manual approval in SignPath. Update README "Code signing policy" (drop
-    "application pending") and the SmartScreen notes.
-  - SignPath rules we must keep: README "Code signing policy" section (attribution line, roles, privacy),
+    Every release then waits for a manual approval in SignPath. Update the SmartScreen notes.
+  - The "Code signing policy" section was removed from the README and site until signing is real (the
+    owner's call: it read as if releases were signed). SignPath requires it on the download page, so
+    when applying add it back to both READMEs and `site/index.html` (EN + PT), after "Privacy":
+    > Windows releases are built from this repository by GitHub Actions (release.yml) and signed.
+    > Free code signing provided by SignPath.io, certificate by SignPath Foundation.
+    > Committers and reviewers: @diegorezm · Approvers: @diegorezm · See Privacy for what dpomo sends.
+  - SignPath rules we must keep: that "Code signing policy" section (attribution line, roles, privacy),
     update check disclosed + optional at install time (the installer's *Check for new versions* task),
     uninstaller, MFA on GitHub and SignPath, product name/version in file metadata.
   - macOS (needs the paid Apple Developer Program): secrets `APPLE_CERTIFICATE_P12` (base64 Developer ID
@@ -302,13 +309,21 @@ The release job only publishes if every smoke test passes.
 
 ## Website
 
-`site/index.html` is one self-contained page (inline CSS/JS, no build tools, no CDN). `site/build.sh`
-copies it plus the app's own art (character SVGs, icon, screenshot, Lilita One) into `_site/`;
+`site/index.html` (home) and `site/docs.html` (configuration guide) share `site/style.css`; page-specific
+CSS/JS is inline (no build tools, no CDN). `site/build.sh` copies them plus the app's own art
+(character SVGs, icon, screenshot, Lilita One) into `_site/`;
 `pages.yml` deploys it on pushes that touch `site/`, `characters/` or `assets/`. English is the HTML
 text (what Google indexes); Portuguese lives in the `PT` object in the script, keyed by `data-i18n`
 (text) / `data-i18n-html` (markup). New characters show up only if added to the `.friends` buttons.
-Keep the "Code signing policy" section and the privacy text in sync with the README (SignPath requires
-both on the download page). Preview: `bash site/build.sh && python -m http.server -d _site`.
+Keep the privacy text in sync with the README. Preview: `bash site/build.sh && python -m http.server -d _site`.
+
+**`docs.html` is partly generated** by `src/docs.rs` (a test): everything between `<!-- gen:NAME -->`
+and `<!-- /gen:NAME -->` comes from the code (`Config::default()`, built-in themes/characters, poses,
+egui key names, `instance::FLAGS`); descriptions are the EN/PT tables in `docs.rs`. Edit the hand-written
+parts freely, never the generated ones. `cargo test` fails when the page is stale or a setting/flag/theme
+color has no description; `DPOMO_BLESS=1 cargo test docs` rewrites it. The page holds both languages:
+`class="en"` / `class="pt"` elements, and `html.lang-pt` shows the Portuguese (don't name it `pt`:
+the `<html>` itself would get hidden).
 The project has **no budget**: free hosting only, no custom domain.
 
 ## Conventions

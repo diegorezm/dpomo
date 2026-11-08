@@ -5,7 +5,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 rm -rf _site
 mkdir -p _site
-cp site/index.html site/robots.txt site/sitemap.xml _site/
+cp site/index.html site/docs.html site/style.css site/robots.txt site/sitemap.xml _site/
 cp assets/icon.svg assets/icon.png assets/screenshot.png assets/fonts/LilitaOne-Regular.ttf _site/
 for dir in characters/*/; do
   id=$(basename "$dir")

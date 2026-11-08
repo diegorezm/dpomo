@@ -26,8 +26,8 @@ mod builtin {
 }
 
 pub const DEFAULT_ID: &str = "axolotl";
-const ACCENT_SENTINEL: &str = "#e05a4f";
-const INK_SENTINEL: &str = "#7a6464";
+pub const ACCENT_SENTINEL: &str = "#e05a4f";
+pub const INK_SENTINEL: &str = "#7a6464";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Pose {
@@ -40,7 +40,7 @@ pub enum Pose {
 impl Pose {
     pub const ALL: [Pose; 4] = [Pose::Idle, Pose::Focus, Pose::ShortBreak, Pose::LongBreak];
 
-    fn file_name(self) -> &'static str {
+    pub fn file_name(self) -> &'static str {
         match self {
             Pose::Idle => "idle.svg",
             Pose::Focus => "focus.svg",
@@ -109,9 +109,12 @@ impl Character {
 
     /// Name in the active UI language, falling back to `name`.
     pub fn display_name(&self) -> &str {
-        self.names
-            .get(crate::i18n::current().code())
-            .unwrap_or(&self.name)
+        self.name_in(crate::i18n::current().code())
+    }
+
+    /// Name for a language code ("pt-BR"…), falling back to `name`.
+    pub fn name_in(&self, code: &str) -> &str {
+        self.names.get(code).unwrap_or(&self.name)
     }
 
     /// The pose's SVG with theme colors applied.
@@ -139,6 +142,15 @@ impl Characters {
     }
 
     pub fn load() -> Self {
+        let mut chars = Self::builtin();
+        if let Some(dir) = Self::dir() {
+            chars.load_dir(&dir);
+        }
+        chars
+    }
+
+    /// Only the characters embedded in the binary.
+    pub fn builtin() -> Self {
         let mut chars = Self::default();
         for (id, files) in builtin::BUILTIN {
             let files = files.iter().map(|(n, b)| (*n, b.to_vec()));
@@ -148,9 +160,6 @@ impl Characters {
                     .errors
                     .push(format!("{id} ({}): {e}", crate::i18n::tr().builtin)),
             }
-        }
-        if let Some(dir) = Self::dir() {
-            chars.load_dir(&dir);
         }
         chars
     }

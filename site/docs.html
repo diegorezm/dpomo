@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>dpomo — configuration guide</title>
+<meta name="description" content="Every dpomo setting with its default value, how to edit config.toml by hand, and how to make your own themes and characters.">
+<link rel="canonical" href="https://diegorezm.github.io/dpomo/docs.html">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#f6ecdf" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#191724" media="(prefers-color-scheme: dark)">
+<link rel="stylesheet" href="style.css">
+<script>
+// Language before first paint, so the page doesn't flash English first.
+(() => {
+  let lang = "";
+  try { lang = localStorage.getItem("dpomo-lang") || ""; } catch {}
+  if (!lang) lang = (navigator.language || "").toLowerCase().startsWith("pt") ? "pt" : "en";
+  if (lang === "pt") { document.documentElement.classList.add("lang-pt"); document.documentElement.lang = "pt-BR"; }
+})();
+</script>
+<style>
+/* Both languages are in the page; html.lang-pt shows the Portuguese. */
+.pt { display: none; }
+html.lang-pt .en { display: none; }
+html.lang-pt .pt { display: revert; }
+
+.layout { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 32px; align-items: start; padding: 8px 0 24px; }
+.toc { position: sticky; top: 16px; display: flex; flex-direction: column; gap: 2px; font-size: 15px; }
+.toc a { text-decoration: none; color: var(--muted); padding: 5px 12px; border-radius: 10px; }
+.toc a:hover { background: var(--surface); color: var(--text); }
+.toc .sub { padding-left: 24px; font-size: 14px; }
+
+h1 { font-size: clamp(36px, 5vw, 52px); line-height: 1.1; margin: 0 0 12px; }
+.lead { font-size: 19px; color: var(--muted); margin: 0 0 8px; max-width: 36em; }
+.note { font-size: 14px; color: var(--muted); margin: 0 0 32px; }
+section { margin: 0 0 40px; scroll-margin-top: 16px; }
+section > h2 { font-size: clamp(28px, 4vw, 36px); line-height: 1.15; margin: 0 0 10px; }
+section > p, section > ol, section > ul { max-width: 44em; }
+h3 { font-size: 20px; margin: 0 0 8px; }
+.card { background: var(--surface); border-radius: 20px; padding: 20px 22px; margin: 16px 0; }
+.card > :first-child { margin-top: 0; }
+.card > :last-child { margin-bottom: 0; }
+.ref { scroll-margin-top: 16px; }
+.ref + .ref { margin-top: 16px; }
+.ref > p { color: var(--muted); font-size: 15px; margin: 0 0 12px; }
+
+dl { margin: 0; }
+dl > div { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 4px 20px; padding: 10px 0; border-top: 1px solid var(--line); scroll-margin-top: 16px; }
+dl > div:first-child { border-top: 0; }
+dl > div:target { background: color-mix(in srgb, var(--accent) 12%, transparent); border-radius: 10px; }
+dt code { background: transparent; padding: 0; font-size: 15px; color: var(--text); }
+dd { margin: 0; color: var(--muted); font-size: 15px; }
+.unset { color: var(--muted); font-family: system-ui, sans-serif; font-size: 13px; }
+
+pre { background: var(--card); border-radius: 14px; padding: 14px 16px; overflow-x: auto; font-size: 14px; line-height: 1.5; }
+pre code { background: none; padding: 0; font-size: inherit; overflow-wrap: normal; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+td, th { text-align: left; padding: 8px 10px 8px 0; border-top: 1px solid var(--line); vertical-align: top; }
+tr:first-child td, tr:first-child th { border-top: 0; }
+.keys { line-height: 2.1; margin: 0; }
+
+.themes { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.theme { border-radius: 16px; padding: 14px 16px; box-shadow: inset 0 0 0 1px var(--line); font-size: 14px; }
+.theme b { display: block; font-size: 16px; }
+.theme small { display: block; margin-bottom: 10px; font-size: 14px; }
+.theme i { display: inline-block; width: 18px; height: 18px; border-radius: 50%; margin-right: 6px; }
+.chars { display: flex; flex-wrap: wrap; gap: 12px; }
+.chars figure { margin: 0; background: var(--surface); border-radius: 16px; padding: 12px 16px; text-align: center; font-size: 15px; }
+.chars img { display: block; margin: 0 auto 6px; }
+
+@media (max-width: 860px) {
+  .layout { grid-template-columns: 1fr; gap: 8px; }
+  .toc { position: static; flex-direction: row; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+  .toc a { border: 2px solid var(--line); border-radius: 999px; padding: 2px 12px; }
+  .toc .sub { display: none; }
+  dl > div { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand display" href="./"><img src="icon.svg" alt="" width="36" height="36">dpomo</a>
+    <nav>
+      <a class="chip hide-sm" href="./#download"><span class="en">Download</span><span class="pt">Baixar</span></a>
+      <a class="chip hide-sm" href="https://github.com/diegorezm/dpomo">GitHub</a>
+      <button class="chip" id="lang" type="button" aria-label="Português / English"><span class="en">PT</span><span class="pt">EN</span></button>
+    </nav>
+  </header>
+
+  <div class="layout">
+    <nav class="toc" aria-label="Contents">
+      <a href="#file"><span class="en">The config file</span><span class="pt">O arquivo de configuração</span></a>
+      <a href="#settings"><span class="en">All settings</span><span class="pt">Todos os ajustes</span></a>
+      <a class="sub" href="#sec-timer">[timer]</a>
+      <a class="sub" href="#sec-appearance">[appearance]</a>
+      <a class="sub" href="#sec-behavior">[behavior]</a>
+      <a class="sub" href="#sec-sound">[sound]</a>
+      <a class="sub" href="#sec-window">[window]</a>
+      <a class="sub" href="#sec-mini">[mini]</a>
+      <a class="sub" href="#sec-keys">[keys]</a>
+      <a class="sub" href="#sec-custom_theme">[custom_theme]</a>
+      <a href="#key-names"><span class="en">Key names</span><span class="pt">Nomes de teclas</span></a>
+      <a href="#cli"><span class="en">Command line</span><span class="pt">Linha de comando</span></a>
+      <a href="#themes"><span class="en">Make a theme</span><span class="pt">Criar um tema</span></a>
+      <a href="#characters"><span class="en">Make a character</span><span class="pt">Criar um personagem</span></a>
+    </nav>
+
+    <main>
+      <h1 class="display"><span class="en">Configuration guide</span><span class="pt">Guia de configuração</span></h1>
+      <p class="lead en">Everything in dpomo can be changed in the settings window, or by hand in a plain text file. This page lists every option and shows how to make your own themes and characters.</p>
+      <p class="lead pt">Tudo no dpomo pode ser mudado na janela de ajustes, ou à mão num arquivo de texto. Esta página lista todas as opções e mostra como criar seus próprios temas e personagens.</p>
+      <p class="note en">Generated from dpomo's <a href="https://github.com/diegorezm/dpomo/blob/main/src/docs.rs">source code</a>, so the defaults and lists are always the real ones.</p>
+      <p class="note pt">Gerada a partir do <a href="https://github.com/diegorezm/dpomo/blob/main/src/docs.rs">código-fonte</a> do dpomo, então os padrões e as listas são sempre os de verdade.</p>
+
+      <section id="file">
+        <h2 class="display"><span class="en">The config file</span><span class="pt">O arquivo de configuração</span></h2>
+        <p class="en">All settings live in <code>config.toml</code>. dpomo creates it the first time it opens:</p>
+        <p class="pt">Todos os ajustes ficam no <code>config.toml</code>. O dpomo cria ele na primeira vez que abre:</p>
+        <div class="card">
+          <table>
+            <tr><th>Windows</th><td><code>%APPDATA%\dpomo\config.toml</code></td></tr>
+            <tr><th>Linux</th><td><code>~/.config/dpomo/config.toml</code></td></tr>
+            <tr><th>macOS</th><td><code>~/Library/Application Support/dpomo/config.toml</code></td></tr>
+          </table>
+        </div>
+        <ul class="en">
+          <li>Shortcut: in the settings window, <b>Configuration file → Open config.toml</b> (or <b>Open folder</b>).</li>
+          <li><b>Save the file and dpomo applies it right away</b>, no restart needed.</li>
+          <li>Every key is optional. Delete what you don't care about: missing keys use their default.</li>
+          <li>Made a typo? dpomo shows the line and what's wrong, keeps running with your last good settings, and <b>never overwrites your file</b> until you fix it (or click <b>Replace it with the current settings</b>).</li>
+          <li>Your current session and statistics are in <code>state.toml</code>, in the same folder. dpomo writes that one; you don't need to touch it.</li>
+        </ul>
+        <ul class="pt">
+          <li>Atalho: na janela de ajustes, <b>Arquivo de configuração → Abrir config.toml</b> (ou <b>Abrir pasta</b>).</li>
+          <li><b>Salve o arquivo e o dpomo aplica na hora</b>, sem reiniciar.</li>
+          <li>Todas as chaves são opcionais. Apague o que não te interessa: o que faltar usa o padrão.</li>
+          <li>Errou alguma coisa? O dpomo mostra a linha e o que está errado, continua com os últimos ajustes válidos e <b>nunca sobrescreve seu arquivo</b> até você corrigir (ou clicar em <b>Substituir pelos ajustes atuais</b>).</li>
+          <li>Sua sessão atual e as estatísticas ficam no <code>state.toml</code>, na mesma pasta. Quem escreve nele é o dpomo; você não precisa mexer.</li>
+        </ul>
+        <p class="en">A small example: longer sessions, a light theme and the capybara.</p>
+        <p class="pt">Um exemplo pequeno: sessões mais longas, um tema claro e a capivara.</p>
+        <pre><code>[timer]
+focus_minutes = 50
+short_break_minutes = 10
+
+[appearance]
+theme = "Latte"
+character = "capybara"</code></pre>
+      </section>
+
+      <section id="settings">
+        <h2 class="display"><span class="en">All settings</span><span class="pt">Todos os ajustes</span></h2>
+        <p class="en">Every key, with its default value.</p>
+        <p class="pt">Todas as chaves, com o valor padrão.</p>
+        <div class="card">
+<!-- gen:settings -->
+<div class="ref" id="sec-timer">
+<h3><code>[timer]</code> <span class="en">Timer</span><span class="pt" lang="pt-BR">Timer</span></h3>
+<p><span class="en">Durations are whole minutes (at least 1). A new duration applies from the next phase that hasn't started.</span><span class="pt" lang="pt-BR">Tempos em minutos inteiros (no mínimo 1). Um tempo novo vale a partir da próxima fase que ainda não começou.</span></p>
+<dl>
+<div id="timer.focus_minutes"><dt><code>focus_minutes = 25</code></dt><dd><span class="en">Length of a focus session.</span><span class="pt" lang="pt-BR">Duração de uma sessão de foco.</span></dd></div>
+<div id="timer.short_break_minutes"><dt><code>short_break_minutes = 5</code></dt><dd><span class="en">Length of a short break.</span><span class="pt" lang="pt-BR">Duração da pausa curta.</span></dd></div>
+<div id="timer.long_break_minutes"><dt><code>long_break_minutes = 15</code></dt><dd><span class="en">Length of the long break.</span><span class="pt" lang="pt-BR">Duração da pausa longa.</span></dd></div>
+<div id="timer.sessions_before_long_break"><dt><code>sessions_before_long_break = 4</code></dt><dd><span class="en">Focus sessions until a long break (the dots under the timer).</span><span class="pt" lang="pt-BR">Sessões de foco até a pausa longa (as bolinhas embaixo do timer).</span></dd></div>
+<div id="timer.auto_start_breaks"><dt><code>auto_start_breaks = false</code></dt><dd><span class="en">Start breaks by themselves when a focus session ends.</span><span class="pt" lang="pt-BR">Começar as pausas sozinhas quando uma sessão de foco termina.</span></dd></div>
+<div id="timer.auto_start_focus"><dt><code>auto_start_focus = false</code></dt><dd><span class="en">Start the next focus session by itself when a break ends.</span><span class="pt" lang="pt-BR">Começar o próximo foco sozinho quando uma pausa termina.</span></dd></div>
+</dl>
+</div>
+<div class="ref" id="sec-appearance">
+<h3><code>[appearance]</code> <span class="en">Appearance</span><span class="pt" lang="pt-BR">Aparência</span></h3>
+<dl>
+<div id="appearance.language"><dt><code>language = &quot;auto&quot;</code></dt><dd><span class="en"><code>&quot;auto&quot;</code> follows the system language; or <code>&quot;en&quot;</code> (English), <code>&quot;pt-BR&quot;</code> (Portuguese).</span><span class="pt" lang="pt-BR"><code>&quot;auto&quot;</code> segue o idioma do sistema; ou <code>&quot;en&quot;</code> (inglês), <code>&quot;pt-BR&quot;</code> (português).</span></dd></div>
+<div id="appearance.layout"><dt><code>layout = &quot;cozy&quot;</code></dt><dd><span class="en"><code>&quot;cozy&quot;</code>: a character and a big chunky timer. <code>&quot;classic&quot;</code>: a minimal progress ring.</span><span class="pt" lang="pt-BR"><code>&quot;cozy&quot;</code>: um personagem e um timer grandão. <code>&quot;classic&quot;</code>: um anel de progresso minimalista.</span></dd></div>
+<div id="appearance.character"><dt><code>character = &quot;axolotl&quot;</code></dt><dd><span class="en">Your companion (cozy layout and floating timer): the folder name of a <a href="#characters">character</a>, built-in or yours.</span><span class="pt" lang="pt-BR">Seu companheiro (layout cozy e timer flutuante): o nome da pasta de um <a href="#characters">personagem</a>, embutido ou seu.</span></dd></div>
+<div id="appearance.theme"><dt><code>theme = &quot;Rosé Pine&quot;</code></dt><dd><span class="en">The <code>name</code> of a <a href="#themes">theme</a>, or <code>&quot;custom&quot;</code> to use <a href="#sec-custom_theme"><code>[custom_theme]</code></a>.</span><span class="pt" lang="pt-BR">O <code>name</code> de um <a href="#themes">tema</a>, ou <code>&quot;custom&quot;</code> para usar o <a href="#sec-custom_theme"><code>[custom_theme]</code></a>.</span></dd></div>
+<div id="appearance.ring_thickness"><dt><code>ring_thickness = 10.0</code></dt><dd><span class="en">Width of the ring (classic layout).</span><span class="pt" lang="pt-BR">Espessura do anel (layout classic).</span></dd></div>
+<div id="appearance.ui_scale"><dt><code>ui_scale = 1.0</code></dt><dd><span class="en">Size of everything in the windows: <code>1.0</code> is normal, <code>0.75</code> smaller, <code>1.5</code> bigger.</span><span class="pt" lang="pt-BR">Tamanho de tudo nas janelas: <code>1.0</code> é o normal, <code>0.75</code> menor, <code>1.5</code> maior.</span></dd></div>
+<div id="appearance.smooth_animation"><dt><code>smooth_animation = true</code></dt><dd><span class="en">Animate at ~30 fps while the timer runs. <code>false</code> repaints once per second and uses even less CPU.</span><span class="pt" lang="pt-BR">Animar a ~30 fps enquanto o timer corre. <code>false</code> redesenha uma vez por segundo e gasta ainda menos CPU.</span></dd></div>
+<div id="appearance.glow"><dt><code>glow = true</code></dt><dd><span class="en">Soft glow around the ring (classic layout).</span><span class="pt" lang="pt-BR">Brilho suave em volta do anel (layout classic).</span></dd></div>
+<div id="appearance.show_session_dots"><dt><code>show_session_dots = true</code></dt><dd><span class="en">One dot per focus session until the long break.</span><span class="pt" lang="pt-BR">Uma bolinha por sessão de foco até a pausa longa.</span></dd></div>
+</dl>
+</div>
+<div class="ref" id="sec-behavior">
+<h3><code>[behavior]</code> <span class="en">Behavior</span><span class="pt" lang="pt-BR">Comportamento</span></h3>
+<dl>
+<div id="behavior.always_on_top"><dt><code>always_on_top = false</code></dt><dd><span class="en">Keep the main window above other windows.</span><span class="pt" lang="pt-BR">Manter a janela principal por cima das outras.</span></dd></div>
+<div id="behavior.notify_on_finish"><dt><code>notify_on_finish = true</code></dt><dd><span class="en">Flash the taskbar / dock icon when a phase ends.</span><span class="pt" lang="pt-BR">Piscar o ícone na barra de tarefas / dock quando uma fase termina.</span></dd></div>
+<div id="behavior.focus_on_finish"><dt><code>focus_on_finish = false</code></dt><dd><span class="en">Bring the main window to the front when a phase ends.</span><span class="pt" lang="pt-BR">Trazer a janela principal para a frente quando uma fase termina.</span></dd></div>
+<div id="behavior.time_in_title"><dt><code>time_in_title = true</code></dt><dd><span class="en">Show the time left in the window title (and so in the taskbar).</span><span class="pt" lang="pt-BR">Mostrar o tempo restante no título da janela (e na barra de tarefas).</span></dd></div>
+<div id="behavior.tray"><dt><code>tray = true</code></dt><dd><span class="en">Tray icon with live progress and a menu. If the system has no tray, dpomo turns this off by itself.</span><span class="pt" lang="pt-BR">Ícone na bandeja com o progresso e um menu. Se o sistema não tiver bandeja, o dpomo desliga isso sozinho.</span></dd></div>
+<div id="behavior.close_to_tray"><dt><code>close_to_tray = true</code></dt><dd><span class="en">Closing the window hides it in the tray and the timer keeps going. <code>false</code>: closing quits.</span><span class="pt" lang="pt-BR">Fechar a janela esconde na bandeja e o timer continua. <code>false</code>: fechar encerra o app.</span></dd></div>
+<div id="behavior.system_notification"><dt><code>system_notification = true</code></dt><dd><span class="en">Show a system notification when a phase ends.</span><span class="pt" lang="pt-BR">Mostrar uma notificação do sistema quando uma fase termina.</span></dd></div>
+<div id="behavior.start_with_system"><dt><code>start_with_system = false</code></dt><dd><span class="en">Start dpomo, hidden in the tray, when you log in.</span><span class="pt" lang="pt-BR">Abrir o dpomo, escondido na bandeja, quando você entra no computador.</span></dd></div>
+<div id="behavior.start_hidden"><dt><code>start_hidden = false</code></dt><dd><span class="en">Also start hidden in the tray when you open dpomo yourself.</span><span class="pt" lang="pt-BR">Abrir escondido na bandeja também quando você abre o dpomo.</span></dd></div>
+<div id="behavior.check_updates"><dt><code>check_updates = true</code></dt><dd><span class="en">Once a day, ask GitHub whether there's a newer version and show a badge if so. It never downloads anything.</span><span class="pt" lang="pt-BR">Uma vez por dia, perguntar ao GitHub se há versão nova e mostrar um aviso. Nunca baixa nada.</span></dd></div>
+</dl>
+</div>
+<div class="ref" id="sec-sound">
+<h3><code>[sound]</code> <span class="en">Sound</span><span class="pt" lang="pt-BR">Som</span></h3>
+<dl>
+<div id="sound.enabled"><dt><code>enabled = true</code></dt><dd><span class="en">Play a sound when a phase ends.</span><span class="pt" lang="pt-BR">Tocar um som quando uma fase termina.</span></dd></div>
+<div id="sound.kind"><dt><code>kind = &quot;chime&quot;</code></dt><dd><span class="en"><code>&quot;chime&quot;</code>, <code>&quot;bell&quot;</code>, <code>&quot;soft&quot;</code>, or <code>&quot;file&quot;</code> to play your own file.</span><span class="pt" lang="pt-BR"><code>&quot;chime&quot;</code>, <code>&quot;bell&quot;</code>, <code>&quot;soft&quot;</code>, ou <code>&quot;file&quot;</code> para tocar um arquivo seu.</span></dd></div>
+<div id="sound.file"><dt><code>file = &quot;&quot;</code></dt><dd><span class="en">Path to a .wav, .mp3 or .ogg file, used when <code>kind = &quot;file&quot;</code>. On Windows, use single quotes: <code>'C:\Users\me\ding.mp3'</code>.</span><span class="pt" lang="pt-BR">Caminho de um arquivo .wav, .mp3 ou .ogg, usado quando <code>kind = &quot;file&quot;</code>. No Windows, use aspas simples: <code>'C:\Users\eu\ding.mp3'</code>.</span></dd></div>
+<div id="sound.volume"><dt><code>volume = 0.6</code></dt><dd><span class="en">From <code>0.0</code> (silent) to <code>1.0</code> (loudest).</span><span class="pt" lang="pt-BR">De <code>0.0</code> (mudo) a <code>1.0</code> (mais alto).</span></dd></div>
+</dl>
+</div>
+<div class="ref" id="sec-window">
+<h3><code>[window]</code> <span class="en">Main window</span><span class="pt" lang="pt-BR">Janela principal</span></h3>
+<dl>
+<div id="window.width"><dt><code>width = 360.0</code></dt><dd><span class="en">Width of the main window when it opens, in points (at least 280).</span><span class="pt" lang="pt-BR">Largura da janela principal ao abrir, em pontos (no mínimo 280).</span></dd></div>
+<div id="window.height"><dt><code>height = 500.0</code></dt><dd><span class="en">Height of the main window when it opens (at least 380).</span><span class="pt" lang="pt-BR">Altura da janela principal ao abrir (no mínimo 380).</span></dd></div>
+<div id="window.remember_size"><dt><code>remember_size = true</code></dt><dd><span class="en">Save the window's size when it closes, so it opens the same next time.</span><span class="pt" lang="pt-BR">Guardar o tamanho da janela ao fechar, para abrir igual da próxima vez.</span></dd></div>
+</dl>
+</div>
+<div class="ref" id="sec-mini">
+<h3><code>[mini]</code> <span class="en">Floating timer</span><span class="pt" lang="pt-BR">Timer flutuante</span></h3>
+<p><span class="en">A small borderless window that stays on top of everything. Drag it to move it, drag its bottom-right corner to resize it, double-click it to open dpomo.</span><span class="pt" lang="pt-BR">Uma janelinha sem borda que fica por cima de tudo. Arraste para mover, puxe o canto inferior direito para mudar o tamanho, clique duas vezes para abrir o dpomo.</span></p>
+<dl>
+<div id="mini.enabled"><dt><code>enabled = false</code></dt><dd><span class="en">Show the floating timer. Also: the button at the top of the main window, the <code>M</code> key, the tray menu or <code>dpomo --mini</code>.</span><span class="pt" lang="pt-BR">Mostrar o timer flutuante. Também: o botão no topo da janela principal, a tecla <code>M</code>, o menu da bandeja ou <code>dpomo --mini</code>.</span></dd></div>
+<div id="mini.width"><dt><code>width = 260.0</code></dt><dd><span class="en">Width in points (at least 120). Dragging its corner changes it.</span><span class="pt" lang="pt-BR">Largura em pontos (no mínimo 120). Puxar o canto muda isso.</span></dd></div>
+<div id="mini.height"><dt><code>height = 96.0</code></dt><dd><span class="en">Height (at least 44). Wide shows the character too; small shows just the time.</span><span class="pt" lang="pt-BR">Altura (no mínimo 44). Larga mostra o personagem também; pequena mostra só o tempo.</span></dd></div>
+<div id="mini.x"><dt><code>x <span class="unset"><span class="en">(not set)</span><span class="pt" lang="pt-BR">(vazio)</span></span></code></dt><dd><span class="en">Screen position, added when you move it. Delete <code>x</code> and <code>y</code> to put it back in the top-right corner.</span><span class="pt" lang="pt-BR">Posição na tela, adicionada quando você move. Apague <code>x</code> e <code>y</code> para voltar ao canto superior direito.</span></dd></div>
+<div id="mini.y"><dt><code>y <span class="unset"><span class="en">(not set)</span><span class="pt" lang="pt-BR">(vazio)</span></span></code></dt><dd><span class="en">See <code>x</code>.</span><span class="pt" lang="pt-BR">Veja <code>x</code>.</span></dd></div>
+<div id="mini.show_character"><dt><code>show_character = true</code></dt><dd><span class="en">Show the character when there's room for it.</span><span class="pt" lang="pt-BR">Mostrar o personagem quando houver espaço.</span></dd></div>
+</dl>
+</div>
+<div class="ref" id="sec-keys">
+<h3><code>[keys]</code> <span class="en">Shortcuts</span><span class="pt" lang="pt-BR">Atalhos</span></h3>
+<p><span class="en">Keys that work while a dpomo window is focused. Values are <a href="#key-names">key names</a>; an unknown name falls back to the default. For shortcuts that work anywhere, see <a href="#cli">Command line</a>.</span><span class="pt" lang="pt-BR">Teclas que funcionam com uma janela do dpomo em foco. Os valores são <a href="#key-names">nomes de teclas</a>; um nome desconhecido volta ao padrão. Para atalhos que funcionam em qualquer lugar, veja <a href="#cli">Linha de comando</a>.</span></p>
+<dl>
+<div id="keys.toggle"><dt><code>toggle = &quot;Space&quot;</code></dt><dd><span class="en">Start / pause.</span><span class="pt" lang="pt-BR">Iniciar / pausar.</span></dd></div>
+<div id="keys.reset"><dt><code>reset = &quot;R&quot;</code></dt><dd><span class="en">Restart the current phase.</span><span class="pt" lang="pt-BR">Reiniciar a fase atual.</span></dd></div>
+<div id="keys.skip"><dt><code>skip = &quot;S&quot;</code></dt><dd><span class="en">Skip to the next phase.</span><span class="pt" lang="pt-BR">Pular para a próxima fase.</span></dd></div>
+<div id="keys.settings"><dt><code>settings = &quot;,&quot;</code></dt><dd><span class="en">Open the settings window.</span><span class="pt" lang="pt-BR">Abrir a janela de ajustes.</span></dd></div>
+<div id="keys.focus"><dt><code>focus = &quot;1&quot;</code></dt><dd><span class="en">Switch to focus.</span><span class="pt" lang="pt-BR">Ir para o foco.</span></dd></div>
+<div id="keys.short_break"><dt><code>short_break = &quot;2&quot;</code></dt><dd><span class="en">Switch to the short break.</span><span class="pt" lang="pt-BR">Ir para a pausa curta.</span></dd></div>
+<div id="keys.long_break"><dt><code>long_break = &quot;3&quot;</code></dt><dd><span class="en">Switch to the long break.</span><span class="pt" lang="pt-BR">Ir para a pausa longa.</span></dd></div>
+<div id="keys.mini"><dt><code>mini = &quot;M&quot;</code></dt><dd><span class="en">Show / hide the floating timer.</span><span class="pt" lang="pt-BR">Mostrar / esconder o timer flutuante.</span></dd></div>
+<div id="keys.back"><dt><code>back = &quot;Escape&quot;</code></dt><dd><span class="en">Close the settings window.</span><span class="pt" lang="pt-BR">Fechar a janela de ajustes.</span></dd></div>
+</dl>
+</div>
+<div class="ref" id="sec-custom_theme">
+<h3><code>[custom_theme]</code> <span class="en">Custom theme</span><span class="pt" lang="pt-BR">Tema personalizado</span></h3>
+<p><span class="en">Your own colors, used when <code>theme = &quot;custom&quot;</code>. Same keys as a <a href="#themes">theme file</a>; the settings window has a color picker for them.</span><span class="pt" lang="pt-BR">Suas próprias cores, usadas quando <code>theme = &quot;custom&quot;</code>. As mesmas chaves de um <a href="#themes">arquivo de tema</a>; a janela de ajustes tem um seletor de cores para elas.</span></p>
+<dl>
+<div id="custom_theme.background"><dt><code>background = &quot;#191724&quot;</code></dt><dd><span class="en">Window background. It also decides whether the theme is dark or light.</span><span class="pt" lang="pt-BR">Fundo da janela. Também decide se o tema é escuro ou claro.</span></dd></div>
+<div id="custom_theme.surface"><dt><code>surface = &quot;#26233a&quot;</code></dt><dd><span class="en">Cards, buttons and the empty part of the ring.</span><span class="pt" lang="pt-BR">Cartões, botões e a parte vazia do anel.</span></dd></div>
+<div id="custom_theme.text"><dt><code>text = &quot;#e0def4&quot;</code></dt><dd><span class="en">Main text.</span><span class="pt" lang="pt-BR">Texto principal.</span></dd></div>
+<div id="custom_theme.muted"><dt><code>muted = &quot;#908caa&quot;</code></dt><dd><span class="en">Secondary text, hints and the character's details.</span><span class="pt" lang="pt-BR">Texto secundário, dicas e detalhes do personagem.</span></dd></div>
+<div id="custom_theme.focus"><dt><code>focus = &quot;#eb6f92&quot;</code></dt><dd><span class="en">Focus color: progress, buttons, the character's accents.</span><span class="pt" lang="pt-BR">Cor do foco: progresso, botões, detalhes do personagem.</span></dd></div>
+<div id="custom_theme.short_break"><dt><code>short_break = &quot;#9ccfd8&quot;</code></dt><dd><span class="en">Short break color.</span><span class="pt" lang="pt-BR">Cor da pausa curta.</span></dd></div>
+<div id="custom_theme.long_break"><dt><code>long_break = &quot;#c4a7e7&quot;</code></dt><dd><span class="en">Long break color.</span><span class="pt" lang="pt-BR">Cor da pausa longa.</span></dd></div>
+</dl>
+</div>
+<!-- /gen:settings -->
+        </div>
+      </section>
+
+      <section id="key-names">
+        <h2 class="display"><span class="en">Key names</span><span class="pt">Nomes de teclas</span></h2>
+        <p class="en">Values you can use in <a href="#sec-keys"><code>[keys]</code></a>. Letters and digits are written as they are (<code>"M"</code>, <code>"1"</code>); <code>"Esc"</code>, <code>"ArrowUp"</code> and <code>"Return"</code> work too.</p>
+        <p class="pt">Valores que você pode usar em <a href="#sec-keys"><code>[keys]</code></a>. Letras e números são escritos como são (<code>"M"</code>, <code>"1"</code>); <code>"Esc"</code>, <code>"ArrowUp"</code> e <code>"Return"</code> também funcionam.</p>
+        <div class="card">
+<!-- gen:keys -->
+<p class="keys"><code>Down</code> <code>Left</code> <code>Right</code> <code>Up</code> <code>Escape</code> <code>Tab</code> <code>Backspace</code> <code>Enter</code> <code>Insert</code> <code>Delete</code> <code>Home</code> <code>End</code> <code>PageUp</code> <code>PageDown</code> <code>Copy</code> <code>Cut</code> <code>Paste</code> <code>Space</code> <code>Colon</code> <code>Comma</code> <code>Minus</code> <code>Period</code> <code>Plus</code> <code>Equals</code> <code>Semicolon</code> <code>OpenBracket</code> <code>CloseBracket</code> <code>OpenCurlyBracket</code> <code>CloseCurlyBracket</code> <code>Backtick</code> <code>Backslash</code> <code>Slash</code> <code>Pipe</code> <code>Questionmark</code> <code>Exclamationmark</code> <code>Quote</code> <code>0</code> <code>1</code> <code>2</code> <code>3</code> <code>4</code> <code>5</code> <code>6</code> <code>7</code> <code>8</code> <code>9</code> <code>A</code> <code>B</code> <code>C</code> <code>D</code> <code>E</code> <code>F</code> <code>G</code> <code>H</code> <code>I</code> <code>J</code> <code>K</code> <code>L</code> <code>M</code> <code>N</code> <code>O</code> <code>P</code> <code>Q</code> <code>R</code> <code>S</code> <code>T</code> <code>U</code> <code>V</code> <code>W</code> <code>X</code> <code>Y</code> <code>Z</code> <code>F1</code> <code>F2</code> <code>F3</code> <code>F4</code> <code>F5</code> <code>F6</code> <code>F7</code> <code>F8</code> <code>F9</code> <code>F10</code> <code>F11</code> <code>F12</code> <code>F13</code> <code>F14</code> <code>F15</code> <code>F16</code> <code>F17</code> <code>F18</code> <code>F19</code> <code>F20</code> <code>F21</code> <code>F22</code> <code>F23</code> <code>F24</code> <code>F25</code> <code>F26</code> <code>F27</code> <code>F28</code> <code>F29</code> <code>F30</code> <code>F31</code> <code>F32</code> <code>F33</code> <code>F34</code> <code>F35</code> <code>BrowserBack</code> <code>BrowserForward</code> <code>BrowserRefresh</code> <code>BrowserSearch</code> <code>BrowserHome</code> <code>BrowserFavorites</code> <code>BrowserStop</code> <code>MediaPlayPause</code> <code>MediaTrackNext</code> <code>MediaTrackPrevious</code> <code>MediaStop</code> <code>AudioVolumeMute</code> <code>AudioVolumeDown</code> <code>AudioVolumeUp</code> <code>LaunchMail</code> <code>LaunchApp1</code> <code>LaunchApp2</code> <code>ShiftLeft</code> <code>ShiftRight</code> <code>ControlLeft</code> <code>ControlRight</code> <code>AltLeft</code> <code>AltRight</code> <code>SuperLeft</code> <code>SuperRight</code> <code>IntlBackslash</code> <code>CapsLock</code> <code>NumLock</code> <code>ScrollLock</code> <code>PrintScreen</code> <code>Pause</code> <code>Menu</code> <code>Fn</code> <code>Eject</code> <code>Help</code> <code>Power</code> <code>Sleep</code> <code>Clear</code></p>
+<!-- /gen:keys -->
+        </div>
+      </section>
+
+      <section id="cli">
+        <h2 class="display"><span class="en">Command line</span><span class="pt">Linha de comando</span></h2>
+        <p class="en">If dpomo is already running, these send it the request and exit right away; if not, dpomo opens and does it. Bind them to a global shortcut to control dpomo from any app.</p>
+        <p class="pt">Se o dpomo já estiver aberto, estes mandam o pedido para ele e saem na hora; se não, o dpomo abre e faz. Associe a um atalho global para controlar o dpomo de qualquer app.</p>
+        <div class="card">
+<!-- gen:cli -->
+<dl>
+<div><dt><code>dpomo --show</code></dt><dd><span class="en">Show the main window (same as opening dpomo again).</span><span class="pt" lang="pt-BR">Mostrar a janela principal (igual a abrir o dpomo de novo).</span></dd></div>
+<div><dt><code>dpomo --toggle</code></dt><dd><span class="en">Start / pause.</span><span class="pt" lang="pt-BR">Iniciar / pausar.</span></dd></div>
+<div><dt><code>dpomo --skip</code></dt><dd><span class="en">Skip to the next phase.</span><span class="pt" lang="pt-BR">Pular para a próxima fase.</span></dd></div>
+<div><dt><code>dpomo --reset</code></dt><dd><span class="en">Restart the current phase.</span><span class="pt" lang="pt-BR">Reiniciar a fase atual.</span></dd></div>
+<div><dt><code>dpomo --mini</code></dt><dd><span class="en">Show / hide the floating timer.</span><span class="pt" lang="pt-BR">Mostrar / esconder o timer flutuante.</span></dd></div>
+<div><dt><code>dpomo --settings</code></dt><dd><span class="en">Open the settings window.</span><span class="pt" lang="pt-BR">Abrir a janela de ajustes.</span></dd></div>
+<div><dt><code>dpomo --quit</code></dt><dd><span class="en">Quit dpomo.</span><span class="pt" lang="pt-BR">Fechar o dpomo.</span></dd></div>
+</dl>
+<!-- /gen:cli -->
+        </div>
+        <ul class="en">
+          <li><b>Windows:</b> make a shortcut to <code>%LOCALAPPDATA%\Programs\dpomo\dpomo.exe</code> on the desktop, add <code>--toggle</code> to the end of its <i>Target</i>, and set a <i>Shortcut key</i> in its properties.</li>
+          <li><b>Linux (GNOME):</b> Settings → Keyboard → Custom Shortcuts, command <code>dpomo --toggle</code>.</li>
+          <li><b>macOS:</b> in the Shortcuts app, a <i>Run Shell Script</i> action with <code>/Applications/dpomo.app/Contents/MacOS/dpomo --toggle</code>.</li>
+        </ul>
+        <ul class="pt">
+          <li><b>Windows:</b> crie um atalho para <code>%LOCALAPPDATA%\Programs\dpomo\dpomo.exe</code> na área de trabalho, adicione <code>--toggle</code> no fim do <i>Destino</i> e defina uma <i>Tecla de atalho</i> nas propriedades.</li>
+          <li><b>Linux (GNOME):</b> Configurações → Teclado → Atalhos personalizados, comando <code>dpomo --toggle</code>.</li>
+          <li><b>macOS:</b> no app Atalhos, uma ação <i>Executar Script de Shell</i> com <code>/Applications/dpomo.app/Contents/MacOS/dpomo --toggle</code>.</li>
+        </ul>
+      </section>
+
+      <section id="themes">
+        <h2 class="display"><span class="en">Make a theme</span><span class="pt">Criar um tema</span></h2>
+        <ol class="en">
+          <li>Create a <code>themes</code> folder next to <code>config.toml</code>.</li>
+          <li>Put a <code>.toml</code> file in it, like the example below (e.g. <code>themes/dracula.toml</code>).</li>
+          <li>In the settings window, <b>Theme → Reload themes and characters</b>, and pick it. Or write <code>theme = "Its name"</code> in <code>config.toml</code>.</li>
+        </ol>
+        <ol class="pt">
+          <li>Crie uma pasta <code>themes</code> ao lado do <code>config.toml</code>.</li>
+          <li>Coloque nela um arquivo <code>.toml</code> como o exemplo abaixo (por exemplo <code>themes/dracula.toml</code>).</li>
+          <li>Na janela de ajustes, <b>Tema → Recarregar temas e personagens</b>, e escolha. Ou escreva <code>theme = "O nome dele"</code> no <code>config.toml</code>.</li>
+        </ol>
+        <p class="en">Rather pick colors by clicking? Choose <b>Custom</b> in the settings, adjust the colors and click <b>Save as file</b>. A theme is one small file: send it to a friend and they can use it too. Colors are <code>"#rrggbb"</code>.</p>
+        <p class="pt">Prefere escolher as cores clicando? Escolha <b>Personalizado</b> nos ajustes, ajuste as cores e clique em <b>Salvar como arquivo</b>. Um tema é um arquivinho: mande para um amigo e ele pode usar também. As cores são <code>"#rrggbb"</code>.</p>
+<!-- gen:theme-example -->
+<pre><code>name = "My theme"
+background = &quot;#191724&quot;
+surface = &quot;#26233a&quot;
+text = &quot;#e0def4&quot;
+muted = &quot;#908caa&quot;
+focus = &quot;#eb6f92&quot;
+short_break = &quot;#9ccfd8&quot;
+long_break = &quot;#c4a7e7&quot;</code></pre>
+<!-- /gen:theme-example -->
+        <div class="card">
+<!-- gen:theme-fields -->
+<dl>
+<div><dt><code>name</code></dt><dd><span class="en">Shown in the theme picker; use it in <code>theme = &quot;…&quot;</code>. Same name as a built-in theme = replaces it. Missing: the file name.</span><span class="pt" lang="pt-BR">Aparece no seletor de temas; use em <code>theme = &quot;…&quot;</code>. Mesmo nome de um tema embutido = substitui ele. Sem nome: o nome do arquivo.</span></dd></div>
+<div><dt><code>background</code></dt><dd><span class="en">Window background. It also decides whether the theme is dark or light.</span><span class="pt" lang="pt-BR">Fundo da janela. Também decide se o tema é escuro ou claro.</span></dd></div>
+<div><dt><code>surface</code></dt><dd><span class="en">Cards, buttons and the empty part of the ring.</span><span class="pt" lang="pt-BR">Cartões, botões e a parte vazia do anel.</span></dd></div>
+<div><dt><code>text</code></dt><dd><span class="en">Main text.</span><span class="pt" lang="pt-BR">Texto principal.</span></dd></div>
+<div><dt><code>muted</code></dt><dd><span class="en">Secondary text, hints and the character's details.</span><span class="pt" lang="pt-BR">Texto secundário, dicas e detalhes do personagem.</span></dd></div>
+<div><dt><code>focus</code></dt><dd><span class="en">Focus color: progress, buttons, the character's accents.</span><span class="pt" lang="pt-BR">Cor do foco: progresso, botões, detalhes do personagem.</span></dd></div>
+<div><dt><code>short_break</code></dt><dd><span class="en">Short break color.</span><span class="pt" lang="pt-BR">Cor da pausa curta.</span></dd></div>
+<div><dt><code>long_break</code></dt><dd><span class="en">Long break color.</span><span class="pt" lang="pt-BR">Cor da pausa longa.</span></dd></div>
+</dl>
+<!-- /gen:theme-fields -->
+        </div>
+        <h3 class="display"><span class="en">Built-in themes</span><span class="pt">Temas embutidos</span></h3>
+        <p class="en">Want to tweak one? Copy its file from the <a href="https://github.com/diegorezm/dpomo/tree/main/themes">themes folder on GitHub</a> into yours and keep the same <code>name</code>: yours replaces it.</p>
+        <p class="pt">Quer ajustar um? Copie o arquivo dele da <a href="https://github.com/diegorezm/dpomo/tree/main/themes">pasta themes no GitHub</a> para a sua e mantenha o mesmo <code>name</code>: o seu substitui o original.</p>
+<!-- gen:themes -->
+<div class="themes">
+<div class="theme" style="background:#1e1e2e;color:#cdd6f4"><b>Catppuccin</b><small style="color:#a6adc8"><span class="en">dark</span><span class="pt" lang="pt-BR">escuro</span></small><i style="background:#f38ba8"></i><i style="background:#a6e3a1"></i><i style="background:#89b4fa"></i></div>
+<div class="theme" style="background:#282828;color:#ebdbb2"><b>Gruvbox</b><small style="color:#a89984"><span class="en">dark</span><span class="pt" lang="pt-BR">escuro</span></small><i style="background:#fb4934"></i><i style="background:#b8bb26"></i><i style="background:#83a598"></i></div>
+<div class="theme" style="background:#111111;color:#f2f2f2"><b>Mono</b><small style="color:#8a8a8a"><span class="en">dark</span><span class="pt" lang="pt-BR">escuro</span></small><i style="background:#f2f2f2"></i><i style="background:#bdbdbd"></i><i style="background:#9a9a9a"></i></div>
+<div class="theme" style="background:#2e3440;color:#eceff4"><b>Nord</b><small style="color:#a3acbb"><span class="en">dark</span><span class="pt" lang="pt-BR">escuro</span></small><i style="background:#bf616a"></i><i style="background:#a3be8c"></i><i style="background:#88c0d0"></i></div>
+<div class="theme" style="background:#191724;color:#e0def4"><b>Rosé Pine</b><small style="color:#908caa"><span class="en">dark</span><span class="pt" lang="pt-BR">escuro</span></small><i style="background:#eb6f92"></i><i style="background:#9ccfd8"></i><i style="background:#c4a7e7"></i></div>
+<div class="theme" style="background:#1a1b26;color:#c0caf5"><b>Tokyo Night</b><small style="color:#9aa5ce"><span class="en">dark</span><span class="pt" lang="pt-BR">escuro</span></small><i style="background:#f7768e"></i><i style="background:#9ece6a"></i><i style="background:#7aa2f7"></i></div>
+<div class="theme" style="background:#eff1f5;color:#4c4f69"><b>Latte</b><small style="color:#6c6f85"><span class="en">light</span><span class="pt" lang="pt-BR">claro</span></small><i style="background:#d20f39"></i><i style="background:#40a02b"></i><i style="background:#1e66f5"></i></div>
+<div class="theme" style="background:#f7f5f0;color:#2b2b2b"><b>Paper</b><small style="color:#7a7468"><span class="en">light</span><span class="pt" lang="pt-BR">claro</span></small><i style="background:#e4572e"></i><i style="background:#2a9d8f"></i><i style="background:#6c63ff"></i></div>
+</div>
+<!-- /gen:themes -->
+      </section>
+
+      <section id="characters">
+        <h2 class="display"><span class="en">Make a character</span><span class="pt">Criar um personagem</span></h2>
+        <ol class="en">
+          <li>Create <code>characters/&lt;id&gt;/</code> next to <code>config.toml</code> (e.g. <code>characters/cat/</code>). The folder name is the id you use in <code>character = "cat"</code>.</li>
+          <li>Draw the poses below as SVG files. Only <code>idle.svg</code> is required.</li>
+          <li><b>Reload themes and characters</b> in the settings and pick it.</li>
+        </ol>
+        <ol class="pt">
+          <li>Crie <code>characters/&lt;id&gt;/</code> ao lado do <code>config.toml</code> (por exemplo <code>characters/gato/</code>). O nome da pasta é o id que você usa em <code>character = "gato"</code>.</li>
+          <li>Desenhe as poses abaixo em arquivos SVG. Só o <code>idle.svg</code> é obrigatório.</li>
+          <li><b>Recarregar temas e personagens</b> nos ajustes, e escolha.</li>
+        </ol>
+        <div class="card">
+<!-- gen:poses -->
+<dl>
+<div><dt><code>idle.svg</code></dt><dd><span class="en">Before starting and while paused. Required: a missing pose uses this one.</span><span class="pt" lang="pt-BR">Antes de começar e pausado. Obrigatório: uma pose que faltar usa esta.</span></dd></div>
+<div><dt><code>focus.svg</code></dt><dd><span class="en">While focusing.</span><span class="pt" lang="pt-BR">Durante o foco.</span></dd></div>
+<div><dt><code>short_break.svg</code></dt><dd><span class="en">Short break.</span><span class="pt" lang="pt-BR">Pausa curta.</span></dd></div>
+<div><dt><code>long_break.svg</code></dt><dd><span class="en">Long break.</span><span class="pt" lang="pt-BR">Pausa longa.</span></dd></div>
+</dl>
+<!-- /gen:poses -->
+        </div>
+        <p class="en">To give it a name (and a translated one), add a <code>character.toml</code>:</p>
+        <p class="pt">Para dar um nome (e um traduzido), adicione um <code>character.toml</code>:</p>
+        <pre><code>name = "Cat"
+
+[names]
+"pt-BR" = "Gato"</code></pre>
+        <p class="en">So your character matches every theme, these exact colors in the SVG are replaced:</p>
+        <p class="pt">Para o personagem combinar com qualquer tema, estas cores exatas no SVG são trocadas:</p>
+        <div class="card">
+<!-- gen:colors -->
+<dl>
+<div><dt><code>#e05a4f</code></dt><dd><span class="en">becomes the phase color (focus, short break, long break).</span><span class="pt" lang="pt-BR">vira a cor da fase (foco, pausa curta, pausa longa).</span></dd></div>
+<div><dt><code>#7a6464</code></dt><dd><span class="en">becomes the theme's <code>muted</code> color.</span><span class="pt" lang="pt-BR">vira a cor <code>muted</code> do tema.</span></dd></div>
+</dl>
+<!-- /gen:colors -->
+        </div>
+        <ul class="en">
+          <li>Use a 200×160 <code>viewBox</code>, like the built-ins: the app keeps that shape.</li>
+          <li><code>&lt;text&gt;</code> isn't drawn: convert letters to paths in your editor.</li>
+          <li>The built-in characters are on <a href="https://github.com/diegorezm/dpomo/tree/main/characters">GitHub</a> if you want to start from one.</li>
+        </ul>
+        <ul class="pt">
+          <li>Use um <code>viewBox</code> de 200×160, como os embutidos: o app mantém esse formato.</li>
+          <li><code>&lt;text&gt;</code> não é desenhado: converta as letras em caminhos no seu editor.</li>
+          <li>Os personagens embutidos estão no <a href="https://github.com/diegorezm/dpomo/tree/main/characters">GitHub</a> se quiser partir de um.</li>
+        </ul>
+        <h3 class="display"><span class="en">Built-in characters</span><span class="pt">Personagens embutidos</span></h3>
+<!-- gen:characters -->
+<div class="chars">
+<figure><img src="characters/axolotl/idle.svg" alt="" width="100" height="80" loading="lazy"><figcaption><span class="en">Axolotl</span><span class="pt" lang="pt-BR">Axolote</span><br><code>character = "axolotl"</code></figcaption></figure>
+<figure><img src="characters/capybara/idle.svg" alt="" width="100" height="80" loading="lazy"><figcaption><span class="en">Capybara</span><span class="pt" lang="pt-BR">Capivara</span><br><code>character = "capybara"</code></figcaption></figure>
+<figure><img src="characters/tomato/idle.svg" alt="" width="100" height="80" loading="lazy"><figcaption><span class="en">Tomato</span><span class="pt" lang="pt-BR">Tomate</span><br><code>character = "tomato"</code></figcaption></figure>
+</div>
+<!-- /gen:characters -->
+      </section>
+    </main>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <span class="en">Made with Rust and <a href="https://github.com/emilk/egui">egui</a> · <a href="https://github.com/diegorezm/dpomo">Source code</a> · MIT license</span>
+    <span class="pt">Feito com Rust e <a href="https://github.com/emilk/egui">egui</a> · <a href="https://github.com/diegorezm/dpomo">Código-fonte</a> · Licença MIT</span>
+  </div>
+</footer>
+
+<script>
+document.getElementById("lang").addEventListener("click", () => {
+  const pt = document.documentElement.classList.toggle("lang-pt");
+  document.documentElement.lang = pt ? "pt-BR" : "en";
+  try { localStorage.setItem("dpomo-lang", pt ? "pt" : "en"); } catch {}
+});
+</script>
+</body>
+</html>

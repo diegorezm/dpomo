@@ -121,7 +121,8 @@ It's created the first time dpomo opens:
 - Delete anything you don't care about: missing keys use their default.
 - Made a typo? The app tells you which line is wrong and **never overwrites your file** until you fix it.
 
-Everything you can configure, with the defaults:
+Everything you can configure, with the defaults (the [configuration guide](https://diegorezm.github.io/dpomo/docs.html)
+explains each option, plus key names and how to make themes and characters):
 
 ```toml
 [timer]
@@ -266,17 +267,6 @@ The only network request is the **update check**: once a day dpomo asks GitHub's
 request (GitHub sees your IP address, see [GitHub's privacy statement](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement)).
 It never downloads or installs anything by itself. Turn it off in the settings, with
 `check_updates = false`, or by unchecking *Check for new versions* in the Windows installer.
-
-## Code signing policy
-
-Windows releases are built from this repository by GitHub Actions ([release.yml](.github/workflows/release.yml))
-and will be signed once the project is accepted by SignPath Foundation (application pending):
-Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by [SignPath Foundation](https://signpath.org).
-
-- Committers and reviewers: [@diegorezm](https://github.com/diegorezm)
-- Approvers: [@diegorezm](https://github.com/diegorezm)
-
-See [Privacy](#privacy) for what dpomo sends over the network.
 
 ## Build it yourself
 

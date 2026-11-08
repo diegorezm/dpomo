@@ -24,12 +24,13 @@ The release workflow now installs every package on fresh Windows, Ubuntu 22.04/2
 - [ ] **macOS on a real Mac**: first launch after downloading (Gatekeeper: right-click → Open), menu bar
       icon, notification permission prompt, sound.
 - [x] Code signing wired into `release.yml` (SignPath for Windows, Developer ID + notarization for
-      macOS), off until configured. README/site have the required "Code signing policy" and privacy
-      text; the installer can turn the update check off.
+      macOS), off until configured. The installer can turn the update check off.
 - [ ] **Windows code signing (free)**: apply at https://signpath.org/apply with the owner's GitHub
       account (needs 2FA on GitHub and SignPath). After acceptance, follow AGENTS.md → "Code signing"
       (create the SignPath project + set `SIGNPATH_ORGANIZATION_ID` / `SIGNPATH_API_TOKEN`). The
-      workflow, installer and README policy are ready.
+      workflow and installer are ready. The "Code signing policy" section was removed from the
+      README and site until then (it read as if releases were already signed): put it back when
+      applying (text in AGENTS.md).
 - macOS notarization: **not planned** (the Apple Developer Program costs US$ 99/year and dpomo is a
   free hobby project with no budget). The workflow supports it if that ever changes (AGENTS.md).
 

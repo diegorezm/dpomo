@@ -22,7 +22,7 @@ use crate::timer::Phase;
 const HEADER: &str = "\
 # dpomo config. Edit freely: changes apply while the app is running.
 # Every key is optional; anything missing uses its default.
-# Docs: https://github.com/diegorezm/dpomo#configuration
+# Every option explained: https://diegorezm.github.io/dpomo/docs.html
 
 ";
 
@@ -192,6 +192,10 @@ pub struct Window {
     pub height: f32,
     /// Update `width`/`height` with the last size when the window closes.
     pub remember_size: bool,
+}
+
+impl Window {
+    pub const MIN_SIZE: [f32; 2] = [280.0, 380.0];
 }
 
 impl Default for Window {
