@@ -116,6 +116,7 @@ def main():
 
     for name in ["style.css", "lang.js", "robots.txt", "llms.txt", *[p.name for p in SITE.glob("google*.html")]]:
         shutil.copy(SITE / name, OUT)
+    shutil.copytree(SITE / "fonts", OUT / "fonts")
     for name in ["icon.svg", "icon.png", "screenshot.png", "fonts/LilitaOne-Regular.ttf"]:
         shutil.copy(ROOT / "assets" / name, OUT)
     for pack in (ROOT / "characters").iterdir():

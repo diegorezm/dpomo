@@ -72,5 +72,16 @@
   "docs_title": "Pomolotl — guia de configuração",
   "docs_desc": "Todos os ajustes do Pomolotl com o valor padrão, como editar o config.toml à mão e como criar seus próprios temas e personagens.",
   "nav_docs": "Docs",
-  "linux_arm": "ARM64 / Raspberry Pi (.deb)"
+  "linux_arm": "ARM64 / Raspberry Pi (.deb)",
+  "nav_features": "Funções",
+  "nav_floating": "Timer flutuante",
+  "nav_faq": "Perguntas",
+  "scroll": "Role para focar",
+  "try_label": "Experimente aqui",
+  "see_features": "Veja o que ele faz",
+  "features_label": "Funções",
+  "guide_link": "Guia de configuração",
+  "floating_label": "Timer flutuante",
+  "download_label": "Windows · Linux · macOS",
+  "faq_label": "Perguntas"
 }

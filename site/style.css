@@ -1,45 +1,58 @@
-/* Shared by index.html and docs.html: colors, type, top bar, cards, footer. */
+/* Shared by index.html and docs.html. One look on purpose (no dark variant): a sky-blue page with
+   rounded framed panels, a narrow serif for headlines and wide uppercase labels, like a cozy café sign. */
+@font-face {
+  font-family: "Instrument Serif";
+  src: url("fonts/InstrumentSerif-Regular.woff2") format("woff2");
+  font-display: swap;
+}
+@font-face {
+  font-family: "Instrument Serif";
+  src: url("fonts/InstrumentSerif-Italic.woff2") format("woff2");
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Archivo";
+  src: url("fonts/Archivo-VF.woff2") format("woff2");
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  font-display: swap;
+}
 @font-face {
   font-family: "Lilita One";
   src: url("LilitaOne-Regular.ttf") format("truetype");
   font-display: swap;
 }
 :root {
-  --bg: #f6ecdf;
-  --surface: #fffaf3;
-  --card: #efe2d1;
-  --stage: #ebdcc8;
-  --text: #3b2a2a;
-  --muted: #7a6464;
-  --line: #e2d2bd;
-  --accent: #e05a4f;
-  --on-accent: #fffaf3;
-  --focus: #e05a4f;
-  --short: #3f9e8f;
-  --long: #6f63c9;
+  /* palette */
+  --sky: #b8e2f2;
+  --frame: #2d5da8;
+  --green: #2a453a;
+  --green-deep: #20362d;
+  --cream: #f4efe3;
+  --paper: #fbf8f0;
+  --ink: #161412;
+  --cobalt: #2a5fb0;
+  --ice: #a9dcf0;
+  --red: #e2352b;
+  /* roles (docs.html uses these too) */
+  --bg: var(--sky);
+  --surface: var(--paper);
+  --card: #ebe4d3;
+  --stage: #e9e1cf;
+  --text: #1d1a17;
+  --muted: #5f5a52;
+  --line: #ddd3bf;
+  --accent: var(--cobalt);
+  --on-accent: #ffffff;
+  --focus: #e0453a;
+  --short: #2f8f74;
+  --long: var(--cobalt);
+  /* type */
+  --serif: "Instrument Serif", "Times New Roman", Georgia, serif;
+  --sans: "Archivo", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --app: "Lilita One", var(--sans);
   color-scheme: light;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #191724;
-    --surface: #1f1d2e;
-    --card: #26233a;
-    --stage: #232136;
-    --text: #e0def4;
-    --muted: #908caa;
-    --line: #2f2c45;
-    --accent: #eb6f92;
-    --on-accent: #191724;
-    --focus: #eb6f92;
-    --short: #9ccfd8;
-    --long: #c4a7e7;
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #191724; --surface: #1f1d2e; --card: #26233a; --stage: #232136; --text: #e0def4;
-  --muted: #908caa; --line: #2f2c45; --accent: #eb6f92; --on-accent: #191724;
-  --focus: #eb6f92; --short: #9ccfd8; --long: #c4a7e7; color-scheme: dark;
 }
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
@@ -47,34 +60,52 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font: 17px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif;
+  font: 400 17px/1.6 var(--sans);
 }
 a { color: inherit; }
-.display { font-family: "Lilita One", system-ui, sans-serif; font-weight: 400; letter-spacing: .01em; }
-.wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
-code { background: var(--card); border-radius: 6px; padding: 1px 6px; font-size: .9em; overflow-wrap: anywhere; }
-
-/* top bar */
-.top { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; gap: 12px; }
-.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font-size: 26px; }
-.brand img { width: 36px; height: 36px; }
-.top nav { display: flex; gap: 6px; align-items: center; }
-.chip {
-  border: 2px solid var(--line); background: transparent; color: var(--text);
-  border-radius: 999px; padding: 4px 12px; font: inherit; font-size: 14px; cursor: pointer;
-  text-decoration: none; white-space: nowrap;
+::selection { background: var(--ice); color: var(--ink); }
+.display { font-family: var(--serif); font-weight: 400; letter-spacing: -0.015em; }
+/* Wide uppercase labels: nav, eyebrows, buttons, tile captions. */
+.caps {
+  font-family: var(--sans); font-stretch: 125%; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .14em; font-size: 12px; line-height: 1.4;
 }
-.chip:hover { border-color: var(--muted); }
+.wrap {
+  max-width: 1200px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+code { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; background: var(--card); border-radius: 6px; padding: 1px 6px; font-size: .88em; overflow-wrap: anywhere; }
+:focus-visible { outline: 3px solid var(--cobalt); outline-offset: 3px; }
 
-/* cards */
-.policy { background: var(--surface); border-radius: 20px; padding: 22px 24px; }
+/* The little flower used as an ornament around labels. */
+.orn { display: inline-block; width: 11px; height: 11px; vertical-align: -1px; background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-10 -10 20 20'%3E%3Cg%3E%3Cellipse ry='4.8' rx='3.9' cy='-4.9'/%3E%3Cellipse ry='4.8' rx='3.9' cy='-4.9' transform='rotate(90)'/%3E%3Cellipse ry='4.8' rx='3.9' cy='-4.9' transform='rotate(180)'/%3E%3Cellipse ry='4.8' rx='3.9' cy='-4.9' transform='rotate(270)'/%3E%3C/g%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-10 -10 20 20'%3E%3Cg%3E%3Cellipse ry='4.8' rx='3.9' cy='-4.9'/%3E%3Cellipse ry='4.8' rx='3.9' cy='-4.9' transform='rotate(90)'/%3E%3Cellipse ry='4.8' rx='3.9' cy='-4.9' transform='rotate(180)'/%3E%3Cellipse ry='4.8' rx='3.9' cy='-4.9' transform='rotate(270)'/%3E%3C/g%3E%3C/svg%3E") center / contain no-repeat; }
+
+/* Top bar on the docs page (the home page has its own nav in the hero). */
+.top { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; gap: 12px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font-family: var(--serif); font-size: 30px; line-height: 1; }
+.brand img { width: 34px; height: 34px; }
+.top nav { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.chip {
+  font-family: var(--sans); font-stretch: 125%; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; font-size: 11.5px;
+  border: 1.5px solid currentColor; background: transparent; color: inherit;
+  border-radius: 999px; padding: 6px 14px; cursor: pointer; text-decoration: none; white-space: nowrap;
+}
+.chip:hover { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+
+/* Cards for longer text. */
+.policy { background: var(--surface); border-radius: 22px; padding: 24px 26px; }
 .policy + .policy { margin-top: 16px; }
-.policy h3 { font-size: 24px; margin: 0 0 8px; }
+.policy h3 { font-family: var(--serif); font-weight: 400; font-size: 30px; margin: 0 0 8px; }
 .policy p, .policy li { color: var(--muted); font-size: 16px; }
 .policy p:last-child { margin-bottom: 0; }
 
-footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; text-align: center; }
+footer { padding: 28px 0 48px; color: var(--green); font-size: 14px; text-align: center; }
+footer a { color: var(--green); }
 
 @media (max-width: 420px) {
   .top nav .hide-sm { display: none; }
 }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }

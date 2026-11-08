@@ -10,8 +10,7 @@
 <link rel="alternate" hreflang="pt-BR" href="https://diegorezm.github.io/pomolotl/pt/docs.html">
 <link rel="alternate" hreflang="x-default" href="https://diegorezm.github.io/pomolotl/docs.html">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<meta name="theme-color" content="#f6ecdf" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#191724" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#2a453a">
 <link rel="stylesheet" href="style.css">
 <style>
 /* Both languages are in the page; html.lang-pt (set by site/build.py for pt/) shows the Portuguese. */
@@ -19,6 +18,8 @@
 html.lang-pt .en { display: none; }
 html.lang-pt .pt { display: revert; }
 
+body > .wrap { background: var(--cream); border: 2px solid var(--frame); border-radius: 40px; margin: 22px auto 0; width: calc(100% - 28px); padding-block: 6px 40px; }
+.top { border-bottom: 2px solid var(--ink); margin-bottom: 18px; }
 .layout { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 32px; align-items: start; padding: 8px 0 24px; }
 .toc { position: sticky; top: 16px; display: flex; flex-direction: column; gap: 2px; font-size: 15px; }
 .toc a { text-decoration: none; color: var(--muted); padding: 5px 12px; border-radius: 10px; }

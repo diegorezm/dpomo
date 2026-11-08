@@ -11,8 +11,7 @@
 <link rel="alternate" hreflang="x-default" href="https://diegorezm.github.io/pomolotl/">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.png">
-<meta name="theme-color" content="#f6ecdf" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#191724" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#2a453a">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Pomolotl">
 <meta property="og:locale" content="en_US">
@@ -22,6 +21,8 @@
 <meta property="og:image" content="https://diegorezm.github.io/pomolotl/screenshot.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="google-site-verification" content="-jEVeeb4ylGw1n89Eugjg-SvmykztarjfJjTVaYQM-k">
+<link rel="preload" href="fonts/InstrumentSerif-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/Archivo-VF.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="style.css">
 <script type="application/ld+json">
 {
@@ -56,152 +57,237 @@
 }
 </script>
 <style>
-/* hero */
-.hero { display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; align-items: center; padding: 32px 0 56px; }
-.hero h1 { font-size: clamp(40px, 6vw, 64px); line-height: 1.05; margin: 0 0 16px; }
-.hero p.lead { font-size: 20px; color: var(--muted); margin: 0 0 28px; max-width: 30em; }
-.cta { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
-.btn {
-  display: inline-flex; align-items: center; gap: 10px; text-decoration: none;
-  background: var(--accent); color: var(--on-accent); border-radius: 16px;
-  padding: 14px 22px; font-size: 18px; box-shadow: 0 4px 0 color-mix(in srgb, var(--accent) 60%, #000);
-  transition: transform .08s ease, box-shadow .08s ease;
+/* Panels: framed, rounded, stacked on the sky-blue page. */
+.panel {
+  max-width: 1200px; margin: 22px auto 0; border: 2px solid var(--frame); border-radius: 40px; overflow: hidden;
+  position: relative;
 }
-.btn:active { transform: translateY(3px); box-shadow: 0 1px 0 color-mix(in srgb, var(--accent) 60%, #000); }
-.btn small { font: 13px system-ui, sans-serif; opacity: .85; }
-.link { color: var(--muted); font-size: 15px; }
-.meta { margin-top: 18px; color: var(--muted); font-size: 14px; }
+.panel-in { padding: 30px clamp(18px, 4vw, 56px) 48px; }
+.page { padding-left: max(14px, env(safe-area-inset-left, 0px)); padding-right: max(14px, env(safe-area-inset-right, 0px)); padding-block: 8px 0; }
+.green { background: var(--green); color: var(--cream); }
+.cream { background: var(--cream); color: var(--text); }
+.cobalt-panel { background: var(--cobalt); color: var(--paper); }
 
-.eyebrow { margin: 0 0 10px; color: var(--accent); font-weight: 600; font-size: 15px; letter-spacing: .02em; }
+/* nav: a row of wide caps between two little flowers */
+.nav { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 6px 22px; }
+.nav a { text-decoration: none; }
+.nav a:hover { text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 2px; }
+.nav .chip { border: 0; padding: 0; border-radius: 0; font-size: 12px; letter-spacing: .14em; }
+.nav .chip:hover { background: none; color: inherit; }
+.nav .orn { opacity: .9; }
+.pill-nav { background: var(--green); color: var(--cream); border-radius: 999px; padding: 9px 26px; width: fit-content; max-width: 100%; margin: 0 auto 34px; }
 
-/* demo card, mirrors the app's cozy layout */
+/* hero */
+.hero { display: flex; flex-direction: column; align-items: center; gap: 26px; padding-top: 34px; padding-bottom: 26px; text-align: center; }
+.oval {
+  width: min(820px, 100%); aspect-ratio: 1.62; border-radius: 50%; background: var(--cream); color: var(--ink);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4% 8% 3%;
+}
+.parade { display: flex; align-items: flex-end; justify-content: center; gap: 1%; width: 92%; margin-bottom: -3%; }
+.parade img { width: 31%; height: auto; }
+.parade img:nth-child(2) { width: 38%; animation: hop 2.6s ease-in-out infinite; }
+.parade img:nth-child(1) { animation: hop 2.6s ease-in-out -.9s infinite; }
+.parade img:nth-child(3) { animation: hop 2.6s ease-in-out -1.7s infinite; }
+@keyframes hop { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4%); } }
+.wordmark { font-family: var(--serif); font-weight: 400; font-size: clamp(56px, 11vw, 132px); line-height: .9; letter-spacing: -0.035em; margin: 0; }
+.wordmark i { letter-spacing: -0.02em; }
+.oval .caps { font-size: clamp(9px, 1.15vw, 13px); letter-spacing: .22em; margin: 12px 0 0; max-width: 92%; text-wrap: balance; }
+.cta { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px 18px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 10px; text-decoration: none; border-radius: 999px; padding: 13px 24px;
+  background: var(--red); color: var(--paper); border: 2px solid var(--red);
+  font-family: var(--sans); font-stretch: 125%; font-weight: 800; font-size: 13px; letter-spacing: .14em; text-transform: uppercase;
+  transition: transform .12s ease, background .12s ease;
+}
+.btn:hover { transform: translateY(-2px); }
+.btn small { font-weight: 600; font-stretch: 100%; letter-spacing: .04em; text-transform: none; font-size: 13px; opacity: .9; }
+.btn.ghost { background: transparent; color: inherit; border-color: currentColor; }
+.scroll { display: flex; flex-direction: column; align-items: center; gap: 6px; text-decoration: none; }
+.scroll svg { width: 22px; height: 12px; }
+.meta-line { font-size: 14px; opacity: .85; margin: 0; }
+
+/* split: text on the left, content on the right */
+.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: clamp(24px, 4vw, 56px); align-items: center; }
+.eyebrow { margin: 0 0 14px; }
+h2.display { font-size: clamp(40px, 5.6vw, 64px); line-height: 1; margin: 0 0 18px; text-wrap: balance; }
+.lead { font-size: 17px; max-width: 34em; margin: 0 0 22px; }
+.text-link { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+.text-link:hover span:not(.orn) { text-decoration: underline; text-underline-offset: 4px; }
+
+/* the demo, dressed like a little café sign */
 .demo {
-  background: var(--surface); border-radius: 28px; padding: 22px 22px 26px;
-  box-shadow: 0 1px 0 var(--line), 0 18px 40px -24px rgba(59, 42, 42, .35);
-  text-align: center; max-width: 380px; width: 100%; justify-self: center;
-  --phase: var(--focus);
+  background: var(--green); color: var(--cream); border-radius: 32px; padding: 22px 22px 24px; text-align: center;
+  width: 100%; max-width: 400px; justify-self: center; --phase: var(--focus);
 }
 .demo[data-phase="short"] { --phase: var(--short); }
-.demo[data-phase="long"] { --phase: var(--long); }
+.demo[data-phase="long"] { --phase: var(--ice); }
 .tabs { display: flex; justify-content: center; gap: 8px; }
-.tab {
-  font-family: "Lilita One", system-ui, sans-serif; font-size: 15px; cursor: pointer;
-  border: 2px solid var(--muted); color: var(--text); background: transparent;
-  border-radius: 999px; padding: 2px 12px;
-}
-.tab[aria-pressed="true"] { background: var(--phase); border-color: var(--phase); color: var(--surface); }
-.stage {
-  margin: 18px auto 6px; width: 88%; aspect-ratio: 1; border-radius: 50%; background: var(--stage);
-  display: grid; place-items: center;
-}
-.stage img { width: 96%; aspect-ratio: 200 / 160; }
-.time { font-size: 64px; line-height: 1; margin: 8px 0 10px; font-variant-numeric: tabular-nums; }
-.bar { height: 6px; border-radius: 3px; background: var(--card); width: 70%; margin: 0 auto; overflow: hidden; }
+.tab { font-family: var(--sans); font-stretch: 125%; font-weight: 700; font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+  cursor: pointer; border: 1.5px solid var(--cream); color: var(--cream); background: transparent; border-radius: 999px; padding: 5px 12px; }
+.tab[aria-pressed="true"] { background: var(--cream); color: var(--green); }
+.stage { margin: 18px auto 4px; width: 84%; aspect-ratio: 1; border-radius: 50%; background: var(--cream); display: grid; place-items: center; }
+.stage img { width: 92%; aspect-ratio: 200 / 160; }
+.time { font-family: var(--app); font-size: 64px; line-height: 1; margin: 12px 0 10px; font-variant-numeric: tabular-nums; }
+.bar { height: 6px; border-radius: 3px; background: var(--green-deep); width: 70%; margin: 0 auto; overflow: hidden; }
 .bar i { display: block; height: 100%; width: 0; background: var(--phase); border-radius: 3px; }
-.controls { display: flex; justify-content: center; gap: 18px; margin-top: 16px; }
-.icon-btn {
-  width: 44px; height: 44px; border-radius: 50%; border: 0; background: transparent; color: var(--text);
-  cursor: pointer; display: grid; place-items: center;
-}
-.icon-btn:hover { background: var(--card); }
+.controls { display: flex; justify-content: center; gap: 16px; margin-top: 14px; }
+.icon-btn { width: 46px; height: 46px; border-radius: 50%; border: 1.5px solid transparent; background: transparent; color: var(--cream); cursor: pointer; display: grid; place-items: center; }
+.icon-btn:hover { border-color: var(--cream); }
 .icon-btn svg { width: 22px; height: 22px; fill: currentColor; }
 .friends { display: flex; justify-content: center; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
-.friend { padding: 3px; border-radius: 14px; border: 2px solid transparent; background: var(--card); cursor: pointer; }
-.friend[aria-pressed="true"] { border-color: var(--phase); }
-.friend img { width: 56px; height: 45px; display: block; }
+.friend { padding: 3px; border-radius: 14px; border: 2px solid transparent; background: var(--cream); cursor: pointer; }
+.friend[aria-pressed="true"] { border-color: var(--red); }
+.friend img { width: 54px; height: 43px; display: block; }
+.shot { width: 100%; height: auto; display: block; border-radius: 24px; margin-top: 44px; border: 2px solid var(--ink); }
+
+/* feature tiles, a vendor-board grid */
+.tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.tile { border-radius: 14px; padding: 18px 14px 16px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; }
+.tile.ink { background: var(--ink); color: var(--paper); --glyph: var(--cobalt); --eye: var(--ink); }
+.tile.cobalt { background: var(--cobalt); color: var(--paper); --glyph: var(--ice); --eye: var(--cobalt); }
+.tile:nth-child(4n+2) { --glyph: var(--paper); }
+.tile:nth-child(4n+3).ink { --glyph: var(--ice); }
+.glyph { width: 56px; height: 56px; color: var(--glyph); fill: currentColor; flex: none; }
+.glyph .eye { fill: var(--eye); }
+.tile h3 { margin: 4px 0 0; font-size: 11.5px; }
+.tile p { margin: 0; font-size: 13.5px; line-height: 1.45; opacity: .82; }
+.tile code { background: rgba(255,255,255,.14); color: inherit; }
+.tile a { color: inherit; }
 
 /* floating timer: a pretend desktop with a draggable, resizable mini window */
-.mini-wrap { display: grid; grid-template-columns: 1fr 1.2fr; gap: 40px; align-items: center; }
-.desk {
-  position: relative; aspect-ratio: 16 / 10; border-radius: 20px; overflow: hidden;
-  background: var(--card); --phase: var(--focus); touch-action: none;
-}
+.desk { position: relative; aspect-ratio: 16 / 10; border-radius: 22px; overflow: hidden; background: var(--sky); border: 2px solid var(--ink); --phase: var(--focus); touch-action: none; max-width: 100%; }
 .desk[data-phase="short"] { --phase: var(--short); }
-.desk[data-phase="long"] { --phase: var(--long); }
-.desk .app { position: absolute; background: var(--surface); border-radius: 10px; opacity: .55; }
-.desk .app::before { content: ""; position: absolute; left: 10px; right: 10px; top: 10px; height: 6px; border-radius: 3px; background: var(--line); }
+.desk[data-phase="long"] { --phase: var(--cobalt); }
+.desk .app { position: absolute; background: var(--paper); border-radius: 12px; border: 2px solid var(--ink); }
+.desk .app::before { content: ""; position: absolute; left: 10px; right: 10px; top: 10px; height: 6px; border-radius: 3px; background: var(--card); }
 .float {
-  position: absolute; container-type: size; cursor: grab; user-select: none;
-  background: var(--bg); border-radius: 12px; overflow: hidden;
-  box-shadow: 0 10px 30px -12px rgba(0, 0, 0, .45), 0 0 0 1px var(--line);
+  position: absolute; container-type: size; cursor: grab; user-select: none; color: var(--ink);
+  background: var(--cream); border-radius: 12px; overflow: hidden; border: 2px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
   display: flex; align-items: center; gap: 8px; padding: 0 12px 0 8px;
 }
 .float:active { cursor: grabbing; }
 .float img { height: 82cqh; width: auto; aspect-ratio: 200 / 160; flex: none; pointer-events: none; }
 .float .t { flex: 1; min-width: 0; text-align: center; line-height: 1; }
-.float-time { font-size: min(48cqh, 22cqw); font-variant-numeric: tabular-nums; }
-.float-phase { font-size: min(20cqh, 9cqw); color: var(--phase); margin-top: 4cqh; }
+.float-time { font-family: var(--app); font-size: min(48cqh, 22cqw); font-variant-numeric: tabular-nums; }
+.float-phase { font-family: var(--sans); font-stretch: 125%; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; font-size: min(14cqh, 6.5cqw); color: var(--phase); margin-top: 5cqh; }
 .float .bar2 { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: var(--card); }
 .float .bar2 b { display: block; height: 100%; width: 0; background: var(--phase); }
 .grip { position: absolute; right: 0; bottom: 0; width: 18px; height: 18px; cursor: nwse-resize; }
-.grip::after { content: ""; position: absolute; right: 4px; bottom: 7px; width: 8px; height: 8px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); opacity: .6; }
+.grip::after { content: ""; position: absolute; right: 4px; bottom: 7px; width: 8px; height: 8px; border-right: 2px solid var(--ink); border-bottom: 2px solid var(--ink); opacity: .5; }
 @container (max-aspect-ratio: 2 / 1) { .float img { display: none; } }
 @container (max-height: 60px) { .float-phase { display: none; } .float-time { font-size: min(66cqh, 24cqw); } }
-.hint-line { color: var(--muted); font-size: 15px; margin: 0; }
+.cobalt-panel .lead { color: var(--paper); opacity: .92; }
+.cobalt-panel code { background: rgba(255,255,255,.16); color: inherit; }
+
+/* downloads */
+.downloads { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 8px; }
+.os { border-radius: 22px; padding: 24px 22px; display: flex; flex-direction: column; gap: 12px; }
+.os.paper { background: var(--cream); color: var(--ink); }
+.os.blue { background: var(--cobalt); color: var(--paper); }
+.os.ink { background: var(--ink); color: var(--paper); }
+.os h3 { font-family: var(--serif); font-weight: 400; font-size: 40px; line-height: 1; margin: 0; display: flex; align-items: baseline; gap: 10px; }
+.os .btn { justify-content: center; }
+.os.paper .btn { background: var(--green); border-color: var(--green); }
+.os.blue .btn { background: var(--paper); border-color: var(--paper); color: var(--cobalt); }
+.os.ink .btn { background: var(--red); }
+.os p { margin: 0; font-size: 14.5px; opacity: .88; }
+.os code { background: rgba(127,127,127,.18); color: inherit; }
+.os .more { font-size: 14px; }
+.badge { font-family: var(--sans); font-stretch: 125%; font-weight: 700; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; border: 1.5px solid currentColor; border-radius: 999px; padding: 2px 8px; }
+.green .lead { color: var(--cream); opacity: .9; }
 
 /* FAQ */
-.faqs { display: grid; gap: 10px; max-width: 46em; }
-.faq { background: var(--surface); border-radius: 16px; padding: 14px 20px; }
-.faq summary { cursor: pointer; font-weight: 600; }
-.faq p { margin: 8px 0 2px; color: var(--muted); font-size: 16px; }
+.faqs { display: flex; flex-direction: column; border-top: 2px solid var(--ink); }
+.faq { border-bottom: 2px solid var(--ink); padding: 16px 4px; }
+.faq summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: baseline; gap: 18px;
+  font-family: var(--serif); font-size: clamp(22px, 2.6vw, 28px); line-height: 1.2; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; font-family: var(--sans); font-weight: 400; font-size: 26px; line-height: 1; transition: transform .2s ease; flex: none; }
+.faq[open] summary::after { transform: rotate(45deg); }
+.faq p { margin: 10px 0 4px; color: var(--muted); font-size: 16px; max-width: 46em; }
+.faq-split { align-items: start; }
 
-/* sections */
-section { padding: 56px 0; }
-section h2 { font-size: clamp(30px, 4vw, 40px); line-height: 1.15; margin: 0 0 8px; }
-section > .wrap > p.sub { color: var(--muted); margin: 0 0 28px; max-width: 40em; }
-.shot { width: 100%; height: auto; border-radius: 20px; display: block; }
-.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.feature { background: var(--surface); border-radius: 20px; padding: 20px 22px; }
-.feature h3 { font-size: 22px; margin: 0 0 6px; }
-.feature p { margin: 0; color: var(--muted); font-size: 16px; }
-.feature .emoji { font-size: 26px; }
+.privacy { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 24px; }
+.privacy h3 { font-family: var(--serif); font-weight: 400; font-size: 44px; line-height: 1; margin: 0; }
+.privacy p { margin: 0 0 12px; font-size: 15.5px; }
 
-.downloads { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.os { background: var(--surface); border-radius: 20px; padding: 22px; display: flex; flex-direction: column; gap: 10px; }
-.os h3 { font-size: 24px; margin: 0; }
-.os .btn { justify-content: center; font-size: 16px; padding: 12px 16px; }
-.os p { margin: 0; color: var(--muted); font-size: 15px; }
-.os .more { font-size: 14px; }
-.badge { font: 12px system-ui, sans-serif; background: var(--card); color: var(--muted); border-radius: 999px; padding: 2px 8px; vertical-align: middle; }
-
-@media (max-width: 860px) {
-  .hero { grid-template-columns: 1fr; padding-top: 8px; }
-  .grid, .downloads, .mini-wrap { grid-template-columns: 1fr; }
-  section { padding: 32px 0; }
+@media (max-width: 900px) {
+  .split, .privacy { grid-template-columns: 1fr; }
+  .downloads { grid-template-columns: 1fr; }
+  .panel { border-radius: 28px; }
 }
-@media (max-width: 420px) {
+@media (max-width: 520px) {
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .nav { gap: 6px 14px; }
+  .nav .hide-sm { display: none; }
   .time { font-size: 52px; }
+  .oval { aspect-ratio: 1.15; padding: 8% 6% 6%; }
 }
-@media (prefers-reduced-motion: reduce) { .btn { transition: none; } }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header class="top">
-    <a class="brand display" href="./"><img src="icon.svg" alt="" width="36" height="36">Pomolotl</a>
-    <nav>
-      <a class="chip hide-sm" href="#download" data-i18n="nav_download">Download</a>
-      <a class="chip" href="docs.html" data-i18n="nav_docs">Docs</a>
-      <a class="chip hide-sm" href="https://github.com/diegorezm/pomolotl">GitHub</a>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="g-petals8" viewBox="-20 -20 40 40"><ellipse rx="4.6" ry="9.5" cy="-9.5" transform="rotate(0.0)"/><ellipse rx="4.6" ry="9.5" cy="-9.5" transform="rotate(45.0)"/><ellipse rx="4.6" ry="9.5" cy="-9.5" transform="rotate(90.0)"/><ellipse rx="4.6" ry="9.5" cy="-9.5" transform="rotate(135.0)"/><ellipse rx="4.6" ry="9.5" cy="-9.5" transform="rotate(180.0)"/><ellipse rx="4.6" ry="9.5" cy="-9.5" transform="rotate(225.0)"/><ellipse rx="4.6" ry="9.5" cy="-9.5" transform="rotate(270.0)"/><ellipse rx="4.6" ry="9.5" cy="-9.5" transform="rotate(315.0)"/><circle r="3.2" class="eye"/></symbol>
+  <symbol id="g-quatre" viewBox="-20 -20 40 40"><path d="M0 -2 C -9 -6 -9 -19 0 -17 C 9 -19 9 -6 0 -2Z" transform="rotate(45.0)"/><path d="M0 -2 C -9 -6 -9 -19 0 -17 C 9 -19 9 -6 0 -2Z" transform="rotate(135.0)"/><path d="M0 -2 C -9 -6 -9 -19 0 -17 C 9 -19 9 -6 0 -2Z" transform="rotate(225.0)"/><path d="M0 -2 C -9 -6 -9 -19 0 -17 C 9 -19 9 -6 0 -2Z" transform="rotate(315.0)"/><circle r="3" class="eye"/></symbol>
+  <symbol id="g-sun" viewBox="-20 -20 40 40"><circle r="9.5"/><polygon points="-2.4,-10 2.4,-10 0,-19" transform="rotate(0.0)"/><polygon points="-2.4,-10 2.4,-10 0,-19" transform="rotate(22.5)"/><polygon points="-2.4,-10 2.4,-10 0,-19" transform="rotate(45.0)"/><polygon points="-2.4,-10 2.4,-10 0,-19" transform="rotate(67.5)"/><polygon points="-2.4,-10 2.4,-10 0,-19" transform="rotate(90.0)"/><polygon points="-2.4,-10 2.4,-10 0,-19" transform="rotate(112.5)"/><polygon points="-2.4,-10 2.4,-10 0,-19" transform="rotate(135.0)"/><polygon points="-2.4,-10 2.4,-10 0,-19" transform="rotate(157.5)"/><polygon points="-2.4,-10 2.4,-10 0,-19" transform="rotate(180.0)"/><polygon points="-2.4,-10 2.4,-10 0,-19" transform="rotate(202.5)"/><polygon points="-2.4,-10 2.4,-10 0,-19" transform="rotate(225.0)"/><polygon points="-2.4,-10 2.4,-10 0,-19" transform="rotate(247.5)"/><polygon points="-2.4,-10 2.4,-10 0,-19" transform="rotate(270.0)"/><polygon points="-2.4,-10 2.4,-10 0,-19" transform="rotate(292.5)"/><polygon points="-2.4,-10 2.4,-10 0,-19" transform="rotate(315.0)"/><polygon points="-2.4,-10 2.4,-10 0,-19" transform="rotate(337.5)"/></symbol>
+  <symbol id="g-sprig" viewBox="-20 -20 40 40"><path d="M0 19 V-6" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none"/><ellipse rx="5" ry="8" cy="-12"/><ellipse rx="4.4" ry="7.5" transform="translate(-7,-2) rotate(-50)"/><ellipse rx="4.4" ry="7.5" transform="translate(7,-2) rotate(50)"/><ellipse rx="4.4" ry="7.5" transform="translate(-7,8) rotate(-50)"/><ellipse rx="4.4" ry="7.5" transform="translate(7,8) rotate(50)"/></symbol>
+  <symbol id="g-daisy" viewBox="-20 -20 40 40"><circle r="6.2" cy="-11" transform="rotate(0.0)"/><circle r="6.2" cy="-11" transform="rotate(60.0)"/><circle r="6.2" cy="-11" transform="rotate(120.0)"/><circle r="6.2" cy="-11" transform="rotate(180.0)"/><circle r="6.2" cy="-11" transform="rotate(240.0)"/><circle r="6.2" cy="-11" transform="rotate(300.0)"/><circle r="6" class="eye"/></symbol>
+  <symbol id="g-blossom" viewBox="-20 -20 40 40"><path d="M0 0 C -8 -6 -7 -18 0 -19 C 7 -18 8 -6 0 0Z" transform="rotate(0.0)"/><path d="M0 0 C -8 -6 -7 -18 0 -19 C 7 -18 8 -6 0 0Z" transform="rotate(72.0)"/><path d="M0 0 C -8 -6 -7 -18 0 -19 C 7 -18 8 -6 0 0Z" transform="rotate(144.0)"/><path d="M0 0 C -8 -6 -7 -18 0 -19 C 7 -18 8 -6 0 0Z" transform="rotate(216.0)"/><path d="M0 0 C -8 -6 -7 -18 0 -19 C 7 -18 8 -6 0 0Z" transform="rotate(288.0)"/></symbol>
+  <symbol id="g-asterisk" viewBox="-20 -20 40 40"><rect x="-3.2" y="-19" width="6.4" height="19" rx="3.2" transform="rotate(0.0)"/><rect x="-3.2" y="-19" width="6.4" height="19" rx="3.2" transform="rotate(60.0)"/><rect x="-3.2" y="-19" width="6.4" height="19" rx="3.2" transform="rotate(120.0)"/><rect x="-3.2" y="-19" width="6.4" height="19" rx="3.2" transform="rotate(180.0)"/><rect x="-3.2" y="-19" width="6.4" height="19" rx="3.2" transform="rotate(240.0)"/><rect x="-3.2" y="-19" width="6.4" height="19" rx="3.2" transform="rotate(300.0)"/></symbol>
+  <symbol id="g-clover" viewBox="-20 -20 40 40"><circle r="7.5" cy="-8.5" transform="rotate(0.0)"/><circle r="7.5" cy="-8.5" transform="rotate(120.0)"/><circle r="7.5" cy="-8.5" transform="rotate(240.0)"/><path d="M0 4 Q 3 12 9 18" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none"/></symbol>
+  <symbol id="g-burst" viewBox="-20 -20 40 40"><polygon points="0.00,-19.00 2.85,-10.63 9.50,-16.45 7.78,-7.78 16.45,-9.50 10.63,-2.85 19.00,0.00 10.63,2.85 16.45,9.50 7.78,7.78 9.50,16.45 2.85,10.63 0.00,19.00 -2.85,10.63 -9.50,16.45 -7.78,7.78 -16.45,9.50 -10.63,2.85 -19.00,0.00 -10.63,-2.85 -16.45,-9.50 -7.78,-7.78 -9.50,-16.45 -2.85,-10.63"/><circle r="4" class="eye"/></symbol>
+</svg>
+<div class="page">
+
+<header class="panel green" id="top">
+  <div class="panel-in">
+    <nav class="nav caps" aria-label="Main">
+      <span class="orn" aria-hidden="true"></span>
+      <a class="hide-sm" href="#features" data-i18n="nav_features">Features</a>
+      <a class="hide-sm" href="#floating" data-i18n="nav_floating">Floating timer</a>
+      <a href="#download" data-i18n="nav_download">Download</a>
+      <a class="hide-sm" href="#faq" data-i18n="nav_faq">Questions</a>
+      <a href="docs.html" data-i18n="nav_docs">Docs</a>
+      <a class="hide-sm" href="https://github.com/diegorezm/pomolotl">GitHub</a>
       <a class="chip" id="lang" href="pt/" hreflang="pt-BR" lang="pt-BR" data-i18n="lang_switch">Português</a>
+      <span class="orn" aria-hidden="true"></span>
     </nav>
-  </header>
-
-  <main>
     <div class="hero">
-      <div>
-        <p class="eyebrow" data-i18n="eyebrow">Free Pomodoro timer for Windows, Linux and macOS</p>
-        <h1 class="display" data-i18n="h1">A cozy Pomodoro timer with a little friend</h1>
-        <p class="lead" data-i18n="lead">Focus for 25 minutes, rest for 5. Pomolotl keeps time from your system tray, and its companion works and rests with you.</p>
-        <div class="cta">
-          <a class="btn display" id="main-download" href="https://github.com/diegorezm/pomolotl/releases/latest">
-            <span data-i18n="download">Download</span><small id="main-os"></small>
-          </a>
-          <a class="link" href="#download" data-i18n="other_systems">Other systems</a>
+      <div class="oval">
+        <div class="parade" aria-hidden="true">
+          <img src="characters/capybara/idle.svg" alt="" width="200" height="160">
+          <img src="characters/axolotl/focus.svg" alt="" width="200" height="160">
+          <img src="characters/tomato/idle.svg" alt="" width="200" height="160">
         </div>
-        <p class="meta" data-i18n="meta">Free and open source (MIT) · Windows, Linux, macOS · No account, no ads</p>
+        <h1 class="wordmark"><i>Pomo</i>lotl</h1>
+        <p class="caps" data-i18n="eyebrow">Free Pomodoro timer for Windows, Linux and macOS</p>
       </div>
+      <div class="cta">
+        <a class="btn" id="main-download" href="https://github.com/diegorezm/pomolotl/releases/latest">
+          <span data-i18n="download">Download</span><small id="main-os"></small>
+        </a>
+        <a class="btn ghost" href="#download" data-i18n="other_systems">Other systems</a>
+      </div>
+      <p class="meta-line" data-i18n="meta">Free and open source (MIT) · Windows, Linux, macOS · No account, no ads</p>
+      <a class="scroll caps" href="#try">
+        <span data-i18n="scroll">Scroll to focus</span>
+        <svg viewBox="0 0 22 12" aria-hidden="true"><path d="M1 1l10 10L21 1" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+      </a>
+    </div>
+  </div>
+</header>
 
+<main>
+<section class="panel cream" id="try">
+  <div class="panel-in">
+    <div class="split">
+      <div>
+        <p class="caps eyebrow" data-i18n="try_label">Try it here</p>
+        <h2 class="display" data-i18n="h1">A cozy Pomodoro timer with a little friend</h2>
+        <p class="lead" data-i18n="lead">Focus for 25 minutes, rest for 5. Pomolotl keeps time from your system tray, and its companion works and rests with you.</p>
+        <a class="text-link caps" href="#features"><span class="orn" aria-hidden="true"></span><span data-i18n="see_features">See what it does</span><span class="orn" aria-hidden="true"></span></a>
+      </div>
       <div class="demo" id="demo" data-phase="focus">
         <div class="tabs" role="group" aria-label="Phase">
           <button class="tab" type="button" data-phase="focus" aria-pressed="true" data-i18n="focus">Focus</button>
@@ -209,7 +295,7 @@ section > .wrap > p.sub { color: var(--muted); margin: 0 0 28px; max-width: 40em
           <button class="tab" type="button" data-phase="long" aria-pressed="false" data-i18n="long">Long</button>
         </div>
         <div class="stage"><img id="pose" src="characters/axolotl/idle.svg" alt="The axolotl companion" width="200" height="160"></div>
-        <div class="time display" id="time" aria-live="off">25:00</div>
+        <div class="time" id="time" aria-live="off">25:00</div>
         <div class="bar"><i id="progress"></i></div>
         <div class="controls">
           <button class="icon-btn" id="reset" type="button" aria-label="Restart">
@@ -223,146 +309,194 @@ section > .wrap > p.sub { color: var(--muted); margin: 0 0 28px; max-width: 40em
           </button>
         </div>
         <div class="friends" role="group" aria-label="Character">
-          <button class="friend" type="button" data-char="axolotl" aria-pressed="true" title="Axolotl"><img src="characters/axolotl/idle.svg" alt="Axolotl" width="56" height="45"></button>
-          <button class="friend" type="button" data-char="capybara" aria-pressed="false" title="Capybara"><img src="characters/capybara/idle.svg" alt="Capybara" width="56" height="45"></button>
-          <button class="friend" type="button" data-char="tomato" aria-pressed="false" title="Tomato"><img src="characters/tomato/idle.svg" alt="Tomato" width="56" height="45"></button>
+          <button class="friend" type="button" data-char="axolotl" aria-pressed="true" title="Axolotl"><img src="characters/axolotl/idle.svg" alt="Axolotl" width="54" height="43"></button>
+          <button class="friend" type="button" data-char="capybara" aria-pressed="false" title="Capybara"><img src="characters/capybara/idle.svg" alt="Capybara" width="54" height="43"></button>
+          <button class="friend" type="button" data-char="tomato" aria-pressed="false" title="Tomato"><img src="characters/tomato/idle.svg" alt="Tomato" width="54" height="43"></button>
         </div>
       </div>
     </div>
-  </main>
-</div>
-
-<section>
-  <div class="wrap">
     <img class="shot" src="screenshot.png" width="1488" height="500" loading="lazy"
          alt="Pomolotl in four looks: axolotl on a dark theme, tomato on a light theme, capybara on a warm theme and the classic ring layout">
   </div>
 </section>
 
-<section id="floating">
-  <div class="wrap mini-wrap">
-    <div>
-      <h2 class="display" data-i18n="mini_h">Always in sight</h2>
-      <p class="sub" data-i18n="mini_sub">Turn on the floating timer and a little window stays in a corner of your screen, on top of everything: time left, phase and your companion. It keeps going while Pomolotl hides in the tray.</p>
-      <p class="hint-line" data-i18n-html="mini_how">Try it: drag it around, pull its corner to resize it. In the app: the <code>M</code> key, the tray menu or <code>pomolotl --mini</code>.</p>
-    </div>
-    <div class="desk" id="desk" aria-hidden="true">
-      <div class="app" style="left:6%;top:12%;width:46%;height:62%"></div>
-      <div class="app" style="left:30%;top:40%;width:40%;height:48%"></div>
-      <div class="float" id="float">
-        <img id="float-pose" src="characters/axolotl/idle.svg" alt="" width="200" height="160">
-        <div class="t"><div class="float-time display" id="float-time">25:00</div><div class="float-phase display" id="float-phase">Focus</div></div>
-        <i class="bar2"><b id="float-progress"></b></i>
-        <span class="grip" id="grip"></span>
+<section class="panel cream" id="features">
+  <div class="panel-in">
+    <div class="split">
+      <div>
+        <p class="caps eyebrow" data-i18n="features_label">Features</p>
+        <h2 class="display" data-i18n="features_h">Small, pretty, yours</h2>
+        <p class="lead" data-i18n="features_sub">Everything a Pomodoro timer needs, nothing it doesn't.</p>
+        <a class="text-link caps" href="docs.html"><span class="orn" aria-hidden="true"></span><span data-i18n="guide_link">Configuration guide</span><span class="orn" aria-hidden="true"></span></a>
+      </div>
+      <div class="tiles">
+        <article class="tile ink">
+          <svg class="glyph" aria-hidden="true"><use href="#g-petals8"/></svg>
+          <h3 class="caps" data-i18n="f1_h">A companion</h3>
+          <p data-i18n="f1">An axolotl, a capybara or a tomato that waves, works, relaxes and naps with you. Or draw your own as SVG.</p>
+        </article>
+        <article class="tile cobalt">
+          <svg class="glyph" aria-hidden="true"><use href="#g-quatre"/></svg>
+          <h3 class="caps" data-i18n="f7_h">Floating timer</h3>
+          <p data-i18n="f7">A tiny always-on-top window with the time left. Put it in any corner, at any size.</p>
+        </article>
+        <article class="tile ink">
+          <svg class="glyph" aria-hidden="true"><use href="#g-sun"/></svg>
+          <h3 class="caps" data-i18n="f2_h">Lives in the tray</h3>
+          <p data-i18n="f2">Close the window and the timer keeps going. A sound and a notification tell you when it's time.</p>
+        </article>
+        <article class="tile cobalt">
+          <svg class="glyph" aria-hidden="true"><use href="#g-sprig"/></svg>
+          <h3 class="caps" data-i18n="f3_h">Make it yours</h3>
+          <p data-i18n-html="f3">Themes, layouts, sounds, shortcuts and durations. Everything lives in one <code>config.toml</code> you can edit live (<a href="docs.html">guide</a>).</p>
+        </article>
+        <article class="tile ink">
+          <svg class="glyph" aria-hidden="true"><use href="#g-daisy"/></svg>
+          <h3 class="caps" data-i18n="f4_h">Featherweight</h3>
+          <p data-i18n="f4">0% CPU when paused, about 12 MB of memory open and 7 MB in the tray.</p>
+        </article>
+        <article class="tile cobalt">
+          <svg class="glyph" aria-hidden="true"><use href="#g-asterisk"/></svg>
+          <h3 class="caps" data-i18n="f8_h">Settings you can read</h3>
+          <p data-i18n="f8">A roomy, searchable settings window with every option explained in plain words. Changes show up live.</p>
+        </article>
+        <article class="tile ink">
+          <svg class="glyph" aria-hidden="true"><use href="#g-blossom"/></svg>
+          <h3 class="caps" data-i18n="f5_h">Picks up where you left off</h3>
+          <p data-i18n="f5">Restarted your computer mid-session? It resumes. And it counts your focus time per day.</p>
+        </article>
+        <article class="tile cobalt">
+          <svg class="glyph" aria-hidden="true"><use href="#g-burst"/></svg>
+          <h3 class="caps" data-i18n="f9_h">Shortcuts everywhere</h3>
+          <p data-i18n-html="f9">Keys inside the app, plus <code>pomolotl --toggle</code> and friends to bind global shortcuts.</p>
+        </article>
+        <article class="tile ink">
+          <svg class="glyph" aria-hidden="true"><use href="#g-clover"/></svg>
+          <h3 class="caps" data-i18n="f6_h">Private</h3>
+          <p data-i18n="f6">No account, no telemetry, no ads. Your data stays on your computer.</p>
+        </article>
       </div>
     </div>
   </div>
 </section>
 
-<section>
-  <div class="wrap">
-    <h2 class="display" data-i18n="features_h">Small, pretty, yours</h2>
-    <p class="sub" data-i18n="features_sub">Everything a Pomodoro timer needs, nothing it doesn't.</p>
-    <div class="grid">
-      <div class="feature"><div class="emoji">🦎</div><h3 class="display" data-i18n="f1_h">A companion</h3><p data-i18n="f1">An axolotl, a capybara or a tomato that waves, works, relaxes and naps with you. Or draw your own as SVG.</p></div>
-      <div class="feature"><div class="emoji">🔔</div><h3 class="display" data-i18n="f2_h">Lives in the tray</h3><p data-i18n="f2">Close the window and the timer keeps going. A sound and a notification tell you when it's time.</p></div>
-      <div class="feature"><div class="emoji">🎨</div><h3 class="display" data-i18n="f3_h">Make it yours</h3><p data-i18n-html="f3">Themes, layouts, sounds, shortcuts and durations. Everything lives in one <code>config.toml</code> you can edit live (<a href="docs.html">guide</a>).</p></div>
-      <div class="feature"><div class="emoji">🪶</div><h3 class="display" data-i18n="f4_h">Featherweight</h3><p data-i18n="f4">0% CPU when paused, about 12 MB of memory open and 7 MB in the tray.</p></div>
-      <div class="feature"><div class="emoji">📈</div><h3 class="display" data-i18n="f5_h">Picks up where you left off</h3><p data-i18n="f5">Restarted your computer mid-session? It resumes. And it counts your focus time per day.</p></div>
-      <div class="feature"><div class="emoji">🔒</div><h3 class="display" data-i18n="f6_h">Private</h3><p data-i18n="f6">No account, no telemetry, no ads. Your data stays on your computer.</p></div>
-      <div class="feature"><div class="emoji">🪟</div><h3 class="display" data-i18n="f7_h">Floating timer</h3><p data-i18n="f7">A tiny always-on-top window with the time left. Put it in any corner, at any size.</p></div>
-      <div class="feature"><div class="emoji">⚙️</div><h3 class="display" data-i18n="f8_h">Settings you can read</h3><p data-i18n="f8">A roomy, searchable settings window with every option explained in plain words. Changes show up live.</p></div>
-      <div class="feature"><div class="emoji">⌨️</div><h3 class="display" data-i18n="f9_h">Shortcuts everywhere</h3><p data-i18n-html="f9">Keys inside the app, plus <code>pomolotl --toggle</code> and friends to bind global shortcuts.</p></div>
+<section class="panel cobalt-panel" id="floating">
+  <div class="panel-in">
+    <div class="split">
+      <div>
+        <p class="caps eyebrow" data-i18n="floating_label">Floating timer</p>
+        <h2 class="display" data-i18n="mini_h">Always in sight</h2>
+        <p class="lead" data-i18n="mini_sub">Turn on the floating timer and a little window stays in a corner of your screen, on top of everything: time left, phase and your companion. It keeps going while Pomolotl hides in the tray.</p>
+        <p class="lead" data-i18n-html="mini_how">Try it: drag it around, pull its corner to resize it. In the app: the <code>M</code> key, the tray menu or <code>pomolotl --mini</code>.</p>
+      </div>
+      <div class="desk" id="desk" aria-hidden="true">
+        <div class="app" style="left:6%;top:12%;width:46%;height:62%"></div>
+        <div class="app" style="left:30%;top:40%;width:40%;height:48%"></div>
+        <div class="float" id="float">
+          <img id="float-pose" src="characters/axolotl/idle.svg" alt="" width="200" height="160">
+          <div class="t"><div class="float-time" id="float-time">25:00</div><div class="float-phase" id="float-phase">Focus</div></div>
+          <i class="bar2"><b id="float-progress"></b></i>
+          <span class="grip" id="grip"></span>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
-<section id="download">
-  <div class="wrap">
+<section class="panel green" id="download">
+  <div class="panel-in">
+    <p class="caps eyebrow" data-i18n="download_label">Windows · Linux · macOS</p>
     <h2 class="display" data-i18n="dl_h">Download</h2>
-    <p class="sub" data-i18n="dl_sub">Free forever. Pick your system.</p>
+    <p class="lead" data-i18n="dl_sub">Free forever. Pick your system.</p>
     <div class="downloads">
-      <div class="os">
-        <h3 class="display">Windows</h3>
-        <a class="btn display" href="https://github.com/diegorezm/pomolotl/releases/latest/download/pomolotl-setup.exe" data-i18n="dl_win">Installer (.exe)</a>
+      <div class="os paper">
+        <h3>Windows</h3>
+        <a class="btn" href="https://github.com/diegorezm/pomolotl/releases/latest/download/pomolotl-setup.exe" data-i18n="dl_win">Installer (.exe)</a>
         <p data-i18n="win_note">Click Next until the end; no admin password needed. If you see "Windows protected your PC", click More info → Run anyway (the installer isn't signed yet).</p>
         <a class="more" href="https://github.com/diegorezm/pomolotl/releases/latest/download/pomolotl-windows-portable.zip" data-i18n="win_portable">Portable version (.zip)</a>
       </div>
-      <div class="os">
-        <h3 class="display">Linux <span class="badge">beta</span></h3>
-        <a class="btn display" href="https://github.com/diegorezm/pomolotl/releases/latest/download/pomolotl-linux-amd64.deb" data-i18n="dl_deb">Ubuntu / Debian (.deb)</a>
+      <div class="os blue">
+        <h3>Linux <span class="badge">beta</span></h3>
+        <a class="btn" href="https://github.com/diegorezm/pomolotl/releases/latest/download/pomolotl-linux-amd64.deb" data-i18n="dl_deb">Ubuntu / Debian (.deb)</a>
         <p data-i18n-html="linux_note">Double-click it, or <code>sudo apt install ./pomolotl-linux-amd64.deb</code>. On GNOME, the AppIndicator extension shows the tray icon.</p>
         <a class="more" href="https://github.com/diegorezm/pomolotl/releases/latest/download/pomolotl-linux-x86_64.tar.gz" data-i18n="linux_tar">Other distros (.tar.gz)</a>
         <a class="more" href="https://github.com/diegorezm/pomolotl/releases/latest/download/pomolotl-linux-arm64.deb" data-i18n="linux_arm">ARM64 / Raspberry Pi (.deb)</a>
       </div>
-      <div class="os">
-        <h3 class="display">macOS <span class="badge">beta</span></h3>
-        <a class="btn display" href="https://github.com/diegorezm/pomolotl/releases/latest/download/pomolotl-macos.dmg" data-i18n="dl_mac">Apple Silicon + Intel (.dmg)</a>
+      <div class="os ink">
+        <h3>macOS <span class="badge">beta</span></h3>
+        <a class="btn" href="https://github.com/diegorezm/pomolotl/releases/latest/download/pomolotl-macos.dmg" data-i18n="dl_mac">Apple Silicon + Intel (.dmg)</a>
         <p data-i18n="mac_note">Drag Pomolotl into Applications. The first time, right-click it → Open → Open (it isn't notarized by Apple).</p>
       </div>
     </div>
   </div>
 </section>
 
-<section id="faq">
-  <div class="wrap">
-    <h2 class="display" data-i18n="faq_h">Questions</h2>
-    <div class="faqs">
-      <details class="faq">
-        <summary data-i18n="faq1_q">Is Pomolotl really free?</summary>
-        <p data-i18n-html="faq1_a">Yes. It's free and open source (MIT license): no ads, no account, no paid version, no trial.</p>
-      </details>
-      <details class="faq">
-        <summary data-i18n="faq2_q">Does it work on Windows 10 and Windows 11?</summary>
-        <p data-i18n-html="faq2_a">Yes. Use the installer (no admin password needed) or the portable .zip. There are also versions for Linux (.deb and .tar.gz) and macOS (Apple Silicon and Intel).</p>
-      </details>
-      <details class="faq">
-        <summary data-i18n="faq3_q">Can I keep the timer visible while I work?</summary>
-        <p data-i18n-html="faq3_a">Yes. Turn on the floating timer: a small window that stays on top of other apps, in any corner and at any size. Pomolotl can also hide in the system tray, where its icon shows the progress.</p>
-      </details>
-      <details class="faq">
-        <summary data-i18n="faq4_q">Can I change the 25 and 5 minute times?</summary>
-        <p data-i18n-html="faq4_a">Yes. Focus, short break, long break and the number of sessions before the long break are all adjustable (50/10, for example). Breaks and focus can also start by themselves.</p>
-      </details>
-      <details class="faq">
-        <summary data-i18n="faq5_q">Does it work offline?</summary>
-        <p data-i18n-html="faq5_a">Yes. Pomolotl doesn't need the internet. The only connection is an optional once-a-day check for new versions, which you can turn off.</p>
-      </details>
-      <details class="faq">
-        <summary data-i18n="faq6_q">Will it slow down my computer?</summary>
-        <p data-i18n-html="faq6_a">No. It uses 0% CPU while paused and about 12 MB of memory with the window open (7 MB in the tray).</p>
-      </details>
-      <details class="faq">
-        <summary data-i18n="faq7_q">Can I control it with keyboard shortcuts?</summary>
-        <p data-i18n-html="faq7_a">Yes. <code>Space</code> starts and pauses, <code>S</code> skips, <code>R</code> restarts and <code>M</code> shows the floating timer; every key can be changed. For shortcuts that work in any app, bind <code>pomolotl --toggle</code> to a key in your system (<a href="docs.html#cli">how</a>).</p>
-      </details>
-      <details class="faq">
-        <summary data-i18n="faq8_q">Why does Windows show a warning when I install it?</summary>
-        <p data-i18n-html="faq8_a">The installer isn't digitally signed yet: certificates cost money and Pomolotl is a free hobby project. Click More info → Run anyway. The source code is public and every release is built from it by GitHub Actions.</p>
-      </details>
-      <details class="faq">
-        <summary data-i18n="faq9_q">What is the Pomodoro technique?</summary>
-        <p data-i18n-html="faq9_a">A way to work in short, focused bursts: 25 minutes of focus, a 5-minute break, and a longer break after 4 sessions. It makes it easier to start, to stay focused and to rest before you get tired.</p>
-      </details>
+<section class="panel cream" id="faq">
+  <div class="panel-in">
+    <div class="split faq-split">
+      <div>
+        <p class="caps eyebrow" data-i18n="faq_label">FAQ</p>
+        <h2 class="display" data-i18n="faq_h">Questions</h2>
+      </div>
+      <div class="faqs">
+        <details class="faq">
+          <summary data-i18n="faq1_q">Is Pomolotl really free?</summary>
+          <p data-i18n-html="faq1_a">Yes. It's free and open source (MIT license): no ads, no account, no paid version, no trial.</p>
+        </details>
+        <details class="faq">
+          <summary data-i18n="faq2_q">Does it work on Windows 10 and Windows 11?</summary>
+          <p data-i18n-html="faq2_a">Yes. Use the installer (no admin password needed) or the portable .zip. There are also versions for Linux (.deb and .tar.gz) and macOS (Apple Silicon and Intel).</p>
+        </details>
+        <details class="faq">
+          <summary data-i18n="faq3_q">Can I keep the timer visible while I work?</summary>
+          <p data-i18n-html="faq3_a">Yes. Turn on the floating timer: a small window that stays on top of other apps, in any corner and at any size. Pomolotl can also hide in the system tray, where its icon shows the progress.</p>
+        </details>
+        <details class="faq">
+          <summary data-i18n="faq4_q">Can I change the 25 and 5 minute times?</summary>
+          <p data-i18n-html="faq4_a">Yes. Focus, short break, long break and the number of sessions before the long break are all adjustable (50/10, for example). Breaks and focus can also start by themselves.</p>
+        </details>
+        <details class="faq">
+          <summary data-i18n="faq5_q">Does it work offline?</summary>
+          <p data-i18n-html="faq5_a">Yes. Pomolotl doesn't need the internet. The only connection is an optional once-a-day check for new versions, which you can turn off.</p>
+        </details>
+        <details class="faq">
+          <summary data-i18n="faq6_q">Will it slow down my computer?</summary>
+          <p data-i18n-html="faq6_a">No. It uses 0% CPU while paused and about 12 MB of memory with the window open (7 MB in the tray).</p>
+        </details>
+        <details class="faq">
+          <summary data-i18n="faq7_q">Can I control it with keyboard shortcuts?</summary>
+          <p data-i18n-html="faq7_a">Yes. <code>Space</code> starts and pauses, <code>S</code> skips, <code>R</code> restarts and <code>M</code> shows the floating timer; every key can be changed. For shortcuts that work in any app, bind <code>pomolotl --toggle</code> to a key in your system (<a href="docs.html#cli">how</a>).</p>
+        </details>
+        <details class="faq">
+          <summary data-i18n="faq8_q">Why does Windows show a warning when I install it?</summary>
+          <p data-i18n-html="faq8_a">The installer isn't digitally signed yet: certificates cost money and Pomolotl is a free hobby project. Click More info → Run anyway. The source code is public and every release is built from it by GitHub Actions.</p>
+        </details>
+        <details class="faq">
+          <summary data-i18n="faq9_q">What is the Pomodoro technique?</summary>
+          <p data-i18n-html="faq9_a">A way to work in short, focused bursts: 25 minutes of focus, a 5-minute break, and a longer break after 4 sessions. It makes it easier to start, to stay focused and to rest before you get tired.</p>
+        </details>
+      </div>
     </div>
   </div>
 </section>
 
-<section id="privacy">
-  <div class="wrap">
-    <div class="policy">
-      <h3 class="display" data-i18n="privacy_h">Privacy</h3>
+<section class="panel cream" id="privacy">
+  <div class="panel-in privacy">
+    <h3 data-i18n="privacy_h">Privacy</h3>
+    <div>
       <p data-i18n="privacy_1">Pomolotl has no accounts, no telemetry and no ads. Your settings, statistics and session stay on your computer.</p>
       <p data-i18n-html="privacy_2">The only network request is the update check: once a day Pomolotl asks GitHub's public API (<code>api.github.com</code>) for the number of the latest version. Nothing about you is sent; GitHub sees a normal web request (see <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement">GitHub's privacy statement</a>). It never downloads or installs anything by itself. Turn it off in the settings, with <code>check_updates = false</code>, or in the Windows installer.</p>
     </div>
   </div>
 </section>
+</main>
 
 <footer>
   <div class="wrap">
     <span data-i18n-html="footer">Made with Rust and <a href="https://github.com/emilk/egui">egui</a> · <a href="docs.html">Configuration guide</a> · <a href="https://github.com/diegorezm/pomolotl">Source code</a> · MIT license</span>
   </div>
 </footer>
+</div>
 
 <script src="lang.js"></script>
 <script>
@@ -371,8 +505,6 @@ section > .wrap > p.sub { color: var(--muted); margin: 0 0 28px; max-width: 40em
   const PT = document.documentElement.lang === "pt-BR";
   const ROOT = document.documentElement.dataset.root || "";
   const OS_NAMES = { windows: "Windows", mac: "macOS", linux: "Linux (.deb)" };
-  });
-  applyLang();
 
   // ---- main download button follows the visitor's OS ----
   const ua = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || navigator.userAgent;
@@ -465,8 +597,8 @@ section > .wrap > p.sub { color: var(--muted); margin: 0 0 28px; max-width: 40em
     if (e.target.id === "grip") follow(e, (s, dx, dy) => { box.w = s.w + dx; box.h = s.h + dy; });
     else follow(e, (s, dx, dy) => { box.x = s.x + dx; box.y = s.y + dy; });
   });
-  addEventListener("resize", place);
-  place();
+  // Re-place whenever the desk changes size (first layout, fonts, window resize).
+  new ResizeObserver(() => { if (desk.clientWidth) place(); }).observe(desk);
 })();
 </script>
 </body>

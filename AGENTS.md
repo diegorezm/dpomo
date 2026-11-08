@@ -324,6 +324,11 @@ The release job only publishes if every smoke test passes.
 - FAQPage structured data is generated from the visible `<details class="faq">` items (keep the answers
   true: Google penalizes markup that doesn't match the page). `sitemap.xml` is generated too.
 - `llms.txt` is a plain summary for AI assistants/crawlers: keep it factual and in sync with features.
+Look (one theme on purpose, no dark variant): sky-blue page, rounded panels with a blue frame in
+green / cream / cobalt, Instrument Serif for headlines, Archivo expanded caps (`.caps`) for labels, flower
+glyphs (`<symbol id="g-…">` sprite at the top of `index.html`) on the black/cobalt feature tiles, the
+characters parading in the hero oval. Fonts are self-hosted, Latin-subset woff2 in `site/fonts/` (OFL
+licenses next to them; no Google Fonts requests); the demo's digits keep the app's Lilita One.
 New characters show up only if added to the `.friends` buttons. Keep the privacy text in sync with the
 README. Preview: `python site/build.py && python -m http.server -d _site`.
 
