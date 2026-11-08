@@ -56,5 +56,5 @@ The release workflow now installs every package on fresh Windows, Ubuntu 22.04/2
 
 - [x] Website on GitHub Pages: https://diegorezm.github.io/dpomo/ (free, no custom domain).
 - [ ] Publish to winget / Scoop / Homebrew / AUR.
-- [ ] Website: add the Google Search Console verification tag in `site/index.html` and submit
-      `sitemap.xml` (needs the owner's Google account).
+- [x] Website: Google Search Console ownership file (`site/google73dd98d454ee7b5e.html`).
+- [ ] Search Console: click Verify, then submit `sitemap.xml` (owner's Google account).

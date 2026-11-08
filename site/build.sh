@@ -6,6 +6,7 @@ cd "$(dirname "$0")/.."
 rm -rf _site
 mkdir -p _site
 cp site/index.html site/docs.html site/style.css site/robots.txt site/sitemap.xml _site/
+cp site/google*.html _site/  # Search Console ownership file
 cp assets/icon.svg assets/icon.png assets/screenshot.png assets/fonts/LilitaOne-Regular.ttf _site/
 for dir in characters/*/; do
   id=$(basename "$dir")
